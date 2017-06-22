@@ -45,6 +45,7 @@
 #define ZAIMONI_STL_IN_MEMORY_CPP 1
 
 #include "../z_memory.h"
+#include "../Pure.C/format_util.h"
 
 #undef ZAIMONI_STL_IN_MEMORY_CPP
 
@@ -586,21 +587,17 @@ static void __DetectOverwrites(void)
 			char* Target = CurrentOffset->_address;
 			size_t TargetSize = CurrentOffset->_size;
 #ifdef __cplusplus
-			if (NULL!=reinterpret_cast<void**>(Target+TargetSize)[0])	// #2
+#define VOID_CAST reinterpret_cast<void**>
 #else
-			if (NULL!=((void**)(Target+TargetSize))[0])	// #2
+#define VOID_CAST (void**)
 #endif
+			if (NULL!=(VOID_CAST(Target+TargetSize))[0])
 				{	// FATAL ERROR CODE
 				char Buffer[10];
 				ReportError(InvalidWriteDetected);
-#ifdef __cplusplus
-				_ltoa((size_t)(reinterpret_cast<void**>(Target+TargetSize)[0]),Buffer,16);
-#else
-				_ltoa((size_t)(((void**)(Target+TargetSize))[0]),Buffer,16);
-#endif
-				ReportError(Buffer);
-				_ltoa(TargetSize,Buffer,10);
-				__ReportErrorAndCrash(Buffer);
+				ReportError(z_umaxtoa((size_t)((VOID_CAST(Target+TargetSize))[0]),Buffer,16));
+#undef VOID_CAST
+				__ReportErrorAndCrash(z_umaxtoa(TargetSize,Buffer,10));
 				};
 			}
 		while(0<i);
