@@ -8,7 +8,7 @@ include ../POSIX.inc
 
 CFLAGS := -Os -Wall -Wextra -finline -Winline -Wdisabled-optimization --param max-inline-insns-single=500 -pipe -DNDEBUG
 
-LIBS := libz_format_util.a libz_stdio_c.a
+LIBS := libz_format_util.a libz_logging.a libz_stdio_c.a
 
 # GNU targets we know about
 all: auto_int.h comptest.h $(LIBS)
@@ -41,12 +41,18 @@ comptest.h : comptest.in compile.test/exists_MS_io_h.c
 libz_format_util.a: format_util.o
 	$(AR) -ru libz_format_util.a format_util.o
 
+libz_logging.a: logging.o
+	$(AR) -ru libz_logging.a logging.o
+
 libz_stdio_c.a: stdio_c.o
 	$(AR) -ru libz_stdio_c.a stdio_c.o
 
 ../../$(host_libdir)/libz_format_util.a: libz_format_util.a
 	cp libz_format_util.a ../../$(host_libdir)/libz_format_util.a
-	
+
+../../$(host_libdir)/libz_logging.a: libz_logging.a
+	cp libz_logging.a ../../$(host_libdir)/libz_logging.a
+		
 ../../$(host_libdir)/libz_stdio_c.a: libz_stdio_c.a
 	cp libz_stdio_c.a ../../$(host_libdir)/libz_stdio_c.a
 
