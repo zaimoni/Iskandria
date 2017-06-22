@@ -6,7 +6,7 @@
 #include "../Logging.h"
 #include "../pure.C/format_util.h"
 #include <limits.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 // intmax_t
 void LOG(intmax_t B) {
@@ -25,7 +25,8 @@ void LOG(uintmax_t B) {
 // long double
 void LOG(long double B) {
 	char buf[25];
-	_gcvt(B,10,buf);
+	sprintf(buf,"%Lf",B);
+//	_gcvt(B,10,buf);
 	_log(buf,strlen(buf));
 }
 

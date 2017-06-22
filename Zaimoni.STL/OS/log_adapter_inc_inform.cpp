@@ -6,7 +6,7 @@
 #include "../Logging.h"
 #include "../pure.C/format_util.h"
 #include <limits.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 // intmax_t
 void INC_INFORM(intmax_t B) {
@@ -25,7 +25,8 @@ void INC_INFORM(uintmax_t B) {
 // long double
 void INC_INFORM(long double B) {
 	char buf[25];
-	_gcvt(B,10,buf);
+	sprintf(buf,"%Lf",B);
+//	_gcvt(B,10,buf);
 	_inc_inform(buf,strlen(buf));
 }
 
