@@ -1,0 +1,22 @@
+#include "stl_diagnose.hpp"
+
+#ifndef ZAIMONI_HAS_STD_COPY_N
+
+namespace std {
+
+// we'd like a version that reduces to memmove when appropriate
+template<class InputIterator,class Size,class OutputIterator>
+OutputIterator copy_n(InputIterator first, Size n, OutputIterator result)
+{
+	while(0<n)
+		{
+		*(result++) = *(first++); 
+		--n;
+		}
+	return result;
+}
+
+}	// namespace std
+
+#endif
+

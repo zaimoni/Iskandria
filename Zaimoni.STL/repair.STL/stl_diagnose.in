@@ -1,0 +1,10 @@
+// algorithm_repair.hpp
+// compile test summary for C++ header algorithm properties
+// (C)2015 Kenneth Boyd, license: MIT.txt
+
+// ZAIMONI_HAS_STD_COPY_N: #include <algorithm> provides std::copy_n
+// ZAIMONI_HAS_STD_UNIQUE_PTR: #include <memory> provides std::unique_ptr (which is a strict upgrade of std::auto_ptr)
+// ZAIMONI_HAS_STD_AUTO_PTR: #include <memory> provides std::auto_ptr
+// ZAIMONI_HAS_HEADER_TYPE_TRAITS: #include <type_traits> exists
+
+

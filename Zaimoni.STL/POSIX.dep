@@ -1,0 +1,6 @@
+# complicated include-file tracking
+
+# non-chained includes
+# Logging.h
+Logging_h = Logging.h Compiler.h
+

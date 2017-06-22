@@ -1,0 +1,10 @@
+// Zaimoni.STL/repair.STL/type_traits
+#ifndef ZAIMONI_STL_REPAIR_STL_TYPE_TRAITS
+#define ZAIMONI_STL_REPAIR_STL_TYPE_TRAITS 1
+
+#include "stl_diagnose.hpp"
+
+#ifdef ZAIMONI_HAS_HEADER_TYPE_TRAITS
+#include <type_traits>
+#else
+

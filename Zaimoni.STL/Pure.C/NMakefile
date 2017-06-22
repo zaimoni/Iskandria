@@ -1,0 +1,59 @@
+# Makefile for pure.C directory
+# assumes M$ NMake
+
+.SUFFIXES:
+.SUFFIXES: .c .lib .obj
+
+!INCLUDE ..\NMake.inc
+
+# /Wall warns on system headers in VC 2008, not good
+CFLAGS = /O1 /EHsc /MD /W3
+
+LIBS = z_format_util.lib z_stdio_c.lib
+
+# GNU targets we know about
+all: auto_int.h comptest.h $(LIBS)
+
+clean:
+	del *.lib *.obj auto_int.h comptest.h
+
+install: $(libdir)\z_format_util.lib $(libdir)\z_stdio_c.lib
+
+uninstall:
+	del $(libdir)\z_format_util.lib
+	del $(libdir)\z_stdio_c.lib
+
+# rules
+format_util.obj: format_util.c format_util.h
+stdio_c.obj: stdio_c.c stdio_c.h
+
+auto_int.h : int_probe.c
+	$(CC) /OUT:int_probe.exe $(CFLAGS) int_probe.c
+	.\int_probe.exe > auto_int.h
+	del int_probe.exe.manifest
+	del int_probe.exe
+
+comptest.h : comptest.in compile.test/exists_MS_io_h.c
+	copy comptest.in comptest.h
+	$(CC) /OUT:exists_MS_io_h.exe $(CFLAGS) compile.test/exists_MS_io_h.c
+	.\exists_MS_io_h.exe >> comptest.h
+	del exists_MS_io_h.exe.manifest
+	del exists_MS_io_h.exe
+	$(CC) /OUT:realloc_0.exe $(CFLAGS) compile.test/realloc_0.c
+	.\realloc_0.exe >> comptest.h
+	del realloc_0.exe.manifest
+	del realloc_0.exe
+
+# defaulting .c.obj
+z_format_util.lib: format_util.obj
+	$(AR) /OUT:z_format_util.lib format_util.obj
+
+z_stdio_c.lib: stdio_c.obj
+	$(AR) /OUT:z_stdio_c.lib stdio_c.obj
+
+$(libdir)\z_format_util.lib: z_format_util.lib
+	copy /Y z_format_util.lib $(libdir)\z_format_util.lib
+	
+$(libdir)\z_stdio_c.lib: z_stdio_c.lib
+	copy /Y z_stdio_c.lib $(libdir)\z_stdio_c.lib
+

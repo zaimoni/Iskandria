@@ -1,0 +1,6 @@
+// Zaimoni.STL/repair.STL/algorithm
+#ifndef ZAIMONI_STL_REPAIR_STL_ALGORITHM
+#define ZAIMONI_STL_REPAIR_STL_ALGORITHM 1
+
+#include <algorithm>
+

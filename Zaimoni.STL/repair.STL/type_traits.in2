@@ -1,0 +1,262 @@
+
+namespace std {
+
+template<class T, T v>
+struct integral_constant {
+	enum {value=v};
+	typedef T value_type;
+	typedef integral_constant<T,v> type;
+//	operator value_type() const {return v;}	// this doesn't seem to work reasonably in MingW 4.3.3
+};
+typedef integral_constant<bool,true> true_type;
+typedef integral_constant<bool,false> false_type;
+
+template<bool B, class T=void>
+struct enable_if
+{
+};
+
+template<>
+template<class T>
+struct enable_if<true,T>
+{
+	typedef T type;
+};
+
+template<bool B, class T, class F>
+struct conditional
+{
+	typedef F type;
+};
+
+template<>
+template<class T,class F>
+struct conditional<true,T,F>
+{
+	typedef T type;
+};
+
+
+template<class T>
+struct is_void : public false_type
+{
+};
+
+#define ENUMERATE_TYPE_TRAIT(TRAIT,TYPE)	\
+template<>	\
+struct TRAIT<TYPE> : public true_type	\
+{	\
+};	\
+	\
+template<>	\
+struct TRAIT<const TYPE> : public true_type	\
+{	\
+};	\
+	\
+template<>	\
+struct TRAIT<volatile TYPE> : public true_type	\
+{	\
+};	\
+	\
+template<>	\
+struct TRAIT<const volatile TYPE> : public true_type	\
+{	\
+}
+
+ENUMERATE_TYPE_TRAIT(is_void,void);
+
+template<class T>
+struct is_integral : public false_type
+{
+};
+
+ENUMERATE_TYPE_TRAIT(is_integral,bool);
+ENUMERATE_TYPE_TRAIT(is_integral,wchar_t);
+ENUMERATE_TYPE_TRAIT(is_integral,char);
+ENUMERATE_TYPE_TRAIT(is_integral,signed char);
+ENUMERATE_TYPE_TRAIT(is_integral,unsigned char);
+ENUMERATE_TYPE_TRAIT(is_integral,signed short);
+ENUMERATE_TYPE_TRAIT(is_integral,unsigned short);
+ENUMERATE_TYPE_TRAIT(is_integral,signed int);
+ENUMERATE_TYPE_TRAIT(is_integral,unsigned int);
+ENUMERATE_TYPE_TRAIT(is_integral,signed long);
+ENUMERATE_TYPE_TRAIT(is_integral,unsigned long);
+ENUMERATE_TYPE_TRAIT(is_integral,signed long long);
+ENUMERATE_TYPE_TRAIT(is_integral,unsigned long long);
+
+template<class T>
+struct is_floating_point : public false_type
+{
+};
+
+ENUMERATE_TYPE_TRAIT(is_floating_point,float);
+ENUMERATE_TYPE_TRAIT(is_floating_point,double);
+ENUMERATE_TYPE_TRAIT(is_floating_point,long double);
+
+// C++11 would also have to account for std::nullptr
+template<class T>
+struct is_fundamental : public integral_constant<bool,is_integral<T>::value || is_floating_point<T>::value || is_void<T>::value>
+{
+};
+
+template<class T>
+struct is_arithmetic : public integral_constant<bool,is_integral<T>::value || is_floating_point<T>::value>
+{
+};
+
+template<class T>
+struct is_signed : public integral_constant<bool,is_arithmetic<T>::value && (T(0)>T(-1))>
+{
+};
+
+template<class T>
+struct is_unsigned : public integral_constant<bool,is_arithmetic<T>::value && (T(0)<T(-1))>
+{
+};
+
+template<class T>
+struct is_array : public false_type
+{
+};
+
+template<>
+template<class T,signed long N>
+struct is_array<T[N]> : public true_type
+{
+};
+
+template<class T>
+struct is_pointer : public false_type
+{
+};
+
+template<>
+template<class T>
+struct is_pointer<T*> : public true_type
+{
+};
+
+
+template<class T>
+struct is_lvalue_reference : public false_type
+{
+};
+
+template<>
+template<class T>
+struct is_lvalue_reference<T&> : public true_type
+{
+};
+
+// rvalue references don't work in C++98 so don't fill them in
+
+// we should be able to do is_arithmetic and is_fundamental
+
+template<class T>
+struct is_const : public false_type
+{
+};
+
+template<>
+template<class T>
+struct is_const<const T> : public true_type
+{
+};
+
+template<class T>
+struct is_volatile : public false_type
+{
+};
+
+template<>
+template<class T>
+struct is_volatile<volatile T> : public true_type
+{
+};
+
+template<class T,class U>
+struct is_same : public false_type
+{
+};
+
+template<>
+template<class T>
+struct is_same<T,T> : public true_type
+{
+};
+
+template<class T>
+struct remove_const
+{
+	typedef T type;
+};
+
+template<>
+template<class T>
+struct remove_const<const T>
+{
+	typedef T type;
+};
+
+template<class T>
+struct remove_volatile
+{
+	typedef T type;
+};
+
+template<>
+template<class T>
+struct remove_volatile<volatile T>
+{
+	typedef T type;
+};
+
+template<class T>
+struct remove_cv
+{
+	typedef T type;
+};
+
+template<>
+template<class T>
+struct remove_cv<const volatile T>
+{
+	typedef T type;
+};
+
+template<>
+template<class T>
+struct remove_cv<volatile T>
+{
+	typedef T type;
+};
+
+template<>
+template<class T>
+struct remove_cv<const T>
+{
+	typedef T type;
+};
+
+template<class T>
+struct add_const
+{
+	typedef T const type;
+};
+
+template<class T>
+struct add_volatile
+{
+	typedef T volatile type;
+};
+
+template<class T>
+struct add_cv
+{
+	typedef T const volatile type;
+};
+
+
+}	// namespace std
+
+
