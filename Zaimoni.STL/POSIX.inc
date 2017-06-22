@@ -22,3 +22,8 @@ ARCH_FLAGS =
 # FORCE_ISO: ZAIMONI_FORCE_ISO disables the custom memory manager
 FORCE_ISO =
 # FORCE_ISO = -DZAIMONI_FORCE_ISO
+
+# compiler options
+CFLAGS_CORE =  -Os -Wall -finline
+CFLAGS_STRICT =  -fargument-alias -Wno-long-long --pedantic
+CFLAGS_MICROOPT = -Wextra -Winline -Wdisabled-optimization --param max-inline-insns-single=500 -c -pipe -DNDEBUG

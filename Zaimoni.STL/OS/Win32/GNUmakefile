@@ -6,7 +6,7 @@
 
 include ../../POSIX.inc
 
-CFLAGS := -Os -Wall -Wextra -finline -Winline -Wdisabled-optimization --param max-inline-insns-single=500 -c -pipe -DNDEBUG
+CFLAGS := $(CFLAGS_CORE) $(CFLAGS_MICROOPT)
 CXXFLAGS := $(CFLAGS)
 
 LIBS := libz_mutex.a libz_clock.a
@@ -20,11 +20,8 @@ clean:
 host_install: $(addprefix ../../../$(host_libdir)/, $(LIBS))
 
 # rules
-mutex.o: mutex.cpp
-	$(CXX) -c mutex.cpp $(CXXFLAGS) $(ARCH_FLAGS) -o mutex.o
-
-clock.o: clock.cpp
-	$(CXX) -c clock.cpp $(CXXFLAGS) $(ARCH_FLAGS) -o clock.o
+.cpp.o:
+	$(CXX) -c $< $(CXXFLAGS) $(ARCH_FLAGS) -o $*.o
 
 libz_mutex.a: mutex.o
 	$(AR) -ru libz_mutex.a mutex.o

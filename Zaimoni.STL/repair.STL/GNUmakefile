@@ -6,7 +6,7 @@
 
 include ../POSIX.inc
 
-CFLAGS := -fargument-alias -finline -Os -Wall -Wno-long-long --pedantic
+CFLAGS := $(CFLAGS_CORE) $(CFLAGS_STRICT)
 CXXFLAGS := $(CFLAGS)
 
 # GNU targets we know about

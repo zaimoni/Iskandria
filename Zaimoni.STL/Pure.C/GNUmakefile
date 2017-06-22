@@ -6,7 +6,7 @@
 
 include ../POSIX.inc
 
-CFLAGS := -Os -Wall -Wextra -finline -Winline -Wdisabled-optimization --param max-inline-insns-single=500 -pipe -DNDEBUG
+CFLAGS := $(CFLAGS_CORE) $(CFLAGS_MICROOPT)
 
 LIBS := libz_format_util.a libz_logging.a libz_stdio_c.a
 
