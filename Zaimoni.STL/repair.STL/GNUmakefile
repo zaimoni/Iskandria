@@ -29,7 +29,7 @@ stl_diagnose.hpp: stl_diagnose.in compile.test/has_std_copy_n.cpp compile.test/h
 
 algorithm: stl_diagnose.hpp algorithm.in1 algorithm.in2 algorithm.in3
 	cp algorithm.in1 algorithm
-	cpp -xc++ algorithm.in2 | grep -vF \# >> algorithm
+	if cpp -xc++ algorithm.in2 | grep -vF \# >> algorithm; then true; fi
 	cat algorithm.in3 >> algorithm
 
 type_traits: stl_diagnose.hpp type_traits.in1 type_traits.in2 type_traits.in3

@@ -9,8 +9,6 @@
 
 int main()
 {
-	std::unique_ptr<char> test;
-
 	STRING_LITERAL_TO_STDOUT("#define ZAIMONI_HAS_HEADER_TYPE_TRAITS 1\n");
 	return 0;	
 }
