@@ -23,9 +23,15 @@
 #define CONCATENATE(A,B) A ## B
 #define DEEP_CONCATENATE(A,B) CONCATENATE(A,B)
 
-/* static assertion; using MSVC approach */
-/* this is meant to be lightweight */
+/* static assertions */
+#if __cplusplus >= 201103L
+#define ZAIMONI_STATIC_ASSERT(A) static_assert(A,#A)
+#elif __STDC_VERSION__ >= 201112l
+#define ZAIMONI_STATIC_ASSERT(A) _Static_assert(A,#A)
+#else
+/* using MSVC approach */
 #define ZAIMONI_STATIC_ASSERT(A) typedef char DEEP_CONCATENATE(static_assert_,__LINE__)[(A) ? 1 : -1]
+#endif
 
 /* size of a static array */
 #define STATIC_SIZE(A) (sizeof(A)/sizeof(*A))

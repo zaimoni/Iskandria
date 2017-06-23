@@ -11,7 +11,6 @@ private:	\
 	T();	\
 	T(const T& src);	\
 	void operator=(const T& src);	\
-protected:	\
 	~T();	\
 public:	\
 	static T& get()
