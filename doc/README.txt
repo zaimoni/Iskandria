@@ -11,5 +11,8 @@ There is a dependency on the Simple and Fast Media Library (SFML< https://www.sf
 * Build system for SFML is CMake.  Unbreaking stock CMake for MingW with MingW's sh on path is trivial, but this is a won't-fix (documented on CMake mailing lists).
 * The main library is zlib/png license.
 
+There is a dependency on the Boost library.  We only need the headers.
+* This project originated, and uses, the Boost License.
+
 Files that are not Boost are to be itemized below:
 (list intentionally empty)

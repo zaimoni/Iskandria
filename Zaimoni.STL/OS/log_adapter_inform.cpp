@@ -25,7 +25,7 @@ void INFORM(uintmax_t B) {
 // long double
 void INFORM(long double B) {
 	char buf[25];
-	sprintf(buf,"%Lf",B);
+	sprintf(buf,"%.16Lg",B);
 //	_gcvt(B,10,buf);
 	_inform(buf,strlen(buf));
 }
