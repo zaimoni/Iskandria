@@ -4,12 +4,13 @@
 #undef ISK_SINGLETON_HEADER
 #undef ISK_SINGLETON_BODY
 
-// if we had move constructors they would be included below
+// C++99 version won't have the move constructor line
 
 #define ISK_SINGLETON_HEADER(T)	\
 private:	\
 	T();	\
 	T(const T& src);	\
+	T(T&& src);	\
 	void operator=(const T& src);	\
 	~T();	\
 public:	\
