@@ -11,7 +11,7 @@ host_libdir = lib/host.isk
 
 AR = ar
 CC = gcc
-CXX = g++
+CXX = g++ -std=c++11
 
 EXEEXT = exe
 OBJEXT = o
