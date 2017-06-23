@@ -36,6 +36,9 @@ public:
 	int load(FILE* src);
 	int save(FILE* dest);
 
+	// not so mechanical
+	void draw();
+
 	// these typically accept static member functions
 	void register_update(gc_handler src);
 	void register_gc(gc_handler src);

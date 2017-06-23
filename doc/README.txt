@@ -2,6 +2,8 @@ The default software license is the Boost license, BOOST_LICENSE.txt.  In partic
 
 Iskandria's build system is a Makefile system taken from Vanilla Angband, which in turn took it from a now-presumed-dead semi-commercial website.  GNU make is assumed;
 
+The minimum C++ standard for building Iskandria is C++11.
+
 There is a dependency on the Simple and Fast Media Library (SFML< https://www.sfml-dev.org/).  Some notes on doing a local build:
 * It's C++.   Thus, one build per compiler of interest.
 ** e.g.: /usr/local/include/SMFL for headers, /MingW32/lib for the static libraries

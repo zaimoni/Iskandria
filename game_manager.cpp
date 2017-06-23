@@ -3,6 +3,7 @@
 #include "game_manager.hpp"
 
 #include "world_manager.hpp"
+#include "display_manager.hpp"
 
 #include "Zaimoni.STL/Pure.C/format_util.h"
 #include "Zaimoni.STL/Pure.C/logging.h"
@@ -31,7 +32,8 @@ GameManager::~GameManager()
 // mockup
 void GameManager::run()
 {
-	WorldManager& cosmos = WorldManager::get();	// forces destructor to run fairly late
+	WorldManager& cosmos = WorldManager::get();		// these destructors need to run late
+	DisplayManager& gui = DisplayManager::get();
 
 	// TODO: populate game world.  Order of population matters as that
 	// dictates the order in which the various top-level handlers run
@@ -44,6 +46,8 @@ void GameManager::run()
 	while(!game_over)
 		{	// XXX mockup for a fast-twitch game
 		cosmos.update();
+		cosmos.draw();
+		gui.swapBuffers();
 
 		delta = t1.delta();
 		if (delta<frameTime_ms()) {
@@ -61,7 +65,7 @@ void GameManager::run()
 
 #ifdef TEST_DRIVER
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_DRIVER game_manager.cpp world_manager.cpp -Llib/host.isk  -lz_logging -lz_format_util -lz_clock -lwinmm
+// g++ -std=c++11 -otest.exe -Os -DTEST_DRIVER game_manager.cpp world_manager.cpp display_manager.cpp -Llib/host.isk  -lz_logging -lz_format_util -lz_clock  -lsfml-graphics -lsfml-window -lsfml-system -lwinmm 
 int main(int argc, char* argv[])
 {
 	isk::GameManager::get().run();

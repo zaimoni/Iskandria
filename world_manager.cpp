@@ -88,6 +88,13 @@ void WorldManager::register_save(file_handler src)
 
 #undef REGISTER_BODY
 
+void WorldManager::draw()
+{
+	// XXX this one is...ugly
+	// 1) identify viewpoint
+	// 2) then render from that viewpoint
+}
+
 }	// namespace isk
 
 #ifdef TEST_APP

@@ -11,7 +11,9 @@ namespace isk {
 
 // Cf. http://dragonfly.wpi.edu/book/
 
-// yes, the library is bleeding through the interface.  Refactor when a second well-tested library is license-viable.
+// yes, the SFML library is bleeding through the interface.  Refactor when a second well-tested library is license-viable.
+
+// SFML has a concept of "subwindow".
 
 class DisplayManager
 {
@@ -30,6 +32,7 @@ public:
 	int width_pixel() const { return _width_pixels;};
 	int height_pixel() const { return _height_pixels;};
 
+	// character support; likely to need all of this for subwindows as well
 	int width_char() const { return _width_chars;};
 	int height_char() const { return _height_chars;};
 
