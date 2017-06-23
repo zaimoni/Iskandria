@@ -92,7 +92,7 @@ void WorldManager::register_save(file_handler src)
 
 #ifdef TEST_APP
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_APP world_manager.cpp -Llib/host.isk
+// g++ -std=c++11 -otest.exe -Os -DTEST_APP world_manager.cpp
 int main(int argc, char* argv[])
 {
 	isk::WorldManager::get();
