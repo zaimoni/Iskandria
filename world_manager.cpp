@@ -21,6 +21,7 @@ WorldManager::~WorldManager()
 void WorldManager::update()
 {
 	if (_update_handlers.empty()) return;
+	gc();
 	for(auto& x : _update_handlers) x();
 }
 
