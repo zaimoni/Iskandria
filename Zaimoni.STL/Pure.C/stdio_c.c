@@ -28,7 +28,7 @@ long get_filelength(FILE* src)
 	if ((T)(-1)>=ub)	\
 		{	\
 		T tmp;	\
-		if (1!=fread(&tmp, sizeof(tmp), 1, src)) _fatal_code("failed to read " #T,3);	\
+		ZAIMONI_FREAD_OR_DIE(T,tmp,src)	\
 		return tmp;	\
 		}
 
@@ -41,7 +41,7 @@ uintmax_t read_uintmax(uintmax_t ub,FILE* src)
 	/* if ((unsigned long long)(-1) >= ub) */
 		{
 		uintmax_t tmp;
-		if (1!=fread(&tmp, sizeof(tmp), 1, src)) _fatal_code("failed to read uintmax_t",3);
+		ZAIMONI_FREAD_OR_DIE(uintmax_t,tmp,src)
 		return tmp;
 		}
 }
@@ -52,7 +52,7 @@ uintmax_t read_uintmax(uintmax_t ub,FILE* src)
 	if ((T)(-1)>=ub)	\
 		{	\
 		T tmp = src;	\
-		if (1!=fwrite(&tmp, sizeof(tmp), 1, dest)) _fatal_code("failed to write " #T,3);	\
+		ZAIMONI_FWRITE_OR_DIE(T,tmp,dest)	\
 		return;	\
 		}
 
@@ -62,10 +62,10 @@ void write_uintmax(uintmax_t ub,uintmax_t src,FILE* dest)
 	CONDITIONAL_WRITE(unsigned short);
 	CONDITIONAL_WRITE(unsigned int);
 	CONDITIONAL_WRITE(unsigned long);
-	/* if ((unsigned long long)(-1) >= ub) */
-		{
-		if (1!=fwrite(&src, sizeof(src), 1, dest)) _fatal_code("failed to write uintmax_t",3);
-	/*	return;	*/
-		}
+	/* if ((unsigned long long)(-1) >= ub)
+		{	*/
+		ZAIMONI_FWRITE_OR_DIE(uintmax_t,src,dest)
+	/*	return;
+		}	*/
 }
 

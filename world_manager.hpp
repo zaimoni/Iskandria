@@ -20,7 +20,7 @@ namespace isk {
 class WorldManager
 {
 ISK_SINGLETON_HEADER(WorldManager);
-	typedef int (*file_handler)(FILE*);
+	typedef void (*file_handler)(FILE*);
 	typedef void (*gc_handler)();
 	// want one set of these for each type of game object
 private:

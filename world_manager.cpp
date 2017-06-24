@@ -35,10 +35,7 @@ int WorldManager::load(FILE* src)
 {
 	if (!src) return -1;
 	if (_load_handlers.empty()) return -1;
-	for(auto& x : _load_handlers) {
-		int ret = x(src);
-		if (0>ret) return ret;
-	}
+	for(auto& x : _load_handlers) x(src);
 	return 0;
 }
 
@@ -47,10 +44,7 @@ int WorldManager::save(FILE* dest)
 	if (!dest) return -1;
 	if (_save_handlers.empty()) return -1;
 	gc();
-	for(auto& x : _save_handlers) {
-		int ret = x(dest);
-		if (0>ret) return ret;
-	}
+	for(auto& x : _save_handlers) x(dest);
 	return 0;
 }
 
