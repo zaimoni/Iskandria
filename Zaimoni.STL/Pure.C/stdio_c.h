@@ -3,6 +3,7 @@
 #define STDIO_C_H 1
 
 #include <stdio.h>
+#include <stdint.h>
 
 /* C strings to stdout; include stdio.h before using these */
 /* including cstdio ok if not on a deathstation */
@@ -18,6 +19,8 @@ extern "C" {
 #endif
 
 long get_filelength(FILE* src);
+uintmax_t read_uintmax(uintmax_t ub,FILE* src);
+void write_uintmax(uintmax_t ub,uintmax_t src,FILE* dest);
 
 #ifdef __cplusplus
 }	/* end extern "C" */
