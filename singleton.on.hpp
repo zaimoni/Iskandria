@@ -9,9 +9,10 @@
 #define ISK_SINGLETON_HEADER(T)	\
 private:	\
 	T();	\
-	T(const T& src);	\
-	T(T&& src);	\
-	void operator=(const T& src);	\
+	T(const T& src) = delete;	\
+	T(T&& src) = delete;	\
+	void operator=(const T& src) = delete;	\
+	void operator=(T&& src) = delete;	\
 	~T();	\
 public:	\
 	static T& get()
