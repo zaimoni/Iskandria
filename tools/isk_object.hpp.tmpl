@@ -1,0 +1,56 @@
+// [% CLASS_FILE %].hpp
+
+#ifndef [% UC_CLASS_FILE %]_HPP
+#define [% UC_CLASS_FILE %]_HPP
+
+#include "object.hpp"
+
+namespace iskandria {
+
+[% IF MODEL_STRUCT %]
+struct [% CLASS %]_[% MODEL_STRUCT %]
+{	
+	unsigned char _civilization;
+	const char* name;
+	size_t name_len;
+	const char* desc;
+	size_t desc_len;
+};
+[% END IF %]
+
+class [% CLASS %] final : public isk::Object
+{
+[% IF MODEL_STRUCT %]
+public:
+	static const [% CLASS %]_[% MODEL_STRUCT %]* [% MODEL_STRUCT %]s;
+	static const size_t [% MODEL_STRUCT %]s_len;
+[% END IF %]
+private:
+	[% CLASS %](FILE* src);
+public:
+	[% CLASS %]() = default;
+	[% CLASS %](const [% CLASS %]& src) = default;
+	[% CLASS %]([% CLASS %]&& src) = default;
+	[% CLASS %]& operator=(const [% CLASS %]& src) = default;
+	[% CLASS %]& operator=([% CLASS %]&& src) = default;
+	~[% CLASS %]() = default;
+
+	static std::weak_ptr<[% CLASS %]> track(std::shared_ptr<[% CLASS %]> src);
+
+	// this has to integrate with the world manager	
+	static void world_setup();
+	static std::weak_ptr<[% CLASS %]> read_synthetic_id(FILE* src);
+	static void write_synthetic_id(const std::shared_ptr<[% CLASS %]>& src,FILE* dest);
+private:
+	void save(FILE* dest);
+	static void update_all();
+	static void gc_all();
+	static void load_all(FILE* src);;
+	static void save_all(FILE* dest);
+
+	static std::vector<std::shared_ptr<[% CLASS %]> >& cache();
+};
+
+}	// namespace iskandria
+
+#endif
