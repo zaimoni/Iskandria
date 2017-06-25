@@ -34,6 +34,7 @@ public:
 	celestial_body(const celestial_body& src) = default;
 	celestial_body(celestial_body&& src) = default;
 	celestial_body& operator=(const celestial_body& src) = default;
+	celestial_body& operator=(celestial_body&& src) = default;
 	~celestial_body() = default;
 
 	static std::weak_ptr<celestial_body> track(std::shared_ptr<celestial_body> src);
