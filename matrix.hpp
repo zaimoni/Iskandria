@@ -565,7 +565,7 @@ matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1
 // example build line (have to copy from *.hpp to *.cpp or else main not seen
 // g++ -omatrix.exe -Llib/host -DTEST_APP matrix.cpp -lz_stdio_log
 // If doing INFORM-based debugging
-// g++ -omatrix.exe -DTEST_APP matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+// g++ -std=c++11 -omatrix.exe -DTEST_APP matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
 #include <stdlib.h>
 #include <stdio.h>
