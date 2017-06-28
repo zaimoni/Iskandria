@@ -10,14 +10,16 @@ namespace zaimoni {
 namespace math {
 namespace Euclidean {
 
+#define NO_CV(A) typename std::remove_cv<A>::type
+#define NO_CV_SAME(A,B) std::is_same<NO_CV(A), NO_CV(B)>::value
+#define ONLY_IF_NO_CV_SAME(A,B) typename std::enable_if<NO_CV_SAME(A,B),NO_CV(A)>::type
+
 // the dot product is very easy to botch numerically.  Put a default wrong version here and deal with accuracy later.
 
 // this version assumes ::size() and operator[]
 // would also like an iterator version
 template<class T1, class T2>
-typename std::enable_if<std::is_same<typename std::remove_cv<typename T1::value_type>::type, 
-                                     typename std::remove_cv<typename T2::value_type>::type>::value,
-                        typename std::remove_cv<typename T1::value_type>::type >::type dot(const T1& lhs, const T2& rhs)
+ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type) dot(const T1& lhs, const T2& rhs)
 {
 	assert(lhs.size()==rhs.size());
 	assert(0<lhs.size());
@@ -51,10 +53,7 @@ typename std::enable_if<std::is_same<typename std::remove_cv<typename T1::value_
 // N=1: L1
 // N=2: L2 (Euclidean) distance
 // unfortunately, specializing template functions is problematic.
-#define NO_CV(A) typename std::remove_cv<A>::type
-#define NO_CV_SAME(A,B) std::is_same<NO_CV(A), NO_CV(B)>::value
-#define ONLY_IF_NO_CV_SAME(A,B) typename std::enable_if<NO_CV_SAME(A,B),NO_CV(A)>::type
-
+// Cf. http://www.gotw.ca/publications/mill17.htm
 template<size_t N,class T1, class T2>
 typename std::enable_if<(2<N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type)>::type Lesbegue(const T1& lhs, const T2& rhs)
 {
@@ -163,9 +162,7 @@ typename std::enable_if<(0==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 };
 
 template<int negative_coords,class T1, class T2>
-typename std::enable_if<std::is_same<typename std::remove_cv<typename T1::value_type>::type, 
-                                     typename std::remove_cv<typename T2::value_type>::type>::value,
-                        typename std::remove_cv<typename T1::value_type>::type >::type Minkowski(const T1& lhs, const T2& rhs)
+ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type) Minkowski(const T1& lhs, const T2& rhs)
 {
 	assert(lhs.size()==rhs.size());
 	assert(0<lhs.size());
@@ -193,6 +190,10 @@ typename std::enable_if<std::is_same<typename std::remove_cv<typename T1::value_
 	}
 	return sqrt(accumulator.front());
 }
+
+#undef NO_CV
+#undef NO_CV_SAME
+#undef ONLY_IF_NO_CV_SAME
 
 }	// namespace math
 }	// namespace zaimoni
