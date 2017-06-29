@@ -36,7 +36,7 @@ extern size_t AppRunning;
 #ifdef __cplusplus
 extern "C"
 #endif
-inline size_t __cdecl _msize(const void* memblock)
+inline size_t __cdecl _msize(void* memblock)
 {	/* FORMALLY CORRECT: Kenneth Boyd, 9/15/1999 */
 #ifdef __cplusplus
 	return reinterpret_cast<const size_t*>(reinterpret_cast<const char*>(memblock)-sizeof(size_t))[0];

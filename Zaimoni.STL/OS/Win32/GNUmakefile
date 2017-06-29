@@ -24,10 +24,10 @@ host_install: $(addprefix ../../../$(host_libdir)/, $(LIBS))
 	$(CXX) -c $< $(CXXFLAGS) $(ARCH_FLAGS) -o $*.o
 
 libz_mutex.a: mutex.o
-	$(AR) -ru libz_mutex.a mutex.o
+	$(AR) $(ARFLAGS) libz_mutex.a mutex.o
 
 libz_clock.a: clock.o
-	$(AR) -ru libz_clock.a clock.o
+	$(AR) $(ARFLAGS) libz_clock.a clock.o
 
 ../../../$(host_libdir)/libz_mutex.a: libz_mutex.a
 	cp libz_mutex.a ../../../$(host_libdir)/libz_mutex.a

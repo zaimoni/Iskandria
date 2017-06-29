@@ -27,10 +27,10 @@ memory_c.o: memory.cpp ../z_memory.h
 	$(CC) -c -xc memory.cpp $(CFLAGS) $(ARCH_FLAGS) -o memory_c.o
 
 libz_memory.a: memory.o
-	$(AR) -ru libz_memory.a memory.o
+	$(AR) $(ARFLAGS) libz_memory.a memory.o
 
 libz_memory_c.a: memory_c.o
-	$(AR) -ru libz_memory_c.a memory_c.o
+	$(AR) $(ARFLAGS) libz_memory_c.a memory_c.o
 
 ../../$(host_libdir)/libz_memory.a: libz_memory.a
 	cp libz_memory.a ../../$(host_libdir)/libz_memory.a

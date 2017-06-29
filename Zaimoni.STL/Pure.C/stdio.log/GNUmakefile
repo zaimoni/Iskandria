@@ -27,7 +27,7 @@ uninstall:
 	$(CC) -c $< $(CFLAGS) $(ARCH_FLAGS) -o $*.o
 
 libz_stdio_log.a: fatal.o fatal_code.o inform.o inc_inform.o log.o
-	$(AR) -ru libz_stdio_log.a fatal.o fatal_code.o inform.o inc_inform.o log.o
+	$(AR) $(ARFLAGS) libz_stdio_log.a fatal.o fatal_code.o inform.o inc_inform.o log.o
 
 ../../../$(libdir)/libz_stdio_log.a: libz_stdio_log.a
 	cp libz_stdio_log.a ../../../$(libdir)/libz_stdio_log.a

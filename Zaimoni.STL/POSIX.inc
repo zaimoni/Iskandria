@@ -27,3 +27,6 @@ FORCE_ISO =
 CFLAGS_CORE =  -Os -Wall -finline
 CFLAGS_STRICT =  -fargument-alias -Wno-long-long --pedantic
 CFLAGS_MICROOPT = -Wextra -Winline -Wdisabled-optimization --param max-inline-insns-single=500 -c -pipe -DNDEBUG
+
+# archiver options
+ARFLAGS = -sru

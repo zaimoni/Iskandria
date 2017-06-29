@@ -29,7 +29,7 @@ log_adapter_log.o: log_adapter_log.cpp ../pure.C/format_util.c
 	$(CXX) -c $< $(CXXFLAGS) $(ARCH_FLAGS) -o $*.o
 
 libz_log_adapter.a: log_adapter_inc_inform.o log_adapter_inform.o log_adapter_log.o
-	$(AR) -ru libz_log_adapter.a log_adapter_inc_inform.o log_adapter_inform.o log_adapter_log.o
+	$(AR) $(ARFLAGS) libz_log_adapter.a log_adapter_inc_inform.o log_adapter_inform.o log_adapter_log.o
 
 ../../$(host_libdir)/libz_log_adapter.a: libz_log_adapter.a
 	cp libz_log_adapter.a ../../$(host_libdir)/libz_log_adapter.a
