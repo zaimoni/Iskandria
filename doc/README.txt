@@ -8,6 +8,7 @@ There is a dependency on the Simple and Fast Media Library (SFML< https://www.sf
 * It's C++.   Thus, one build per compiler of interest.
 ** e.g.: /usr/local/include/SMFL for headers, /MingW32/lib for the static libraries
 ** for now, relevant DLLs go in the same directory as the executable.  The static build option isn't fully prototyped yet.
+** SFML builds without warnings in C++98.  The only warnings when building in C++11 are from std::auto_ptr being deprecated.  C++14 hasn't been tested yet.
 * Build system for SFML is CMake.  Unbreaking stock CMake for MingW with MingW's sh on path is trivial, but this is a won't-fix (documented on CMake mailing lists).
 * The main library is zlib/png license.
 

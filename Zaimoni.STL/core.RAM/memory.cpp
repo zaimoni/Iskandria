@@ -664,7 +664,7 @@ namespace std
 // actual implementation
 extern "C"
 #endif
-void* _cdecl malloc(size_t size)
+void* __cdecl malloc(size_t size)
 {	// FORMALLY CORRECT: Kenneth Boyd, 2/24/2008
 	// We have the option, in C99, of returning NULL rather than allocating 0 bytes.  Do It.
 	if (0==size) return NULL;
@@ -698,7 +698,7 @@ void* _cdecl malloc(size_t size)
 #ifdef __cplusplus
 extern "C"
 #endif
-void* _cdecl calloc(size_t num, size_t size)
+void* __cdecl calloc(size_t num, size_t size)
 {	// FORMALLY CORRECT: Kenneth Boyd, 2/24/2008
 	void* Tmp = NULL;
 	if ((size_t)(-1)/size>=num)
@@ -712,7 +712,7 @@ void* _cdecl calloc(size_t num, size_t size)
 #ifdef __cplusplus
 extern "C"
 #endif
-void _cdecl free(void* memblock)
+void __cdecl free(void* memblock)
 {	// FORMALLY CORRECT: Kenneth Boyd, 6/2/2008
 	if (	NULL!=memblock	/* C90 */
 		&&  NULL!=RawBlock.raw)	/* handle race condition issues at program shutdown */
@@ -762,7 +762,7 @@ namespace std
 {
 extern "C"
 #endif
-void* _cdecl realloc(void* memblock, size_t size)
+void* __cdecl realloc(void* memblock, size_t size)
 {	// FORMALLY CORRECT: Kenneth Boyd, 11/3/1999
 	if (NULL==memblock)
 		return malloc(size);
