@@ -30,4 +30,48 @@ void write_uintmax(uintmax_t ub,uintmax_t src,FILE* dest);
 }	/* end extern "C" */
 #endif
 
+/* XXX have some natural C++ support here */
+#ifdef __cplusplus
+#include <limits.h>
+#include <type_traits>
+
+namespace zaimoni {
+
+#define ZAIMONI_RW(A,B)	\
+template<class T>	\
+typename std::enable_if<std::is_same<A, T>::value, T>::type read(FILE* src)	\
+{	\
+	return (T)read_uintmax(B, src);	\
+}	\
+	\
+template<class T>	\
+typename std::enable_if<std::is_same<A, T>::value, T>::type read(FILE* src, uintmax_t ub)	\
+{	\
+	return (T)read_uintmax(ub, src);	\
+}	\
+	\
+template<class T>	\
+typename std::enable_if<std::is_same<A, T>::value, void>::type write(const T& src, FILE* dest)	\
+{	\
+	return write_uintmax(B, src, dest);	\
+}	\
+	\
+template<class T>	\
+typename std::enable_if<std::is_same<A, T>::value, void>::type write(const T& src, FILE* dest, uintmax_t ub)	\
+{	\
+	return write_uintmax(ub, src, dest);	\
+}
+
+ZAIMONI_RW(unsigned char, UCHAR_MAX)
+ZAIMONI_RW(unsigned short, USHRT_MAX)
+ZAIMONI_RW(unsigned int, UINT_MAX)
+ZAIMONI_RW(unsigned long, ULONG_MAX)
+ZAIMONI_RW(uintmax_t, UINTMAX_MAX)
+
+#undef ZAIMONI_RW
+
+}	// namespace zaimoni
+
+#endif
+
 #endif

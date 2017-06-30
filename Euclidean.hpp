@@ -3,6 +3,7 @@
 #ifndef EUCLIDEAN_HPP
 #define EUCLIDEAN_HPP
 
+#include <stddef.h>
 #include <vector>
 #include <type_traits>
 
