@@ -11,14 +11,14 @@ namespace grid {
 
 cartesian_2d::cartesian_2d(FILE* src)
 {	// XXX
-//	zaimoni::load(_lb,src);
-//	zaimoni::load(_ub,src);
+	zaimoni::read(_lb,src);
+	zaimoni::read(_ub,src);
 };
 
 void cartesian_2d::save(FILE* dest)
 {	// XXX
-//	zaimoni::save(_lb,dest);
-//	zaimoni::save(_ub,dest);
+	zaimoni::write(_lb,dest);
+	zaimoni::write(_ub,dest);
 }
 
 

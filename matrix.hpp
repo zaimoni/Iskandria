@@ -4,6 +4,7 @@
 #define MATRIX_HPP
 
 #include "Zaimoni.STL/Logging.h"
+#include "Zaimoni.STL/rw.hpp"
 #include "slice.hpp"
 #include "Euclidean.hpp"
 #include <array>
@@ -559,6 +560,28 @@ matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1
 }
 
 }	// namespace math
+
+// savefile support
+template<>
+template<class T,size_t N>
+struct rw_mode<zaimoni::math::vector<T,N> >
+{
+	enum {
+		group_write = 2,
+		group_read = 2
+	};
+};
+
+template<>
+template<class T,size_t N>
+struct rw_mode<zaimoni::math::covector<T,N> >
+{
+	enum {
+		group_write = 2,
+		group_read = 2
+	};
+};
+
 }	// namespace zaimoni
 
 #ifdef TEST_APP

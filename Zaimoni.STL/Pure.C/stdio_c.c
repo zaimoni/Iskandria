@@ -69,3 +69,52 @@ void write_uintmax(uintmax_t ub,uintmax_t src,FILE* dest)
 		}	*/
 }
 
+#undef CONDITIONAL_WRITE
+
+#define CONDITIONAL_READ(T)	\
+	if ((T)((un##T)(-1)/2)>=ub)	\
+		{	\
+		T tmp;	\
+		ZAIMONI_FREAD_OR_DIE(T,tmp,src)	\
+		return tmp;	\
+		}
+
+intmax_t read_intmax(intmax_t ub,FILE* src)
+{
+	CONDITIONAL_READ(signed char);
+	CONDITIONAL_READ(signed short);
+	CONDITIONAL_READ(signed int);
+	CONDITIONAL_READ(signed long);
+	/* if ((signed long long)((unsigned long long)(-1)/2) >= ub) */
+		{
+		intmax_t tmp;
+		ZAIMONI_FREAD_OR_DIE(intmax_t,tmp,src)
+		return tmp;
+		}
+}
+
+#undef CONDITIONAL_READ
+
+#define CONDITIONAL_WRITE(T)	\
+	if ((T)((un##T)(-1)/2)>=ub)	\
+		{	\
+		T tmp = src;	\
+		ZAIMONI_FWRITE_OR_DIE(T,tmp,dest)	\
+		return;	\
+		}
+
+void write_intmax(intmax_t ub,intmax_t src,FILE* dest)
+{
+	CONDITIONAL_WRITE(signed char);
+	CONDITIONAL_WRITE(signed short);
+	CONDITIONAL_WRITE(signed int);
+	CONDITIONAL_WRITE(signed long);
+	/* if ((signed long long)(-1) >= ub)
+		{	*/
+		ZAIMONI_FWRITE_OR_DIE(intmax_t,src,dest)
+	/*	return;
+		}	*/
+}
+
+#undef CONDITIONAL_WRITE
+
