@@ -37,8 +37,9 @@ void GameManager::run()
 	DisplayManager& gui = DisplayManager::get();
 	InputManager& io = InputManager::get();
 
-	// TODO: populate game world.  Order of population matters as that
-	// dictates the order in which the various top-level handlers run
+	// C main() or its OS-specific analog is responsible for
+	// * Configuring savefile format, etc.
+	// * Configuring the input manager for New game/load game/save game
 
 	char buf[11];
 	int i = 10;

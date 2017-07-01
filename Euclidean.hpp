@@ -110,7 +110,7 @@ typename std::enable_if<(2==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 		accumulator.pop_back();
 	}
 	return sqrt(accumulator.front());
-};
+}
 
 template<size_t N,class T1, class T2>
 typename std::enable_if<(1==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type)>::type Lesbegue(const T1& lhs, const T2& rhs)
@@ -139,7 +139,7 @@ typename std::enable_if<(1==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 		accumulator.pop_back();
 	}
 	return accumulator.front();
-};
+}
 
 template<size_t N,class T1, class T2>
 typename std::enable_if<(0==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type)>::type Lesbegue(const T1& lhs, const T2& rhs)
@@ -160,7 +160,7 @@ typename std::enable_if<(0==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 		if (ub < tmp) ub = tmp;
 		}
 	return ub;
-};
+}
 
 template<int negative_coords,class T1, class T2>
 ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type) Minkowski(const T1& lhs, const T2& rhs)

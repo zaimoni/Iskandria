@@ -13,7 +13,7 @@ cartesian_2d::cartesian_2d(FILE* src)
 {	// XXX
 	zaimoni::read(_lb,src);
 	zaimoni::read(_ub,src);
-};
+}
 
 void cartesian_2d::save(FILE* dest)
 {	// XXX

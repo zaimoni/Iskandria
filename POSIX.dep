@@ -1,0 +1,10 @@
+OBJECTS_ISKANDRIA = main.o gridspace.o input_manager.o display_manager.o world_manager.o game_manager.o
+OBJECTS_ISKANDRIA_LINK_PRIORITY = gridspace.o main.o game_manager.o world_manager.o input_manager.o display_manager.o
+
+# dependencies
+main.o: game_manager.hpp gridspace.hpp singleton.on.hpp singleton.off.hpp object.hpp coord_chart.hpp Zaimoni.STL/Logging.h Zaimoni.STL/Pure.C/stdio_c.h Zaimoni.STL/Compiler.h Zaimoni.STL/rw.hpp Euclidean.hpp matrix.hpp slice.hpp
+gridspace.o: gridspace.hpp civilization.hpp world_manager.hpp object.hpp coord_chart.hpp Zaimoni.STL/Logging.h Zaimoni.STL/Pure.C/stdio_c.h Zaimoni.STL/Compiler.h Zaimoni.STL/rw.hpp Euclidean.hpp matrix.hpp slice.hpp singleton.on.hpp singleton.off.hpp
+input_manager.o: input_manager.hpp display_manager.hpp singleton.on.hpp singleton.off.hpp
+display_manager.o: display_manager.hpp singleton.on.hpp singleton.off.hpp
+world_manager.o: world_manager.hpp singleton.on.hpp singleton.off.hpp
+game_manager.o: game_manager.hpp world_manager.hpp display_manager.hpp input_manager.hpp Zaimoni.STL/Pure.C/format_util.h Zaimoni.STL/Pure.C/logging.h Zaimoni.STL/OS/Clock.hpp Zaimoni.STL/OS/usleep.h singleton.on.hpp singleton.off.hpp Zaimoni.STL/Compiler.h
