@@ -33,41 +33,37 @@ template<class T> struct interval_type
 	typedef typename std::remove_cv<T>::type type;
 };
 
-template<>
-struct interval_type<float>
-{
-	typedef boost::numeric::interval<float> type;
-};
+#define ZAIMONI_OVERRIDE_TYPE_STRUCT(TYPE,SRC,DEST)	\
+template<>	\
+struct TYPE<SRC>	\
+{	\
+	typedef DEST type;	\
+};	\
+	\
+template<>	\
+struct TYPE<const SRC>	\
+{	\
+	typedef DEST type;	\
+};	\
+	\
+template<>	\
+struct TYPE<volatile SRC>	\
+{	\
+	typedef DEST type;	\
+};	\
+	\
+template<>	\
+struct TYPE<const volatile SRC>	\
+{	\
+	typedef DEST type;	\
+}
 
-template<>
-struct interval_type<double>
-{
-	typedef boost::numeric::interval<double> type;
-};
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,float,boost::numeric::interval<float>);
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,double,boost::numeric::interval<double>);
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<long double>);
 
-template<>
-struct interval_type<long double>
-{
-	typedef boost::numeric::interval<long double> type;
-};
-
-template<>
-struct interval_type<boost::numeric::interval<float> >
-{
-	typedef boost::numeric::interval<float> type;
-};
-
-template<>
-struct interval_type<boost::numeric::interval<double> >
-{
-	typedef boost::numeric::interval<double> type;
-};
-
-template<>
-struct interval_type<boost::numeric::interval<long double> >
-{
-	typedef boost::numeric::interval<long double> type;
-};
+// don't undefine after migrating to Zaimoni.STL
+#undef ZAIMONI_OVERRIDE_TYPE_STRUCT
 
 // algebra on fundamental types
 // has not been fully hardened against non-binary floating point

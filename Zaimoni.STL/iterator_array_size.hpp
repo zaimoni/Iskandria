@@ -16,7 +16,7 @@ private:
 	T* _src;
 	size_t _i;
 
-	bool can_dereference() {return _src && _i < _src.size();}
+	bool can_dereference() const {return _src && _i < _src.size();}
 public:
 	typedef typename T::difference_type difference_type;	// these four aligned with container
 	typedef typename T::value_type value_type;
@@ -24,7 +24,7 @@ public:
 	typedef typename T::pointer pointer;
 	typedef std::random_access_iterator_tag iterator_category;
 
-	bool is_valid() {return _src && _i <= _src.size();}	// for post-condition testing
+	bool is_valid() const {return _src && _i <= _src.size();}	// for post-condition testing
 
 	iterator_array_size(T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
 	iterator_array_size(const iterator_array_size& src) = default;
@@ -104,10 +104,10 @@ template<class T>
 class const_iterator_array_size
 {
 private:
-	T* _src;
+	const T* _src;
 	size_t _i;
 
-	bool can_dereference() {return _src && _i < _src.size();}
+	bool can_dereference() const {return _src && _i < _src->size();}
 public:
 	typedef typename T::difference_type difference_type;	// these four aligned with container
 	typedef const typename T::value_type value_type;
@@ -115,9 +115,9 @@ public:
 	typedef const typename T::pointer pointer;
 	typedef std::random_access_iterator_tag iterator_category;
 
-	bool is_valid() {return _src && _i <= _src.size();}	// for post-condition testing
+	bool is_valid() const {return _src && _i <= _src->size();}	// for post-condition testing
 
-	const_iterator_array_size(T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
+	const_iterator_array_size(const T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
 	const_iterator_array_size(const const_iterator_array_size& src) = default;
 	const_iterator_array_size(const_iterator_array_size&& src) = default;
 	~const_iterator_array_size() = default;

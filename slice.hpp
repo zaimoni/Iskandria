@@ -40,6 +40,7 @@ public:
 	// container core types
 	typedef T value_type;
     typedef T& reference;
+    typedef T* pointer;
     typedef const T& const_reference;
     typedef ptrdiff_t difference_type;
     typedef size_t size_type;
