@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 #include <vector>
-#include <type_traits>
+#include "overprecise.hpp"
 
 namespace zaimoni {
 namespace math {

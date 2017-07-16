@@ -590,6 +590,8 @@ struct rw_mode<zaimoni::math::covector<T,N> >
 // If doing INFORM-based debugging
 // g++ -std=c++11 -omatrix.exe -DTEST_APP matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
+// Also test driver for Euclidean.hpp, overprecise.hpp
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <boost/numeric/interval.hpp>
@@ -662,6 +664,35 @@ int main(int argc, char* argv[])
 
 	tmp_sq_mat*tmp_sq_mat;
 	tmp_mat*tmp_mat;
+
+	// check rearrange arithmatic
+	double lhs = 1.0;
+	double rhs = 1.0;
+	bool ok = zaimoni::math::rearrange_sum(lhs,rhs);
+	ZAIMONI_PASSTHROUGH_ASSERT(ok);
+	ZAIMONI_PASSTHROUGH_ASSERT(2.0==lhs);
+	STRING_LITERAL_TO_STDOUT("1,0+1.0 = 2.0\n");
+
+	lhs = 2.0;
+	rhs = 1.0;
+	ok = zaimoni::math::rearrange_sum(lhs,rhs);	
+	ZAIMONI_PASSTHROUGH_ASSERT(ok);
+	ZAIMONI_PASSTHROUGH_ASSERT(3.0==lhs);
+	STRING_LITERAL_TO_STDOUT("2,0+1.0 = 3.0\n");
+
+	lhs = 1.0;
+	rhs = 1.0;
+	ok = zaimoni::math::rearrange_product(lhs,rhs);	
+	ZAIMONI_PASSTHROUGH_ASSERT(ok);
+	ZAIMONI_PASSTHROUGH_ASSERT(1.0==lhs);
+	STRING_LITERAL_TO_STDOUT("1,0*1.0 = 1.0\n");
+
+	lhs = 3.0;
+	rhs = 3.0;
+	ok = zaimoni::math::rearrange_product(lhs,rhs);	
+	ZAIMONI_PASSTHROUGH_ASSERT(ok);
+	ZAIMONI_PASSTHROUGH_ASSERT(9.0==lhs);
+	STRING_LITERAL_TO_STDOUT("3,0*3.0 = 9.0\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
