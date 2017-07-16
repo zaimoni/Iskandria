@@ -3,7 +3,7 @@
 #ifndef SLICE_HPP
 #define SLICE_HPP 1
 
-#include "Zaimoni.STL/Logging.h"
+#include "Zaimoni.STL/iterator_array_size.hpp"
 
 namespace zaimoni {
 
@@ -37,15 +37,114 @@ private:
 	T* _src;
 	zaimoni::slice _filter;
 public:
+	// container core types
 	typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef ptrdiff_t difference_type;
+    typedef size_t size_type;
 
-	slice_array(T* src,const zaimoni::slice& filter) : _src(src),_filter(filter) {};
-	slice_array(const slice_array& src) : _src(src._src),_filter(src._filter) {};
+	typedef iterator_array_size<slice_array<T> > iterator;
+	typedef const_iterator_array_size<slice_array<T> > const_iterator;
+	// at least bidirectional
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
+	slice_array(T* src,const zaimoni::slice& filter) : _src((assert(src),src)),_filter(filter) {};
+	slice_array(const slice_array& src) = default;
+	slice_array(slice_array&& src) = default;
+	~slice_array() = default;
+	slice_array& operator=(const slice_array& src) = default;
+	slice_array& operator=(slice_array&& src) = default;
+
+	// container core API
+	size_t size() const {return _filter.size();}
+ 	size_t max_size() const {return ((size_t)(-1)/2)*sizeof(T);}
+	bool empty() const {return 0 >= _filter.size();} 
+	void swap(slice_array& rhs) {
+		swap(_src,rhs._src);
+		swap(_filter,rhs._filter);
+	}
+
+	// don't want to pull in <algorithm> for these
+	bool operator==(const slice_array& rhs) const
+	{
+		if (empty()) return rhs.empty();
+		if (rhs.empty()) return false;
+		if (size()!=rhs.size()) return false;
+		const auto lhs_end = cend();
+		const auto rhs_end = rhs.cend();
+		if (lhs_end==rhs_end) return true;	// same container
+		auto lhs_iter = cbegin();
+		auto rhs_iter = rhs.cbegin();
+		while(lhs_iter < lhs_end) {
+			if (*lhs_iter!=*rhs_iter) return false;
+			lhs_iter++;
+			rhs_iter++;
+		}
+		return true;
+	}
+	bool operator!=(const slice_array& rhs) const { return !(*this==rhs); }
+
+	iterator begin() { return iterator(this); };
+	iterator end() { return iterator(this,_filter.size()); }
+	const_iterator cbegin() const { return const_iterator(this); }
+	const_iterator cend() const { return const_iterator(this,_filter.size()); }
+	const_iterator begin() const { return cbegin(); }
+	const_iterator end() const { return cend(); }
+//	T& front() { return *begin(); }
+//	T& back() { return *(--end()); }
+//	const T& front() const { return *begin(); }
+//	const T& back() const { return *(--end()); }
+	T& front() { return _src[_filter.index(0)]; }
+	T& back() { return _src[_filter.index(_filter.size()-1)]; }
+	const T& front() const { return _src[_filter.index(0)]; }
+	const T& back() const { return _src[_filter.index(_filter.size()-1)]; }
+
+	// reversible container API
+	reverse_iterator rbegin() { return reverse_iterator(this); };
+	iterator rend() { return reverse_iterator(this,_filter.size()); }
+	const_reverse_iterator crbegin() const { return const_reverse_iterator(this); }
+	const_reverse_iterator crend() const { return const_reverse_iterator(this,_filter.size()); }
+	const_reverse_iterator rbegin() const { return crbegin(); }
+	const_reverse_iterator rend() const { return crend(); }
+
+	// random access API
 	T& operator[](size_t n) {return _src[_filter.index(n)];}
 	const T& operator[](size_t n) const {return _src[_filter.index(n)];}
-	size_t size() const {return _filter.size();};
 };
+
+template<class T>
+void swap(slice_array<T>& lhs, slice_array<T>& rhs) { lhs.swap(rhs); }
+
+// lexicographical compare
+// we don't want these to exist unless needed, as e.g. complex numerals don't have a meaningful operator <
+template<class T>
+bool operator<(const slice_array<T>& lhs, const slice_array<T>& rhs)
+{
+	if (lhs.empty()) return !rhs.empty();
+	if (rhs.empty()) return false;
+	const auto lhs_end = lhs.cend();
+	const auto rhs_end = rhs.cend();
+	if (lhs_end==rhs_end) return false;	// same container
+	auto lhs_iter = lhs.cbegin();
+	auto rhs_iter = rhs.cbegin();
+	while(lhs_iter < lhs_end && rhs_iter < rhs_end) {
+		if (*lhs_iter>=*rhs_iter) return false;
+		lhs_iter++;
+		rhs_iter++;
+	}
+	return lhs_iter==lhs_end;
+}
+
+template<class T>
+bool operator>(const slice_array<T>& lhs, const slice_array<T>& rhs) { return rhs<lhs; }
+
+template<class T>
+bool operator<=(const slice_array<T>& lhs, const slice_array<T>& rhs) { return !(rhs<lhs); }
+
+template<class T>
+bool operator>=(const slice_array<T>& lhs, const slice_array<T>& rhs) { return !(lhs<rhs); }
 
 }	// namespace zaimoni
 
