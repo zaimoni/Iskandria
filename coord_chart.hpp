@@ -11,6 +11,7 @@
 
 #include "Euclidean.hpp"
 #include "matrix.hpp"
+#include "angle.hpp"
 
 namespace zaimoni {
 namespace math {
@@ -43,6 +44,24 @@ struct Minkowski_vector
 	typedef zaimoni::math::vector<T,N> coord_type;
 	static auto metric(const coord_type& lhs, const coord_type& rhs) {return zaimoni::math::Minkowski<negative_coord>(lhs,rhs);}
 };
+
+// adapter
+template<size_t N>
+class spherical_vector
+{
+	ZAIMONI_STATIC_ASSERT(2<=N);
+	typedef std::pair<boost::numeric::interval<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
+	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
+	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(T[])> , void>	// doesn't work
+	template<class T> static void to_cartesian(const coord_type& src, T&  dest)
+	{	// general idea
+		// x: rcos(theta)sin(phi1)...sin(phin)
+		// y: rsin(theta)sin(phi1)...sin(phin)
+		// z: rcos(phi1)sin(phi2)...sin(phin)
+	}
+	template<class T> static void from_cartesian(const T& src, coord_type& dest);
+};
+
 
 }	// namespace math
 }	// namespace zaimoni
