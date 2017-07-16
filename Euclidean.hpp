@@ -9,6 +9,7 @@
 
 namespace zaimoni {
 namespace math {
+
 namespace Euclidean {
 
 // let's try this again now that slice_array.hpp has iterators.
@@ -22,13 +23,14 @@ typename std::enable_if<	\
 	typename interval_type<A>::type	\
 >::type
 
-#if 0
+#if 2
 template<class T1, class T2>
 ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) dot(const T1& lhs, const T2& rhs)
 {
 	assert(lhs.size()==rhs.size());
 	assert(0<lhs.size());
 	std::vector<typename interval_type<typename T1::value_type>::type> accumulator;
+//	std::vector<typename interval_type<typename T1::value_type>::type::base_type> accumulator_exact;
 	std::vector<typename std::remove_cv<typename T1::value_type>::type> lhs_terms;
 	std::vector<typename std::remove_cv<typename T2::value_type>::type> rhs_terms;
 
@@ -41,17 +43,27 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		{
 		typename std::remove_cv<typename T1::value_type>::type lhs_term = *lhs_iter++;
 		typename std::remove_cv<typename T2::value_type>::type rhs_term = *rhs_iter++;
+		// reject isnan now
+		if (isnan(lhs_term)) throw std::runtime_error("incoming NaN");
+		if (isnan(rhs_term)) throw std::runtime_error("incoming NaN");
 		if (rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
 			{	// evaluated
 			if (typename std::remove_cv<typename T1::value_type>::type(0)==lhs_term) continue;		// ignore additive identity 0
-			accumulator.push_back(lhs_term);
-//			if (1<accumulator.size()) incremental_rearrange_sum(accumulator);
+//			if (lhs_term.lower()==lhs_term.upper())
+//				{	// esact
+//				accumulator_exact.push_back(lhs_term);
+//				incremental_rearrange_sum(accumulator_exact,accumulator);
+//				}
+//			else{
+				accumulator.push_back(lhs_term);
+//				incremental_rearrange_sum(accumulator,accumulator_exact);
+//				}
 			continue;
 			}
 		else{
 			lhs_terms.push_back(lhs_term);
 			rhs_terms.push_back(rhs_term);
-//			incremental_rearrange_dot(lhs_term,rhs_term,accumulator);
+//			incremental_rearrange_dot(lhs_term,rhs_term,accumulator,accumulator_exact);
 			}
 		}
 	}	// end scoping brace
@@ -60,9 +72,9 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		accumulator.push_back(lossy<typename interval_type<typename T1::value_type>::type::base_type>::product(lhs_terms.back(),rhs_terms.back()));
 		lhs_terms.pop_back();
 		rhs_terms.pop_back();
-//		if (1<accumulator.size()) incremental_rearrange_sum(accumulator);
+//		incremental_rearrange_sum(accumulator,accumulator_exact);
 		}
-	if (accumulator.empty()) return 0;	// zero-term sum is usually defined as zero
+	if (accumulator.empty() /* && accumulator_exact.empty() */) return 0;	// zero-term sum is usually defined as zero
 	// XXX replace this with something reasonable
 	while(1<accumulator.size())
 		{
@@ -79,7 +91,7 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 
 // the dot product is very easy to botch numerically.  Put a default wrong version here and deal with accuracy later.
 
-#if 2
+#if 0
 // this version assumes ::size() and operator[]
 // would also like an iterator version
 template<class T1, class T2>

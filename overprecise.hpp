@@ -10,11 +10,29 @@
 #include <utility>
 #include <boost/numeric/interval.hpp>
 
+// interval division of floating point can legitimately create intervals with an infinite endpoint.
+// Nothing legitimately creates NaN; just assume it's pre-screened.
+
 namespace zaimoni {
 
 using std::swap;
+
 using std::fpclassify;
+using std::isfinite;
+using std::isnan;
 using std::signbit;
+
+template<class T>
+constexpr bool isnan(const boost::numeric::interval<T>& x)
+{
+	return isnan(x.lower()) || isnan(x.upper());
+}
+
+template<class T>
+constexpr bool isfinite(const boost::numeric::interval<T>& x)
+{
+	return std::isfinite(x.lower()) && std::isfinite(x.upper());
+}
 
 // replicate efficient readonly call parameter options from boost
 template<class T> struct const_param
@@ -90,11 +108,12 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type find_safe
 	return true;
 }
 
-
 // the rearrange_sum family returns true iff rhs has been annihilated with exact arithmetic
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_sum(T& lhs, T& rhs)
 {
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
 	if (0.0 == rhs) return true;
 	if (0.0 == lhs) {
 		swap(lhs,rhs);
@@ -105,13 +124,6 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange
 	// 1: rhs
 hard_restart:
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-
-	if (FP_NAN == fp_type[0]) return true;
-	if (FP_NAN == fp_type[1]) {
-		swap(lhs,rhs);
-		return true;
-	}
-
 	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
 
 	if (FP_INFINITE == fp_type[0])
@@ -279,6 +291,8 @@ typename std::enable_if<std::is_floating_point<T>::value , void>::type _rebalanc
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(T& lhs, T& rhs)
 {
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
 	if (1.0 == rhs) return true;
 	if (-1.0 == rhs) {
 		lhs = -lhs;
@@ -299,11 +313,6 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange
 	// 1: rhs
 hard_restart:
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-	if (FP_NAN == fp_type[0]) return true;
-	if (FP_NAN == fp_type[1]) {
-		swap(lhs,rhs);
-		return true;
-	}
 
 	// reject: 0*infinity (goes to NaN)
 	if (0.0 == lhs && FP_INFINITE == fp_type[1]) throw std::runtime_error("0*infinity NaN");;
@@ -387,6 +396,12 @@ hard_restart:
 	return false;
 }
 
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+{
+	return false;	// no-op to allow compiling
+}
+
 // interval arithmetic wrappers
 // we need proper function overloading here so use static member functions of a template class
 template<class T>
@@ -394,45 +409,61 @@ struct lossy
 {
 	static typename interval_type<T>::type sum(typename const_param<T>::type lhs, typename const_param<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		typename interval_type<T>::type ret(lhs);
 		ret += rhs;
+		if (incoming_finite && !isfinite(ret)) throw std::overflow_error("addition");
 		return ret;
 	}
 	static typename interval_type<T>::type sum(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		lhs += rhs;
+		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("addition");
 		return lhs;
 	}
 	static typename interval_type<T>::type sum(typename const_param<T>::type lhs, typename interval_type<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		rhs += lhs;
+		if (incoming_finite && !isfinite(rhs)) throw std::overflow_error("addition");
 		return rhs;
 	}
 	static typename interval_type<T>::type sum(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		lhs += rhs;
+		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("addition");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type product(typename const_param<T>::type lhs, typename const_param<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		typename interval_type<T>::type ret(lhs);
 		ret *= rhs;
+		if (incoming_finite && !isfinite(ret)) throw std::overflow_error("product");
 		return ret;
 	}
 	static typename interval_type<T>::type product(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		lhs *= rhs;
+		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 	static typename interval_type<T>::type product(typename const_param<T>::type lhs, typename interval_type<T>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		rhs *= lhs;
+		if (incoming_finite && !isfinite(rhs)) throw std::overflow_error("product");
 		return rhs;
 	}
 	static typename interval_type<T>::type product(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
 		lhs *= rhs;
+		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 };
