@@ -19,13 +19,16 @@ using std::swap;
 
 using std::fpclassify;
 using std::isfinite;
+using std::isinf;
 using std::isnan;
 using std::signbit;
 
 template<class T>
 constexpr bool isnan(const boost::numeric::interval<T>& x)
 {
-	return isnan(x.lower()) || isnan(x.upper());
+	return empty(x)	// null set isn't that useful
+        || isnan(x.lower()) || isnan(x.upper()) 	// intuitive
+		|| (isinf(x.lower()) && isinf(x.upper()) && x.lower()<x.upper());	// also disallow (-infinity,infinity) (total loss of information)
 }
 
 template<class T>
@@ -108,17 +111,29 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type find_safe
 	return true;
 }
 
+// trivial_sum family returns -1 for lhs annihilated, 1 for rhs annihilated
+template<class T, class U>
+typename std::enable_if<std::is_floating_point<T>::value && std::is_floating_point<U>::value, int>::type trivial_sum(T& lhs, U& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+	if (0.0 == rhs) return 1;
+	if (0.0 == lhs) return -1;
+	if (isinf(lhs))
+		{
+		if (!isinf(rhs)) return 1;
+		if (signbit(lhs)!=signbit(rhs)) throw std::runtime_error("infinity-infinity NaN");
+		return 1;
+		}
+	if (isinf(rhs)) return -1;
+	return 0;
+}
+
 // the rearrange_sum family returns true iff rhs has been annihilated with exact arithmetic
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_sum(T& lhs, T& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
-	if (0.0 == rhs) return true;
-	if (0.0 == lhs) {
-		swap(lhs,rhs);
-		return true;
-	}
+	assert(!trivial_sum(lhs,rhs));
 
 	// 0: lhs
 	// 1: rhs
@@ -126,21 +141,7 @@ hard_restart:
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
 	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
 
-	if (FP_INFINITE == fp_type[0])
-		{
-		if (FP_INFINITE != fp_type[1]) return true;
-		// inf - inf is NaN.  We want to abort the calculation entirely.
-		if (is_negative[0]!=is_negative[1]) throw std::runtime_error("infinity-infinity NaN");
-		return true;
-		}
-	if (FP_INFINITE == fp_type[1])
-		{
-		swap(lhs,rhs);
-		return true;
-		}
-
 	// epsilon exponent is simply -std::numeric_limits<T>::digits+1 (+1 from bias)
-
 	// remember: 1.0 maps to exponent 1, mantissa 0.5
 restart:
 	int exponent[2];
@@ -287,63 +288,179 @@ typename std::enable_if<std::is_floating_point<T>::value , void>::type _rebalanc
 	rhs = scalbn(rhs,delta_exp);
 }
 
-// the rearrange_product family returns true if the rhs has been annihilated (usually value 1)
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(T& lhs, T& rhs)
+// trivial_product family returns -1 for lhs annihilated, 1 for rhs annihilated
+template<class T, class U>
+typename std::enable_if<std::is_floating_point<T>::value && std::is_floating_point<U>::value, int>::type trivial_product(T& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
-	if (1.0 == rhs) return true;
-	if (-1.0 == rhs) {
+	if (1.0 == rhs) return 1;
+	if (1.0 == lhs) return -1;
+	if (-1.0 == rhs)
+		{
 		lhs = -lhs;
 		rhs = 1.0;
-		return true;
-	}
-	if (1.0 == lhs) {
-		swap(lhs,rhs);
-		return true;
-	}
-	if (-1.0 == lhs) {
+		return 1;
+		}
+	if (-1.0 == lhs)
+		{
 		lhs = -rhs;
 		rhs = 1.0;
-		return true;
-	}
+		return 1;
+		}
 
-	// 0: lhs
-	// 1: rhs
-hard_restart:
-	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
+	const bool infinite[2] = {isinf(lhs), isinf(rhs)};
 
-	// reject: 0*infinity (goes to NaN)
-	if (0.0 == lhs && FP_INFINITE == fp_type[1]) throw std::runtime_error("0*infinity NaN");;
-	if (0.0 == rhs && FP_INFINITE == fp_type[0]) throw std::runtime_error("0*infinity NaN");;
+	if (0.0 == lhs && infinite[1]) throw std::runtime_error("0*infinity NaN");;
+	if (0.0 == rhs && infinite[0]) throw std::runtime_error("0*infinity NaN");;
 
 	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
 
-	// ok: infinity*infinity
-	// ok: infinity*finite
-	if (FP_INFINITE == fp_type[0]) {
+	if (infinite[0]) {
 		lhs = copysign(lhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
 		rhs = 1.0;
-		return true;
+		return 1;
 	}
-	if (FP_INFINITE == fp_type[1]) {
+	if (infinite[1]) {
 		lhs = copysign(rhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
 		rhs = 1.0;
-		return true;
+		return 1;
 	}
 
 	// ok: 0*finite
 	if (0.0 == lhs) {
 		lhs = copysign(lhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
 		rhs = 1.0;
-		return true;
+		return 1;
 	}
 	if (0.0 == rhs) {
 		lhs = copysign(rhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
 		rhs = 1.0;
-		return true;
+		return 1;
 	}
+
+	return 0;
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, T& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+	if (lhs.lower()==lhs.upper())
+		{	// allow for negative zero fp weirdness: upper() rather than lower()
+		T tmp_lhs = lhs.upper();
+		const int ret = trivial_product(tmp_lhs,rhs);
+		if (ret) lhs = tmp_lhs;
+		return ret;
+		}
+
+	// duplicate from base case
+	if (1.0 == rhs) return 1;
+	if (-1.0 == rhs)
+		{
+		lhs = -lhs;
+		rhs = 1.0;
+		return 1;
+		}
+
+	// intervals are only bounded by infinity
+	if (isinf(rhs)) {
+		if (0.0==lhs.lower() || 0.0==lhs.upper()) throw std::runtime_error("0*infinity NaN");
+		if (signbit(lhs.lower())!=signbit(lhs.upper())) throw std::runtime_error("interval (-infinity,infinity) NaN");
+		rhs = copysign(rhs,(signbit(lhs.lower())==signbit(rhs) ? 1.0 : -1.0));
+		lhs = 1.0;
+		return -1;
+	}
+
+	if (0.0 == rhs) {
+		rhs = copysign(rhs,(signbit(lhs.upper())!=signbit(rhs) ? 1.0 : -1.0));
+		lhs = 1.0;
+		return -1;
+	}
+
+	return 0;
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+	if (rhs.lower()==rhs.upper())
+		{
+		T tmp_rhs = rhs.upper();
+		const int ret = trivial_product(lhs,tmp_rhs);
+		if (ret) rhs = tmp_rhs;
+		return ret;
+		}
+	if (lhs.lower()==lhs.upper())
+		{
+		T tmp_lhs = lhs.upper();
+		const int ret = trivial_product(rhs,tmp_lhs);
+		if (ret) lhs = tmp_lhs;
+		return -ret;
+		}
+#if 0
+// the rejection of (-infinity,infinity) allows this source code reduction
+#if 0
+			if (0.0<=rhs.lower()) return 1;
+			if (0.0>=rhs.upper())
+				{
+				lhs.assign(-lhs.upper(),copysign(0.0,-1.0));
+				return 1;
+				}
+#else
+			if (0.0>=rhs.upper()) lhs.assign(copysign(std::numeric_limits<T>::infinity(),-1.0),copysign(0.0,-1.0));
+			return 1;
+#endif
+#endif
+#define ZAIMONI_POSITIVE_INFINITY(lhs,rhs,ret)	\
+	if (isinf(lhs.upper()))	\
+		{	/* lhs positive infinity upper bound */	\
+		if (0.0>rhs.lower() && 0.0<rhs.upper()) throw std::runtime_error("interval (-infinity,infinity) NaN");	\
+		if (0.0 == lhs.lower())	\
+			{	/*	lhs [0,infinity) */	\
+			if (0.0>=rhs.upper()) lhs.assign(-lhs.upper(),copysign(0.0,-1.0));	\
+			return ret;	\
+			}	\
+		}
+
+ZAIMONI_POSITIVE_INFINITY(lhs,rhs,1)
+ZAIMONI_POSITIVE_INFINITY(rhs,lhs,-1)
+
+#undef ZAIMONI_POSITIVE_INFINITY
+
+#define ZAIMONI_NEGATIVE_INFINITY(lhs,rhs,ret)	\
+	if (isinf(lhs.lower()))	\
+		{	/* lhs negative infinity lower bound */	\
+		if (0.0>rhs.lower() && 0.0<rhs.upper()) throw std::runtime_error("interval (-infinity,infinity) NaN");	\
+		if (0.0 == lhs.upper())	\
+			{	/*	lhs (-infinity,0] */	\
+			if (0.0>=rhs.upper()) lhs.assign(0.0,std::numeric_limits<T>::infinity());	\
+			return ret;	\
+			}	\
+		}
+
+ZAIMONI_NEGATIVE_INFINITY(lhs,rhs,1)
+ZAIMONI_NEGATIVE_INFINITY(rhs,lhs,-1)
+
+#undef ZAIMONI_NEGATIVE_INFINITY
+
+	return 0;	// no-op to allow compiling
+}
+
+// the rearrange_product family returns true if the rhs has been annihilated (usually value 1)
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(T& lhs, T& rhs)
+{
+	assert(!trivial_product(lhs,rhs));
+
+	// 0: lhs
+	// 1: rhs
+hard_restart:
+	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
+	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
 
 	int exponent[2];
 	const T mantissa[2] = {frexp(lhs,exponent) , frexp(rhs,exponent+1)};
@@ -378,8 +495,8 @@ hard_restart:
 	boost::numeric::interval<double> predicted_mantissa(mantissa[0]);
 	predicted_mantissa *= mantissa[1];
 	if (0.5<=predicted_mantissa.lower() || -0.5>=predicted_mantissa.upper()) predicted_exponent++;
-	if (   std::numeric_limits<T>::max_exponent >= predicted_exponent
-		&& std::numeric_limits<T>::min_exponent <= predicted_exponent
+	if (   std::numeric_limits<T>::max_exponent > predicted_exponent
+		&& std::numeric_limits<T>::min_exponent < predicted_exponent
 		&& predicted_mantissa.lower()==predicted_mantissa.upper())
 		{	// exact.
 		lhs *= rhs;

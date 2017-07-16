@@ -46,7 +46,16 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		// reject isnan now
 		if (isnan(lhs_term)) throw std::runtime_error("incoming NaN");
 		if (isnan(rhs_term)) throw std::runtime_error("incoming NaN");
-		if (rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
+		const int rearranged_product = trivial_product(lhs_term,rhs_term);
+		switch(rearranged_product)
+		{
+		case -1:	swap(lhs_term,rhs_term);
+		// intentional fall-through
+		case 1:
+			if (typename std::remove_cv<typename T1::value_type>::type(0)==lhs_term) continue;		// ignore additive identity 0
+
+		}
+		if (rearranged_product || rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
 			{	// evaluated
 			if (typename std::remove_cv<typename T1::value_type>::type(0)==lhs_term) continue;		// ignore additive identity 0
 //			if (lhs_term.lower()==lhs_term.upper())
