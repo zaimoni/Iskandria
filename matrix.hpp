@@ -682,8 +682,8 @@ int main(int argc, char* argv[])
 
 	lhs = 1.0;
 	rhs = 1.0;
-	ok = zaimoni::math::rearrange_product(lhs,rhs);	
-	ZAIMONI_PASSTHROUGH_ASSERT(ok);
+	int ok2 = zaimoni::math::trivial_product(lhs,rhs);	
+	ZAIMONI_PASSTHROUGH_ASSERT(1==ok2);
 	ZAIMONI_PASSTHROUGH_ASSERT(1.0==lhs);
 	STRING_LITERAL_TO_STDOUT("1,0*1.0 = 1.0\n");
 
@@ -693,6 +693,11 @@ int main(int argc, char* argv[])
 	ZAIMONI_PASSTHROUGH_ASSERT(ok);
 	ZAIMONI_PASSTHROUGH_ASSERT(9.0==lhs);
 	STRING_LITERAL_TO_STDOUT("3,0*3.0 = 9.0\n");
+
+	zaimoni::math::power_term<double> x(3.0,0);
+	ZAIMONI_PASSTHROUGH_ASSERT(1==x.base());
+	ZAIMONI_PASSTHROUGH_ASSERT(1==x.power());
+	STRING_LITERAL_TO_STDOUT("3.0^0 = 1\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

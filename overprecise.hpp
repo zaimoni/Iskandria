@@ -4,6 +4,7 @@
 #define OVERPRECISE_HPP 1
 
 #include <math.h>
+#include <stdint.h>
 #include <limits>
 #include <type_traits>
 #include <stdexcept>
@@ -31,10 +32,24 @@ constexpr bool isnan(const boost::numeric::interval<T>& x)
 		|| (isinf(x.lower()) && isinf(x.upper()) && x.lower()<x.upper());	// also disallow (-infinity,infinity) (total loss of information)
 }
 
+// integral types are never NaN.  Provide for uniformity
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(T x)
+{
+	return false;
+}
+
 template<class T>
 constexpr bool isfinite(const boost::numeric::interval<T>& x)
 {
 	return std::isfinite(x.lower()) && std::isfinite(x.upper());
+}
+
+// integral types are always finite.  Provide for uniformity
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfinite(T x)
+{
+	return true;
 }
 
 // replicate efficient readonly call parameter options from boost
@@ -42,6 +57,13 @@ template<class T> struct const_param
 {
 	typedef typename std::add_const<
 		typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , typename std::add_lvalue_reference<T>::type >::type
+	>::type type;
+};
+
+template<class T> struct return_copy
+{
+	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , 
+		typename std::add_const<typename std::add_lvalue_reference<T>::type>::type 
 	>::type type;
 };
 
@@ -85,6 +107,55 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<
 
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
+
+// data representation conventions
+// general series sum/product: std::vector
+// power: std::pair x^n
+// integer range: boost::numeric::interval or std::pair
+
+template<class T>
+struct power_term : public std::pair<T,intmax_t>
+{
+	typedef std::pair<T,intmax_t> super;
+
+	power_term() = default;
+	// note that using std::conditional to try to optimize alignment of the type, is very contorted for this constructor
+	power_term(typename const_param<T>::type x, intmax_t n) : super(x,n) { _standard_form();};
+	power_term(const power_term& src) = default;
+	power_term(power_term&& src) = default;
+	~power_term() = default;
+	power_term& operator=(const power_term& src) = default;
+	power_term& operator=(power_term&& src) = default;
+
+	T& base() {return this->first;};
+	typename return_copy<T>::type base() const {return this->first;};
+	intmax_t& power() {return this->second;};
+	intmax_t power() const {return this->second;};
+private:
+	void _standard_form() {
+		if (0 == this->second) {
+			// interval would use "contains" here
+			if (this->first == 0) return;	// 0^0 is degenerate ... interpretation depends on context
+			// n^0 is a zero-ary product: 1.
+			this->first = T(1);
+			this->second = 1;
+			return;
+		}
+		if (1 == this->second) return;	// normal-form
+		if (T(1) == this->first) {
+			// 1^n is 1.
+			this->second = 1;
+			return;
+		}
+		if (T(-1) == this->first) {
+			// XXX \todo any element that is period 2 would work here.  Issue is a problem with matrices.
+			if (0 == this->second%2) this->first = T(1);
+			this->second = 1;
+			return;
+		}
+		// XXX reduce small periods n?
+	}
+};
 
 // algebra on fundamental types
 // has not been fully hardened against non-binary floating point
@@ -296,47 +367,43 @@ typename std::enable_if<std::is_floating_point<T>::value && std::is_floating_poi
 	assert(!isnan(rhs));
 	if (1.0 == rhs) return 1;
 	if (1.0 == lhs) return -1;
-	if (-1.0 == rhs)
-		{
-		lhs = -lhs;
-		rhs = 1.0;
-		return 1;
-		}
-	if (-1.0 == lhs)
-		{
-		lhs = -rhs;
-		rhs = 1.0;
-		return 1;
+#define ZAIMONI_NEGATIVE_ONE(lhs,rhs,code)	\
+	if (-1.0 == rhs)	\
+		{	\
+		lhs = -lhs;	\
+		rhs = 1.0;	\
+		return code;	\
 		}
 
-	const bool infinite[2] = {isinf(lhs), isinf(rhs)};
+ZAIMONI_NEGATIVE_ONE(lhs,rhs,1)
+ZAIMONI_NEGATIVE_ONE(rhs,lhs,-1)
 
-	if (0.0 == lhs && infinite[1]) throw std::runtime_error("0*infinity NaN");;
-	if (0.0 == rhs && infinite[0]) throw std::runtime_error("0*infinity NaN");;
+#undef ZAIMONI_NEGATIVE_ONE
 
-	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
-
-	if (infinite[0]) {
-		lhs = copysign(lhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
+	const int inf_code = (bool)(isinf(rhs))-(bool)(isinf(lhs));
+	const int zero_code = 2*(0.0==rhs)+(0.0==lhs);
+	switch(4*inf_code+zero_code)
+	{
+	case 4+1:
+	case -4+2:	throw std::runtime_error("0*infinity NaN");;
+	case -4+0:
+	case 0+1:
+	case 0+3:
+		lhs = copysign(lhs,(signbit(lhs)==signbit(rhs) ? 1.0 : -1.0));
 		rhs = 1.0;
 		return 1;
-	}
-	if (infinite[1]) {
-		lhs = copysign(rhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
-		rhs = 1.0;
-		return 1;
-	}
-
-	// ok: 0*finite
-	if (0.0 == lhs) {
-		lhs = copysign(lhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
-		rhs = 1.0;
-		return 1;
-	}
-	if (0.0 == rhs) {
-		lhs = copysign(rhs,(is_negative[0]==is_negative[1] ? 1.0 : -1.0));
-		rhs = 1.0;
-		return 1;
+	case 4+0:	
+	case 0+2:
+		rhs = copysign(rhs,(signbit(lhs)==signbit(rhs) ? 1.0 : -1.0));
+		lhs = 1.0;
+		return -1;
+//	case 0+0:	break;
+#ifndef NDEBUG
+	case 4+2:
+	case 4+3:
+	case -4+1:
+	case -4+3:	throw std::runtime_error("compiler/library/hardware bug: numeral simulaneously infinite and zero");
+#endif	
 	}
 
 	return 0;
@@ -458,7 +525,6 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange
 
 	// 0: lhs
 	// 1: rhs
-hard_restart:
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
 	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
 
