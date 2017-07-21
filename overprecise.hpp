@@ -107,6 +107,56 @@ self_negate(boost::numeric::interval<T>& x)
 	return true;
 }
 
+#if 2
+template<class T> struct fp_stats;
+
+template<>
+class fp_stats<double>
+{
+private:
+	int _exponent;
+	double _mantissa;
+public:
+	fp_stats() = delete;
+	fp_stats(double src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);}
+	fp_stats(const fp_stats& src) = delete;
+	fp_stats(fp_stats&& src) = delete;
+	~fp_stats() = default;
+	void operator=(const fp_stats& src) = delete;
+	void operator=(fp_stats&& src) = delete;
+	void operator=(double src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);} 
+
+	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
+	int exponent() const {return _exponent;};
+	double mantissa() const {return _mantissa;};
+
+	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
+
+	std::pair<int,int> safe_subtract_exponents()
+	{
+		std::pair<int,int> ret(_exponent-std::numeric_limits<double>::digits,_exponent);
+		if (0.5==_mantissa || -0.5==_mantissa) ret.first--;
+		if (std::numeric_limits<double>::min_exponent > ret.second) ret.second = std::numeric_limits<double>::min_exponent;
+		if (std::numeric_limits<double>::min_exponent > ret.first) ret.first = std::numeric_limits<double>::min_exponent;
+		return ret;
+	}
+
+	std::pair<int,int> safe_add_exponents()	// not for denormals
+	{
+		std::pair<int,int> ret(_exponent-std::numeric_limits<double>::digits,_exponent);
+		const double abs_mantissa = (signbit(_mantissa) ? -_mantissa : _mantissa);
+		double mantissa_delta = 0.5;
+		while(1.0-mantissa_delta < abs_mantissa)
+			{
+			assert(ret.first<ret.second);
+			ret.second--;
+			mantissa_delta = scalbn(mantissa_delta,-1);
+			}
+		return ret;
+	}
+};
+#endif
+
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
 template<class T> struct interval_type
@@ -234,20 +284,6 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type delta_can
 	return 0.0==rhs;
 }
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type find_safe_delta(T& delta, T& mantissa_delta, T abs_mantissa, int scale, int exponent)
-{
-	while(1.0-mantissa_delta < abs_mantissa)
-		{
-		if (std::numeric_limits<T>::digits <= -scale) return false;
-		--scale;
-		delta = scalbn(delta,-1);
-		mantissa_delta = scalbn(mantissa_delta,-1);
-		}
-	if (1.0-mantissa_delta == abs_mantissa && std::numeric_limits<T>::max_exponent == exponent) return false;
-	return true;
-}
-
 // trivial_sum family returns -1 for lhs annihilated, 1 for rhs annihilated
 template<class T, class U>
 typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T) && ZAIMONI_INT_AS_DEFINED(U), int>::type trivial_sum(T& lhs, U& rhs)
@@ -281,13 +317,13 @@ hard_restart:
 	// epsilon exponent is simply -std::numeric_limits<T>::digits+1 (+1 from bias)
 	// remember: 1.0 maps to exponent 1, mantissa 0.5
 restart:
-	int exponent[2];
-	const T mantissa[2] = {frexp(lhs,exponent) , frexp(rhs,exponent+1)};
-	const int exponent_delta = exponent[1]-exponent[0];
+	fp_stats<T> lhs_stats(lhs);
+	fp_stats<T> rhs_stats(rhs);
+	const int exponent_delta = rhs_stats.exponent()-lhs_stats.exponent();
 
 	if (is_negative[0]==is_negative[1]) {
 		// same sign
-		if (lhs==rhs && std::numeric_limits<T>::max_exponent>exponent[0]) {
+		if (lhs==rhs && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {
 			lhs = scalbn(lhs,1);
 			rhs = 0.0;
 			return true;
@@ -302,72 +338,64 @@ restart:
 			if (0.0 == rhs) return true;
 			goto hard_restart;	// could be more clever here if breaking const
 		}
-		if (0==exponent_delta && std::numeric_limits<T>::max_exponent>exponent[0]) {	// same idea as above
-			T tmp = copysign(scalbn(1.0,exponent[0]+1),(is_negative[0] ? -1.0 : 1.0));
+		if (0==exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
+			T tmp = copysign(scalbn(1.0,lhs_stats.exponent()+1),(is_negative[0] ? -1.0 : 1.0));
 			rhs -= tmp;
 			rhs += lhs;
 			lhs = tmp;
 			goto restart;
 		}
 		if (0<exponent_delta) {	// rhs larger
-			if (std::numeric_limits<T>::digits < exponent_delta) return false;
-			T delta = copysign(scalbn(0.5,exponent[0]),rhs);
-			T mantissa_delta = scalbn(0.5,-exponent_delta);
-			const T abs_mantissa = (is_negative[1] ? -mantissa[1] : mantissa[1]);
-			if (!find_safe_delta(delta, mantissa_delta, abs_mantissa, exponent_delta, exponent[1])) return false;
-			if (delta_cancel(rhs,lhs,delta))
+			const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
+			const std::pair<int,int> rhs_safe(rhs_stats.safe_add_exponents());
+			if (rhs_safe.first>lhs_safe.second) return false;
+
+			if (delta_cancel(rhs,lhs,lhs_stats.delta(lhs_safe.second)))
 				{
 				swap(lhs,rhs);
 				return true;
 				}
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= exponent[1]) goto hard_restart;	// may have just denormalized
+			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= lhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 			goto restart;
 		} else {	// lhs larger
-			if (std::numeric_limits<T>::digits < -exponent_delta) return false;
-			T delta = copysign(scalbn(0.5,exponent[1]),rhs);
-			T mantissa_delta = scalbn(0.5,exponent_delta);
-			const T abs_mantissa = (is_negative[0] ? -mantissa[0] : mantissa[0]);
-			if (!find_safe_delta(delta, mantissa_delta, abs_mantissa, exponent_delta, exponent[0])) return false;
-			if (delta_cancel(lhs,rhs,delta)) return true;
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= exponent[0]) goto hard_restart;	// may have just denormalized
+			const std::pair<int,int> lhs_safe(lhs_stats.safe_add_exponents());
+			const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
+			if (lhs_safe.first>rhs_safe.second) return false;
+
+			if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 			goto restart;
 		}
 	} else {
 		// opposite sign: cancellation
-		if (exponent[0]==exponent[1]) {
+		if (0==exponent_delta) {
 			lhs += rhs;
 			rhs = 0.0;
 			return true;
 		}
-		if (    (FP_SUBNORMAL == fp_type[0] || exponent[0]==std::numeric_limits<T>::min_exponent)
-		     && (FP_SUBNORMAL == fp_type[1] || exponent[1]==std::numeric_limits<T>::min_exponent)) {
+		if (    (FP_SUBNORMAL == fp_type[0] || lhs_stats.exponent()==std::numeric_limits<T>::min_exponent)
+		     && (FP_SUBNORMAL == fp_type[1] || lhs_stats.exponent()==std::numeric_limits<T>::min_exponent)) {
 			lhs += rhs;
 			rhs = 0.0;
 			return true;
 		}
+		const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
+		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
 		if (0<exponent_delta) {
 			// rhs larger
-			if (std::numeric_limits<T>::digits+1<exponent_delta) return false;
-			if (std::numeric_limits<T>::digits+1==exponent_delta)
-				{
-				if (0.5!=mantissa[1] && -0.5!=mantissa[1]) return false;
-				}
-			if (delta_cancel(rhs,lhs,copysign(scalbn(0.5,exponent[0]),lhs)))
+			if (rhs_safe.first>lhs_safe.second) return false;
+			if (delta_cancel(rhs,lhs,lhs_stats.delta(lhs_safe.second)))
 				{
 				swap(lhs,rhs);
 				return true;
 				}
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= exponent[0]) goto hard_restart;	// may have just denormalized
+			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= lhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 			goto restart;
 		} else {
 			// lhs larger
-			if (std::numeric_limits<T>::digits+1< -exponent_delta) return false;
-			if (std::numeric_limits<T>::digits+1== -exponent_delta)
-				{
-				if (0.5!=mantissa[0] && -0.5!=mantissa[0]) return false;
-				}
-			if (delta_cancel(lhs,rhs,copysign(scalbn(0.5,exponent[1]),rhs))) return true;
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= exponent[1]) goto hard_restart;	// may have just denormalized
+			if (lhs_safe.first>rhs_safe.second) return false;
+			if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 			goto restart;
 		}	
 	}	
@@ -430,7 +458,7 @@ template<class T, class U>
 typename std::enable_if<ZAIMONI_INT_AS_DEFINED(U) , int>::type identity_product(T& lhs, const U& identity)
 {
 	if (int_as<1,U>() == identity) return 1;
-	if (!int_as<-1,U>()) return 0;
+	if (int_as<-1,U>() != identity) return 0;
 	return self_negate(lhs) ? 1 : -2;
 }
 
