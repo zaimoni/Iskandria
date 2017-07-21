@@ -434,14 +434,14 @@ typename std::enable_if<ZAIMONI_INT_AS_DEFINED(U) , int>::type identity_product(
 	return self_negate(lhs) ? 1 : -2;
 }
 
-// trivial_product family returns -1 for lhs annihilated, 1 for rhs annihilated
+// trivial_product family returns -1 for lhs annihilated, 1 for rhs annihilated; -2 on error
 template<class T, class U>
 typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, int>::type trivial_product(T& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
-	if (int ret = identity_product(lhs,rhs)) return 1==ret;
-	if (int ret = identity_product(rhs,lhs)) return -(1==ret);
+	if (int ret = identity_product(lhs,rhs)) return (-2==ret ? -2 : 1==ret);
+	if (int ret = identity_product(rhs,lhs)) return (-2==ret ? -2 : -(1==ret));
 
 	const int inf_code = (bool)(isinf(rhs))-(bool)(isinf(lhs));
 	const int zero_code = 2*(int_as<0,U>()==rhs)+(int_as<0,T>()==lhs);

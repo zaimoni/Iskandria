@@ -48,6 +48,8 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		const int rearranged_product = trivial_product(lhs_term,rhs_term);
 		switch(rearranged_product)
 		{
+		case -2:	// should have been trivial but failed
+			goto defer_product;
 		case -1:	swap(lhs_term,rhs_term);
 		// intentional fall-through
 		case 1:
@@ -68,11 +70,10 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 //				}
 			continue;
 			}
-		else{
-			lhs_terms.push_back(lhs_term);
-			rhs_terms.push_back(rhs_term);
-//			incremental_rearrange_dot(lhs_term,rhs_term,accumulator,accumulator_exact);
-			}
+defer_product:
+		lhs_terms.push_back(lhs_term);
+		rhs_terms.push_back(rhs_term);
+//		incremental_rearrange_dot(lhs_term,rhs_term,accumulator,accumulator_exact);
 		}
 	}	// end scoping brace
 	while(!lhs_terms.empty())
