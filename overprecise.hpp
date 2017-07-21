@@ -3,8 +3,8 @@
 #ifndef OVERPRECISE_HPP
 #define OVERPRECISE_HPP 1
 
+#include "Zaimoni.STL/Logging.h"
 #include <math.h>
-#include <stdint.h>
 #include <limits>
 #include "Zaimoni.STL/Augment.STL/type_traits"
 #include <stdexcept>
@@ -46,6 +46,66 @@ constexpr bool signbit(const boost::numeric::interval<T>& x)
 }
 
 namespace math {
+
+template<class T>
+typename std::enable_if< std::is_floating_point<T>::value, bool >::type
+set_signbit(T& x, bool is_negative)
+{
+	x = copysign(x,is_negative ? -1.0 : 1.0);
+	return true;
+}
+
+template<class T>
+typename std::enable_if< std::is_integral<T>::value && std::is_signed<T>::value, bool >::type
+set_signbit(T& x, bool is_negative)
+{
+	if (0==x) return true;
+	if ((0>x) == is_negative) return true;
+	if (-std::numeric_limits<T>::max()>x) return false;	// no-op for one's complement and signed-bit integer representations
+	x = -x;
+	return true;
+}
+
+template<class T>
+constexpr typename std::enable_if< std::is_integral<T>::value && std::is_unsigned<T>::value, bool >::type
+set_signbit(const T x, bool is_negative)
+{
+	if (0==x) return true;
+	if (!is_negative) return true;
+	return false;
+}
+
+template<class T>
+typename std::enable_if< std::is_floating_point<T>::value, bool >::type
+self_negate(T& x)
+{
+	set_signbit(x,!signbit(x));
+	return true;
+}
+
+template<class T>
+typename std::enable_if< std::is_integral<T>::value && std::is_signed<T>::value, bool >::type
+self_negate(T& x)
+{
+	if (-std::numeric_limits<T>::max()>x) return false;	// no-op for one's complement and signed-bit integer representations
+	x = -x;
+	return true;
+}
+
+template<class T>
+constexpr typename std::enable_if< std::is_integral<T>::value && std::is_unsigned<T>::value, bool >::type
+self_negate(const T x)
+{
+	return 0==x;
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , bool>::type
+self_negate(boost::numeric::interval<T>& x)
+{
+	x = -x;
+	return true;
+}
 
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
@@ -102,17 +162,17 @@ struct static_cache
 template<intmax_t n, class T>
 typename std::enable_if<
 			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
-		typename return_copy<T>::type>::type int_as()
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type int_as()
 {
-	return static_cache<typename std::remove_cv<T>::type>::template as<n>();
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as<n>();
 }
 
 template<intmax_t n, class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value , typename return_copy<T>::type >::type int_as()
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename return_copy<typename std::remove_reference<T>::type>::type >::type int_as()
 {
 	return n;
 }
-#define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<T>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
+#define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
 
 // data representation conventions
 // general series sum/product: std::vector
@@ -190,7 +250,7 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type find_safe
 
 // trivial_sum family returns -1 for lhs annihilated, 1 for rhs annihilated
 template<class T, class U>
-typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T), int>::type trivial_sum(T& lhs, U& rhs)
+typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T) && ZAIMONI_INT_AS_DEFINED(U), int>::type trivial_sum(T& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
@@ -365,29 +425,26 @@ typename std::enable_if<std::is_floating_point<T>::value , void>::type _rebalanc
 	rhs = scalbn(rhs,delta_exp);
 }
 
+// 1 success, 0 no-op, -2 failed to evaluate
+template<class T, class U>
+typename std::enable_if<ZAIMONI_INT_AS_DEFINED(U) , int>::type identity_product(T& lhs, const U& identity)
+{
+	if (int_as<1,U>() == identity) return 1;
+	if (!int_as<-1,U>()) return 0;
+	return self_negate(lhs) ? 1 : -2;
+}
+
 // trivial_product family returns -1 for lhs annihilated, 1 for rhs annihilated
 template<class T, class U>
-typename std::enable_if<std::is_floating_point<T>::value && std::is_floating_point<U>::value, int>::type trivial_product(T& lhs, U& rhs)
+typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, int>::type trivial_product(T& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
-	if (1.0 == rhs) return 1;
-	if (1.0 == lhs) return -1;
-#define ZAIMONI_NEGATIVE_ONE(lhs,rhs,code)	\
-	if (-1.0 == rhs)	\
-		{	\
-		lhs = -lhs;	\
-		rhs = 1.0;	\
-		return code;	\
-		}
-
-ZAIMONI_NEGATIVE_ONE(lhs,rhs,1)
-ZAIMONI_NEGATIVE_ONE(rhs,lhs,-1)
-
-#undef ZAIMONI_NEGATIVE_ONE
+	if (int ret = identity_product(lhs,rhs)) return 1==ret;
+	if (int ret = identity_product(rhs,lhs)) return -(1==ret);
 
 	const int inf_code = (bool)(isinf(rhs))-(bool)(isinf(lhs));
-	const int zero_code = 2*(0.0==rhs)+(0.0==lhs);
+	const int zero_code = 2*(int_as<0,U>()==rhs)+(int_as<0,T>()==lhs);
 	switch(4*inf_code+zero_code)
 	{
 	case 4+1:
@@ -395,20 +452,16 @@ ZAIMONI_NEGATIVE_ONE(rhs,lhs,-1)
 	case -4+0:
 	case 0+1:
 	case 0+3:
-		lhs = copysign(lhs,(signbit(lhs)==signbit(rhs) ? 1.0 : -1.0));
-		rhs = 1.0;
-		return 1;
+		return set_signbit(lhs,signbit(lhs)!=signbit(rhs));
 	case 4+0:	
 	case 0+2:
-		rhs = copysign(rhs,(signbit(lhs)==signbit(rhs) ? 1.0 : -1.0));
-		lhs = 1.0;
-		return -1;
+		return -set_signbit(rhs,signbit(lhs)!=signbit(rhs));
 //	case 0+0:	break;
 #ifndef NDEBUG
 	case 4+2:
 	case 4+3:
 	case -4+1:
-	case -4+3:	throw std::runtime_error("compiler/library/hardware bug: numeral simulaneously infinite and zero");
+	case -4+3:	throw std::runtime_error("compiler/library/hardware bug: numeral simultaneously infinite and zero");
 #endif	
 	}
 
@@ -428,29 +481,16 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_pr
 		return ret;
 		}
 
-	// duplicate from base case
-	if (1.0 == rhs) return 1;
-	if (-1.0 == rhs)
-		{
-		lhs = -lhs;
-		rhs = 1.0;
-		return 1;
-		}
+	if (int ret = identity_product(lhs,rhs)) return 1==ret;
 
 	// intervals are only bounded by infinity
 	if (isinf(rhs)) {
 		if (0.0==lhs.lower() || 0.0==lhs.upper()) throw std::runtime_error("0*infinity NaN");
 		if (signbit(lhs.lower())!=signbit(lhs.upper())) throw std::runtime_error("interval (-infinity,infinity) NaN");
-		rhs = copysign(rhs,(signbit(lhs.lower())==signbit(rhs) ? 1.0 : -1.0));
-		lhs = 1.0;
-		return -1;
+		return -set_signbit(rhs,signbit(lhs.lower())!=signbit(rhs));
 	}
 
-	if (0.0 == rhs) {
-		rhs = copysign(rhs,(signbit(lhs.upper())!=signbit(rhs) ? 1.0 : -1.0));
-		lhs = 1.0;
-		return -1;
-	}
+	if (0.0 == rhs) return -set_signbit(rhs,signbit(lhs.upper())==signbit(rhs));
 
 	return 0;
 }
