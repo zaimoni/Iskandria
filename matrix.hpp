@@ -634,6 +634,9 @@ int main(int argc, char* argv[])
 	const zaimoni::math::matrix_square<boost::numeric::interval<double>,4> c_tmp_sq_mat;
 	const zaimoni::math::matrix<boost::numeric::interval<double>,4,4> c_tmp_mat;
 
+	zaimoni::math::static_cache<boost::numeric::interval<double> >::as<0>();
+	zaimoni::math::int_as<0, boost::numeric::interval<double> >();
+
 	// element accessors
 	INTERVAL_TO_STDOUT(tmp_vec[0],"\n");
 	INTERVAL_TO_STDOUT(tmp_covec[0],"\n");

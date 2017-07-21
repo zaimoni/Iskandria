@@ -6,7 +6,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <limits>
-#include <type_traits>
+#include "Zaimoni.STL/Augment.STL/type_traits"
 #include <stdexcept>
 #include <utility>
 #include <boost/numeric/interval.hpp>
@@ -32,40 +32,18 @@ constexpr bool isnan(const boost::numeric::interval<T>& x)
 		|| (isinf(x.lower()) && isinf(x.upper()) && x.lower()<x.upper());	// also disallow (-infinity,infinity) (total loss of information)
 }
 
-// integral types are never NaN.  Provide for uniformity
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(T x)
-{
-	return false;
-}
-
 template<class T>
 constexpr bool isfinite(const boost::numeric::interval<T>& x)
 {
 	return std::isfinite(x.lower()) && std::isfinite(x.upper());
 }
 
-// integral types are always finite.  Provide for uniformity
+// several choices of how to define.
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfinite(T x)
+constexpr bool signbit(const boost::numeric::interval<T>& x)
 {
-	return true;
+	return std::signbit(x.upper());
 }
-
-// replicate efficient readonly call parameter options from boost
-template<class T> struct const_param
-{
-	typedef typename std::add_const<
-		typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , typename std::add_lvalue_reference<T>::type >::type
-	>::type type;
-};
-
-template<class T> struct return_copy
-{
-	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , 
-		typename std::add_const<typename std::add_lvalue_reference<T>::type>::type 
-	>::type type;
-};
 
 namespace math {
 
@@ -107,6 +85,34 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<
 
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
+
+template<class T>
+struct static_cache
+{
+	template<intmax_t n> 
+	static typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		typename return_copy<T>::type>::type as()
+	{
+		static const T ret(n);
+		return ret;
+	}
+};
+
+template<intmax_t n, class T>
+typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		typename return_copy<T>::type>::type int_as()
+{
+	return static_cache<typename std::remove_cv<T>::type>::template as<n>();
+}
+
+template<intmax_t n, class T>
+constexpr typename std::enable_if<std::is_arithmetic<T>::value , typename return_copy<T>::type >::type int_as()
+{
+	return n;
+}
+#define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<T>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
 
 // data representation conventions
 // general series sum/product: std::vector
@@ -184,12 +190,12 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type find_safe
 
 // trivial_sum family returns -1 for lhs annihilated, 1 for rhs annihilated
 template<class T, class U>
-typename std::enable_if<std::is_floating_point<T>::value && std::is_floating_point<U>::value, int>::type trivial_sum(T& lhs, U& rhs)
+typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T), int>::type trivial_sum(T& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
-	if (0.0 == rhs) return 1;
-	if (0.0 == lhs) return -1;
+	if (int_as<0,U>() == rhs) return 1;
+	if (int_as<0,T>() == lhs) return -1;
 	if (isinf(lhs))
 		{
 		if (!isinf(rhs)) return 1;

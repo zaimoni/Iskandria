@@ -1,0 +1,61 @@
+// Zaimoni.STL/Augment.STL/typetraits
+
+#ifndef ZAIMONI_AUGMENT_STL_TYPETRAITS
+#define ZAIMONI_AUGMENT_STL_TYPETRAITS 1
+
+#include <type_traits>
+
+namespace zaimoni {
+
+// replicate efficient function declaration types from Boost
+template<class T> struct const_param
+{
+	typedef const typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , typename std::add_lvalue_reference<T>::type >::type type;
+};
+
+template<class T> struct return_copy
+{
+	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , 
+		typename std::add_lvalue_reference<const T>::type 
+	>::type type;
+};
+
+// extend some math.h functions to integers
+#undef isinf
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isinf(T x)
+{
+	return true;
+}
+
+#undef isfinite
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfinite(T x)
+{
+	return true;
+}
+
+#undef isnan
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(T x)
+{
+	return false;
+}
+
+#undef signbit
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type signbit(T x)
+{
+	return 0>x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type signbit(T x)
+{
+	return false;
+}
+
+
+}	// namespace zaimoni
+
+#endif
