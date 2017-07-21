@@ -20,15 +20,14 @@ template<class T> struct return_copy
 	>::type type;
 };
 
-// extend some math.h functions to integers
-#undef isinf
+// extend some cmath functions to integers
+// This *will* hard-error if math.h is used rather than cmath on TDM GCC 5.1 (defines)
 template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isinf(T x)
 {
 	return true;
 }
 
-#undef isfinite
 template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfinite(T x)
 {
@@ -42,7 +41,6 @@ constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(
 	return false;
 }
 
-#undef signbit
 template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type signbit(T x)
 {

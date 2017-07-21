@@ -4,7 +4,7 @@
 #define ANGLE_HPP 1
 
 #include <boost/numeric/interval.hpp>
-#include <math.h>
+#include <cmath>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

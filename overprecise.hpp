@@ -4,7 +4,7 @@
 #define OVERPRECISE_HPP 1
 
 #include "Zaimoni.STL/Logging.h"
-#include <math.h>
+#include <cmath>
 #include <limits>
 #include "Zaimoni.STL/Augment.STL/type_traits"
 #include <stdexcept>
