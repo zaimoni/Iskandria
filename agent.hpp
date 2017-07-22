@@ -47,11 +47,7 @@ private:
 	agent(FILE* src);
 public:
 	agent() = default;
-	agent(const agent& src) = default;
-	agent(agent&& src) = default;
-	agent& operator=(const agent& src) = default;
-	agent& operator=(agent&& src) = default;
-	~agent() = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(agent);
 
 	static std::weak_ptr<agent> track(std::shared_ptr<agent> src);
 

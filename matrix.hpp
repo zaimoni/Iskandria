@@ -89,12 +89,8 @@ public:
 	// decide: constructor destructor assignment operator
 	vector() = default;
 	vector(T* src) { assert(src); std::copy_n(src,N,_x.data()); };
-	vector(const vector& src) = default;
-	vector(vector&& src) = default;
-	vector operator=(const vector& src) {
-		std::copy_n(src._x.data(),N,_x.data());
-		return *this;
-	}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
+
 	vector operator=(const T* src) {
 		assert(src);
 		std::copy_n(src,N,_x.data());
@@ -174,12 +170,7 @@ public:
 	// decide: constructor destructor assignment operator
 	covector() = default;
 	covector(T* src) { assert(src); std::copy_n(src,N,_x.data()); };
-	covector(const covector& src) = default;
-	covector(covector&& src) = default;
-	covector operator=(const covector& src) {
-		std::copy_n(src._x.data(),N,_x.data());
-		return *this;
-	}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
 
 	// array deference
 	T operator[](size_t n) const {
@@ -267,12 +258,7 @@ public:
 	// decide: constructor destructor assignment operator
 	matrix_square() = default;
 	matrix_square(T* src) { assert(src); std::copy_n(src,N*N,_x.c_array()); };
-	matrix_square(const matrix_square& src) = default;
-	matrix_square(matrix_square&& src) = default;
-	matrix_square operator=(const matrix_square& src) {
-		std::copy_n(src._x.data(),N*N,_x.data());
-		return *this;
-	}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix_square);
 
 	// accessors for matrix elements
 	T operator()(size_t r,size_t c) const {
@@ -421,12 +407,7 @@ public:
 	// decide: constructor destructor assignment operator
 	matrix() = default;
 	matrix(T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
-	matrix(const matrix& src) = default;
-	matrix(matrix&& src) = default;
-	matrix operator=(const matrix& src) {
-		std::copy_n(src._x.data(),R*C,_x.data());
-		return *this;
-	}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
 	// accessors for matrix elements
 	T operator()(size_t r,size_t c) const {

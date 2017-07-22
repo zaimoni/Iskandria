@@ -27,11 +27,7 @@ public:
 	bool is_valid() const {return _src && _i <= _src.size();}	// for post-condition testing
 
 	iterator_array_size(T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
-	iterator_array_size(const iterator_array_size& src) = default;
-	iterator_array_size(iterator_array_size&& src) = default;
-	~iterator_array_size() = default;
-	iterator_array_size& operator=(const iterator_array_size& src) = default;
-	iterator_array_size& operator=(iterator_array_size&& src) = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(iterator_array_size);
 
 	bool operator==(const iterator_array_size& rhs) const {return _src==rhs._src && _i==rhs._i;}
 
@@ -118,11 +114,7 @@ public:
 	bool is_valid() const {return _src && _i <= _src->size();}	// for post-condition testing
 
 	const_iterator_array_size(const T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
-	const_iterator_array_size(const const_iterator_array_size& src) = default;
-	const_iterator_array_size(const_iterator_array_size&& src) = default;
-	~const_iterator_array_size() = default;
-	const_iterator_array_size& operator=(const const_iterator_array_size& src) = default;
-	const_iterator_array_size& operator=(const_iterator_array_size&& src) = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(const_iterator_array_size);
 
 	bool operator==(const const_iterator_array_size& rhs) const {return _src==rhs._src && _i==rhs._i;}
 

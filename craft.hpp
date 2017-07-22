@@ -53,11 +53,7 @@ private:
 	craft(FILE* src);
 public:
 	craft() = default;
-	craft(const craft& src) = default;
-	craft(craft&& src) = default;
-	craft& operator=(const craft& src) = default;
-	craft& operator=(craft&& src) = default;
-	~craft() = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(craft);
 
 	static std::weak_ptr<craft> track(std::shared_ptr<craft> src);
 

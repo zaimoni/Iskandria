@@ -240,11 +240,7 @@ struct power_term : public std::pair<T,intmax_t>
 	power_term() = default;
 	// note that using std::conditional to try to optimize alignment of the type, is very contorted for this constructor
 	power_term(typename const_param<T>::type x, intmax_t n) : super(x,n) { _standard_form();};
-	power_term(const power_term& src) = default;
-	power_term(power_term&& src) = default;
-	~power_term() = default;
-	power_term& operator=(const power_term& src) = default;
-	power_term& operator=(power_term&& src) = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(power_term);
 
 	T& base() {return this->first;};
 	typename return_copy<T>::type base() const {return this->first;};

@@ -40,6 +40,16 @@
 #define DICT_STRUCT(A) { (A), sizeof(A)-1 }
 #define DICT2_STRUCT(A,B) { (A), sizeof(A)-1, (B) }
 
+/* declaration helper for normal classes */
+#if __cplusplus >= 201103L
+#define ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(TYPE)	\
+	TYPE(const TYPE& src) = default;	\
+	TYPE(TYPE&& src) = default;	\
+	~TYPE() = default;	\
+	TYPE& operator=(const TYPE& src) = default;	\
+	TYPE& operator=(TYPE&& src) = default
+#endif
+
 /* platform config copied from Boost */
 /* would prefer to use BOOST_PLATFORM, but strings aren't allowed in preprocessor tests */
 /* for now, detect Mac OS X by MACOSX pendng proper documentation */

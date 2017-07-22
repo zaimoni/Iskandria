@@ -52,15 +52,11 @@ public:
     typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 	slice_array(T* src,const zaimoni::slice& filter) : _src((assert(src),src)),_filter(filter) {};
-	slice_array(const slice_array& src) = default;
-	slice_array(slice_array&& src) = default;
-	~slice_array() = default;
-	slice_array& operator=(const slice_array& src) = default;
-	slice_array& operator=(slice_array&& src) = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(slice_array);
 
 	// container core API
 	size_t size() const {return _filter.size();}
- 	size_t max_size() const {return ((size_t)(-1)/2)*sizeof(T);}
+ 	size_t max_size() const {return ((size_t)(-1)/2)/sizeof(T);}
 	bool empty() const {return 0 >= _filter.size();} 
 	void swap(slice_array& rhs) {
 		swap(_src,rhs._src);

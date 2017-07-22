@@ -27,11 +27,7 @@ private:
 	cartesian_2d(FILE* src);
 public:
 	cartesian_2d() = default;
-	cartesian_2d(const cartesian_2d& src) = default;
-	cartesian_2d(cartesian_2d&& src) = default;
-	cartesian_2d& operator=(const cartesian_2d& src) = default;
-	cartesian_2d& operator=(cartesian_2d&& src) = default;
-	~cartesian_2d() = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(cartesian_2d);
 
 	static std::weak_ptr<cartesian_2d> track(std::shared_ptr<cartesian_2d> src);
 

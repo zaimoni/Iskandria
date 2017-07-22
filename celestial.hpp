@@ -31,11 +31,7 @@ private:
 	celestial_body(FILE* src);
 public:
 	celestial_body() = default;
-	celestial_body(const celestial_body& src) = default;
-	celestial_body(celestial_body&& src) = default;
-	celestial_body& operator=(const celestial_body& src) = default;
-	celestial_body& operator=(celestial_body&& src) = default;
-	~celestial_body() = default;
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(celestial_body);
 
 	static std::weak_ptr<celestial_body> track(std::shared_ptr<celestial_body> src);
 
