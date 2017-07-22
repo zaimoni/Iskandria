@@ -118,13 +118,16 @@ private:
 	double _mantissa;
 public:
 	fp_stats() = delete;
-	fp_stats(double src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);}
+	explicit fp_stats(double src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);}
 	fp_stats(const fp_stats& src) = delete;
 	fp_stats(fp_stats&& src) = delete;
 	~fp_stats() = default;
 	void operator=(const fp_stats& src) = delete;
 	void operator=(fp_stats&& src) = delete;
 	void operator=(double src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);} 
+
+	// while we don't want to copy, we do want to swap
+	void swap(fp_stats& rhs) { std::swap(_exponent,rhs._exponent); std::swap(_mantissa,rhs._mantissa); }
 
 	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 	int exponent() const {return _exponent;};
@@ -319,6 +322,11 @@ hard_restart:
 restart:
 	fp_stats<T> lhs_stats(lhs);
 	fp_stats<T> rhs_stats(rhs);
+	if (rhs_stats.exponent()>lhs_stats.exponent()) {
+		// force lhs larger than rhs
+		lhs_stats.swap(rhs_stats);
+		swap(lhs,rhs);
+	}
 	const int exponent_delta = rhs_stats.exponent()-lhs_stats.exponent();
 
 	if (is_negative[0]==is_negative[1]) {
@@ -345,27 +353,13 @@ restart:
 			lhs = tmp;
 			goto restart;
 		}
-		if (0<exponent_delta) {	// rhs larger
-			const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
-			const std::pair<int,int> rhs_safe(rhs_stats.safe_add_exponents());
-			if (rhs_safe.first>lhs_safe.second) return false;
+		const std::pair<int,int> lhs_safe(lhs_stats.safe_add_exponents());
+		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
+		if (lhs_safe.first>rhs_safe.second) return false;
 
-			if (delta_cancel(rhs,lhs,lhs_stats.delta(lhs_safe.second)))
-				{
-				swap(lhs,rhs);
-				return true;
-				}
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= lhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-			goto restart;
-		} else {	// lhs larger
-			const std::pair<int,int> lhs_safe(lhs_stats.safe_add_exponents());
-			const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
-			if (lhs_safe.first>rhs_safe.second) return false;
-
-			if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-			goto restart;
-		}
+		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
+		goto restart;
 	} else {
 		// opposite sign: cancellation
 		if (0==exponent_delta) {
@@ -381,23 +375,11 @@ restart:
 		}
 		const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
 		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
-		if (0<exponent_delta) {
-			// rhs larger
-			if (rhs_safe.first>lhs_safe.second) return false;
-			if (delta_cancel(rhs,lhs,lhs_stats.delta(lhs_safe.second)))
-				{
-				swap(lhs,rhs);
-				return true;
-				}
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= lhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-			goto restart;
-		} else {
-			// lhs larger
-			if (lhs_safe.first>rhs_safe.second) return false;
-			if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
-			if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-			goto restart;
-		}	
+		// lhs larger
+		if (lhs_safe.first>rhs_safe.second) return false;
+		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
+		goto restart;
 	}	
 }
 
