@@ -99,10 +99,10 @@ public:
 	const T& back() const { return _src[_filter.index(_filter.size()-1)]; }
 
 	// reversible container API
-	reverse_iterator rbegin() { return reverse_iterator(this); };
-	iterator rend() { return reverse_iterator(this,_filter.size()); }
-	const_reverse_iterator crbegin() const { return const_reverse_iterator(this); }
-	const_reverse_iterator crend() const { return const_reverse_iterator(this,_filter.size()); }
+	reverse_iterator rbegin() { return reverse_iterator(end()); };
+	iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator crbegin() const { return const_reverse_iterator(cend()); }
+	const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 	const_reverse_iterator rbegin() const { return crbegin(); }
 	const_reverse_iterator rend() const { return crend(); }
 

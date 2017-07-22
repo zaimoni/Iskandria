@@ -24,9 +24,9 @@ private:
 	T* _src;
 	size_type _i;
 
-	bool can_dereference() const {return _src && _i < _src.size();}
+	bool can_dereference() const {return _src && _i < _src->size();}
 public:
-	bool is_valid() const {return _src && _i <= _src.size();}	// for post-condition testing
+	bool is_valid() const {return _src && _i <= _src->size();}	// for post-condition testing
 
 	iterator_array_size(T* src = 0, size_type offset = 0) : _src(src),_i(offset) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(iterator_array_size);
