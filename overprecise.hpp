@@ -10,11 +10,22 @@
 #include <boost/numeric/interval.hpp>
 
 #include "int_range.hpp"
+#include "Zaimoni.STL/Pure.C/auto_int.h"
 
 // interval division of floating point can legitimately create intervals with an infinite endpoint.
 // Nothing legitimately creates NaN; just assume it's pre-screened.
 
 namespace zaimoni {
+
+using std::swap;
+
+using std::fpclassify;
+using std::isfinite;
+using std::isinf;
+using std::isnan;
+using std::signbit;
+
+namespace math {
 
 using std::swap;
 
@@ -44,10 +55,6 @@ constexpr bool signbit(const boost::numeric::interval<T>& x)
 {
 	return std::signbit(x.upper());
 }
-
-namespace math {
-
-using std::swap;
 
 template<class T>
 typename std::enable_if< std::is_floating_point<T>::value, bool >::type
@@ -109,6 +116,60 @@ self_negate(boost::numeric::interval<T>& x)
 	return true;
 }
 
+// numerical error calculation
+template<class T>
+struct numerical
+{
+	enum {
+		error_tracking = 0
+	};
+	typedef typename std::remove_cv<T>::type exact_type;			// exact version of this type
+	typedef typename std::remove_cv<T>::type exact_arithmetic_type;	// exact version of the individual coordinates of this type
+
+	constexpr int error(const T& src) {return 0;}
+};
+
+template<>
+template<class T>
+struct numerical<boost::numeric::interval<T> >
+{
+	enum {
+		error_tracking = 1
+	};
+	typedef typename std::remove_cv<T>::type exact_type;
+	typedef typename std::remove_cv<T>::type exact_arithmetic_type;
+
+	long double error(const boost::numeric::interval<T>& src) {
+		boost::numeric::interval<long double> err(src.upper());
+		err -= src.lower();
+		return err.upper();
+	}
+};
+
+// will need greatest common divisor for divisibility tests
+inline uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
+{
+	if (0==rhs) return lhs;
+	if (0==lhs) return rhs;
+	if (1==rhs) return 1;
+	if (1==lhs) return 1;
+	if (lhs==rhs) return lhs;
+
+	do	{
+		if (lhs<rhs)
+			{
+			rhs %= lhs;
+			if (0==rhs) return lhs;
+			if (1==rhs) return 1;
+			continue;
+			}
+		lhs %= rhs;
+		if (0==lhs) return rhs;
+		if (1==lhs) return 1;
+		}
+	while(true);
+}
+
 // not guaranteed effective for long double
 // it is possible to optimize this with reinterpret_cast goo
 // probably should fix the constants to cope with non-binary floating point
@@ -140,7 +201,7 @@ template<class T>
 typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
 {
 	uintmax_t ret = (0<=mantissa ? mantissa : (-std::numeric_limits<T>::max()<=mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<T>::max())+1ULL));
-	if (0==ret) return;
+	if (0==ret) return 0;
 	while(0 == (ret & 1)) ret >>= 1; 
 	return ret;
 }
@@ -170,6 +231,99 @@ public:
 	int exponent() const {return _exponent;};
 	double mantissa() const {return _mantissa;};
 	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
+	uintmax_t divisibilty_test() const {return _mantissa_as_int(_mantissa);}
+
+	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
+
+	// these are in terms of absolute value
+	std::pair<int,int> safe_subtract_exponents()
+	{
+		std::pair<int,int> ret(_exponent-std::numeric_limits<double>::digits,_exponent);
+		if (0.5==_mantissa || -0.5==_mantissa) ret.first--;
+		if (std::numeric_limits<double>::min_exponent > ret.second) ret.second = std::numeric_limits<double>::min_exponent;
+		if (std::numeric_limits<double>::min_exponent > ret.first) ret.first = std::numeric_limits<double>::min_exponent;
+		return ret;
+	}
+
+	std::pair<int,int> safe_add_exponents()	// not for denormals
+	{
+		std::pair<int,int> ret(_exponent-std::numeric_limits<double>::digits,_exponent);
+		const double abs_mantissa = (signbit(_mantissa) ? -_mantissa : _mantissa);
+		double mantissa_delta = 0.5;
+		while(1.0-mantissa_delta < abs_mantissa)
+			{
+			assert(ret.first<ret.second);
+			ret.second--;
+			mantissa_delta = scalbn(mantissa_delta,-1);
+			}
+		return ret;
+	}
+};
+
+template<>
+class fp_stats<uintmax_t>
+{
+private:
+	int _exponent;
+	int _x;
+public:
+	fp_stats() = delete;
+	explicit fp_stats(uintmax_t src) {assert(0!=src); _exponent = INT_LOG2(src)+1; _x = src;}
+	fp_stats(const fp_stats& src) = delete;
+	fp_stats(fp_stats&& src) = delete;
+	~fp_stats() = default;
+	void operator=(const fp_stats& src) = delete;
+	void operator=(fp_stats&& src) = delete;
+	void operator=(uintmax_t src) {assert(0!=src); _exponent = INT_LOG2(src)+1; _x = src;} 
+
+	// while we don't want to copy, we do want to swap
+	void swap(fp_stats& rhs) { std::swap(_exponent,rhs._exponent); std::swap(_x,rhs._x); }
+
+	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
+	int exponent() const {return _exponent;};
+	uintmax_t int_mantissa() const {return _mantissa_as_int(_x);}
+	uintmax_t divisibility_test() const {return _mantissa_as_int(_x);}
+
+	constexpr uintmax_t delta(int n) const { return 1ULL<<(n-1); };	// usually prepared for subtractive cancellation
+
+	// these are in terms of absolute value
+	std::pair<int,int> safe_subtract_exponents() { return std::pair<int,int>(1,_exponent); }
+
+	std::pair<int,int> safe_add_exponents()	// not at 
+	{
+		assert((uintmax_t)(-1)>_x);
+		uintmax_t air = (uintmax_t)(-1)-_x;
+		return std::pair<int,int>(1,INT_LOG2(air)+1);
+	}
+};
+
+#if 0
+template<>
+class fp_stats<boost::numeric::interval<double> >
+{
+	typedef boost::numeric::interval<double> value_type;
+private:
+	fp_stats<double> _lb;
+	fp_stats<double> _ub;
+public:
+	fp_stats() = delete;
+	explicit fp_stats(const value_type& src) : _lb(src.lower()),_ub(src.upper() {}
+	fp_stats(const fp_stats& src) = delete;
+	fp_stats(fp_stats&& src) = delete;
+	~fp_stats() = default;
+	void operator=(const fp_stats& src) = delete;
+	void operator=(fp_stats&& src) = delete;
+	void operator=(const value_type& src) {_lb = src.lower(); _ub = src.upper();} 
+
+	// while we don't want to copy, we do want to swap
+	void swap(fp_stats& rhs) { _lb.swap(rhs._lb); _ub.swap(rhs._ub); }
+
+	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
+	uintmax_t divisibility_test() {return gcd(_lb.divisibility_test(),_ub.divisibiity_test());}
+#if 0
+	int exponent() const {return _exponent;};
+	double mantissa() const {return _mantissa;};
+	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
 
 	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
 
@@ -195,7 +349,9 @@ public:
 			}
 		return ret;
 	}
+#endif
 };
+#endif
 
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
@@ -259,10 +415,10 @@ struct power_term : public std::pair<T,U>
 private:
 	void _standard_form() {
 		if (0 == this->second) {
-			// interval would use "contains" here
-			if (this->first == 0) return;	// 0^0 is degenerate ... interpretation depends on context
+			// interval could use "contains" here, but we have decent limit behavior with integer exponents
+			if (int_as<0,T>() == this->first) return;	// 0^0 is degenerate ... interpretation depends on context
 			// n^0 is a zero-ary product: 1.
-			this->first = T(1);
+			this->first = int_as<1,T>();
 			this->second = 1;
 			return;
 		}
@@ -281,6 +437,13 @@ private:
 		// XXX reduce small periods n?
 	}
 };
+
+template<class T,class U>
+constexpr bool isnan(const power_term<T,U>& x)
+{
+	return isnan(x.base())
+        || (0==x.power() && int_as<0,T>()==x.base());
+}
 
 // algebra on fundamental types
 // has not been fully hardened against non-binary floating point
@@ -726,6 +889,28 @@ typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quo
 	if (0.0 >= rhs.lower() && 0.0 <= rhs.upper()) throw std::overflow_error("division by interval containing zero");
 	return 0;
 }
+
+#if 0
+template<class base, class power, class divisor_type>
+typename std::enable_if<numerical<base>::error_tracking ,base>::type quotient_of_series_products(power_term<base,power> numerator, int_range<divisor_type> divisor)
+{
+	assert(!isnan(numerator))
+	if (divisor.empty()) return eval(numerator);
+	if (1==divisor.lower()) divisor.pop_front();
+	else if (1==divisor.upper()) divisor.pop_back();
+	if (divisor.empty()) return eval(numerator);
+	if (0>=divisor.lower() || 0<=divisor.upper()) throw std::runtime_error("division by zero NaN");
+	
+
+	// intermediate data structures
+	std::vector<base> series_numerator;
+//	std::vector<typename numerical<base>::exact_type> series_numerator_exact;
+	std::vector<typename numerical<base>::exact_arithmetic_type> power_of_two_scale;
+	std::vector<divisor_type> series_divisor;	// one of uintmax_t or intmax_t so exact
+
+	defer_overflow(numerator,power_of_two_scale);
+}
+#endif
 
 // interval arithmetic wrappers
 // we need proper function overloading here so use static member functions of a template class
