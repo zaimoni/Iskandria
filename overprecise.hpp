@@ -3,13 +3,13 @@
 #ifndef OVERPRECISE_HPP
 #define OVERPRECISE_HPP 1
 
-#include "Zaimoni.STL/Logging.h"
 #include <cmath>
 #include <limits>
-#include "Zaimoni.STL/Augment.STL/type_traits"
 #include <stdexcept>
 #include <utility>
 #include <boost/numeric/interval.hpp>
+
+#include "int_range.hpp"
 
 // interval division of floating point can legitimately create intervals with an infinite endpoint.
 // Nothing legitimately creates NaN; just assume it's pre-screened.
@@ -46,6 +46,8 @@ constexpr bool signbit(const boost::numeric::interval<T>& x)
 }
 
 namespace math {
+
+using std::swap;
 
 template<class T>
 typename std::enable_if< std::is_floating_point<T>::value, bool >::type
