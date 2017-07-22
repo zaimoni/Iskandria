@@ -12,21 +12,23 @@ namespace zaimoni {
 template<class T>
 class iterator_array_size
 {
-private:
-	T* _src;
-	size_t _i;
-
-	bool can_dereference() const {return _src && _i < _src.size();}
 public:
-	typedef typename T::difference_type difference_type;	// these four aligned with container
+	typedef typename T::difference_type difference_type;	// these five aligned with container
+	typedef typename T::size_type size_type;
 	typedef typename T::value_type value_type;
 	typedef typename T::reference reference;
 	typedef typename T::pointer pointer;
 	typedef std::random_access_iterator_tag iterator_category;
 
+private:
+	T* _src;
+	size_type _i;
+
+	bool can_dereference() const {return _src && _i < _src.size();}
+public:
 	bool is_valid() const {return _src && _i <= _src.size();}	// for post-condition testing
 
-	iterator_array_size(T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
+	iterator_array_size(T* src = 0, size_type offset = 0) : _src(src),_i(offset) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(iterator_array_size);
 
 	bool operator==(const iterator_array_size& rhs) const {return _src==rhs._src && _i==rhs._i;}
@@ -83,7 +85,7 @@ public:
 		return _i-rhs._i;
 	}
 
-    reference operator[](size_t n) const {
+    reference operator[](size_type n) const {
 		assert(_src->size()-_i >= n);
 		return _src[_i+n];
 	}
@@ -99,21 +101,22 @@ public:
 template<class T>
 class const_iterator_array_size
 {
-private:
-	const T* _src;
-	size_t _i;
-
-	bool can_dereference() const {return _src && _i < _src->size();}
 public:
-	typedef typename T::difference_type difference_type;	// these four aligned with container
+	typedef typename T::difference_type difference_type;	// these five aligned with container
+	typedef typename T::size_type size_type;
 	typedef const typename T::value_type value_type;
 	typedef const typename T::reference reference;
 	typedef const typename T::pointer pointer;
 	typedef std::random_access_iterator_tag iterator_category;
+private:
+	const T* _src;
+	size_type _i;
 
+	bool can_dereference() const {return _src && _i < _src->size();}
+public:
 	bool is_valid() const {return _src && _i <= _src->size();}	// for post-condition testing
 
-	const_iterator_array_size(const T* src = 0, size_t offset = 0) : _src(src),_i(offset) {};
+	const_iterator_array_size(const T* src = 0, size_type offset = 0) : _src(src),_i(offset) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(const_iterator_array_size);
 
 	bool operator==(const const_iterator_array_size& rhs) const {return _src==rhs._src && _i==rhs._i;}
@@ -175,7 +178,7 @@ public:
 		return _i-rhs._i;
 	}
 
-    reference operator[](size_t n) const { // random access
+    reference operator[](size_type n) const { // random access
 		assert(_src->size()-_i >= n);
 		return _src[_i+n];
 	}
