@@ -678,10 +678,47 @@ int main(int argc, char* argv[])
 	ZAIMONI_PASSTHROUGH_ASSERT(9.0==lhs);
 	STRING_LITERAL_TO_STDOUT("3,0*3.0 = 9.0\n");
 
-	zaimoni::math::power_term<double> x(3.0,0);
+	zaimoni::math::power_term<double,intmax_t> x(3.0,0);
 	ZAIMONI_PASSTHROUGH_ASSERT(1==x.base());
 	ZAIMONI_PASSTHROUGH_ASSERT(1==x.power());
 	STRING_LITERAL_TO_STDOUT("3.0^0 = 1\n");
+
+	lhs = 0.0;
+	rhs = 2.0;
+	assert(-1==zaimoni::math::trivial_sum(lhs,rhs));
+
+	lhs = 2.0;
+	rhs = 0.0;
+	assert(1==zaimoni::math::trivial_sum(lhs,rhs));
+
+	lhs = std::numeric_limits<double>::infinity();
+	rhs = 1.0;
+	assert(1==zaimoni::math::trivial_sum(lhs,rhs));
+
+	lhs = 1.0;
+	rhs = std::numeric_limits<double>::infinity();
+	assert(-1==zaimoni::math::trivial_sum(lhs,rhs));
+
+	lhs = std::numeric_limits<double>::infinity();
+	rhs = std::numeric_limits<double>::infinity();
+	assert(0!=zaimoni::math::trivial_sum(lhs,rhs));
+
+	lhs = 1.0;
+	rhs = 2.0;
+	assert(0==zaimoni::math::trivial_sum(lhs,rhs));
+	INFORM("zaimoni::math::trivial_sum positive tests ok");
+
+	lhs = std::numeric_limits<double>::infinity();
+	rhs = std::numeric_limits<double>::infinity();
+	zaimoni::math::set_signbit(rhs,true);
+	try	{
+		zaimoni::math::trivial_sum(lhs,rhs);
+		}
+	catch(std::runtime_error& x)
+		{
+		INFORM(x.what());
+		}
+	INFORM("zaimoni::math::trivial_sum negative tests ok");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

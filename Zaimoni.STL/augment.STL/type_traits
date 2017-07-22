@@ -34,7 +34,6 @@ constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfini
 	return true;
 }
 
-#undef isnan
 template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(T x)
 {
