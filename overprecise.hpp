@@ -107,7 +107,6 @@ self_negate(boost::numeric::interval<T>& x)
 	return true;
 }
 
-#if 2
 template<class T> struct fp_stats;
 
 template<>
@@ -158,7 +157,6 @@ public:
 		return ret;
 	}
 };
-#endif
 
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
@@ -232,20 +230,21 @@ constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_refere
 // power: std::pair x^n
 // integer range: boost::numeric::interval or std::pair
 
-template<class T>
-struct power_term : public std::pair<T,intmax_t>
+template<class T,class U>
+struct power_term : public std::pair<T,U>
 {
-	typedef std::pair<T,intmax_t> super;
+	ZAIMONI_STATIC_ASSERT((std::is_same<U,intmax_t>::value) || (std::is_same<U,uintmax_t>::value));
+	typedef std::pair<T,U> super;
 
 	power_term() = default;
 	// note that using std::conditional to try to optimize alignment of the type, is very contorted for this constructor
-	power_term(typename const_param<T>::type x, intmax_t n) : super(x,n) { _standard_form();};
+	power_term(typename const_param<T>::type x, U n) : super(x,n) { _standard_form();};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(power_term);
 
 	T& base() {return this->first;};
 	typename return_copy<T>::type base() const {return this->first;};
-	intmax_t& power() {return this->second;};
-	intmax_t power() const {return this->second;};
+	U& power() {return this->second;};
+	U power() const {return this->second;};
 private:
 	void _standard_form() {
 		if (0 == this->second) {
@@ -257,12 +256,12 @@ private:
 			return;
 		}
 		if (1 == this->second) return;	// normal-form
-		if (T(1) == this->first) {
+		if (int_as<1,T>() == this->first) {
 			// 1^n is 1.
 			this->second = 1;
 			return;
 		}
-		if (T(-1) == this->first) {
+		if (int_as<-1,T>() == this->first) {
 			// XXX \todo any element that is period 2 would work here.  Issue is a problem with matrices.
 			if (0 == this->second%2) this->first = T(1);
 			this->second = 1;
