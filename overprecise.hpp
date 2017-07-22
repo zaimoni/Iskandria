@@ -107,6 +107,42 @@ self_negate(boost::numeric::interval<T>& x)
 	return true;
 }
 
+// not guaranteed effective for long double
+// it is possible to optimize this with reinterpret_cast goo
+// probably should fix the constants to cope with non-binary floating point
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = 0;
+	while(0.0<mantissa)
+		{
+		ret <<= 1;
+		if (0.5<=mantissa) ret += 1;
+		mantissa = scalbn(mantissa,1);
+		mantissa -= 1.0;
+		}
+	return ret;
+}
+
+// for integer types, this just discards factors of two.  Definitions are to play nice with floating-point arithmetic
+template<class T>
+typename std::enable_if<std::is_integral<T>::value &&  std::is_unsigned<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = mantissa;
+	if (0==ret) return;
+	while(0 == (ret & 1)) ret >>= 1; 
+	return ret;
+}
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = (0<=mantissa ? mantissa : (-std::numeric_limits<T>::max()<=mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<T>::max())+1ULL));
+	if (0==ret) return;
+	while(0 == (ret & 1)) ret >>= 1; 
+	return ret;
+}
+
 template<class T> struct fp_stats;
 
 template<>
@@ -131,6 +167,7 @@ public:
 	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 	int exponent() const {return _exponent;};
 	double mantissa() const {return _mantissa;};
+	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
 
 	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
 
@@ -196,34 +233,6 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<
 
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
-
-template<class T>
-struct static_cache
-{
-	template<intmax_t n> 
-	static typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
-		typename return_copy<T>::type>::type as()
-	{
-		static const T ret(n);
-		return ret;
-	}
-};
-
-template<intmax_t n, class T>
-typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
-		typename return_copy<typename std::remove_reference<T>::type>::type>::type int_as()
-{
-	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as<n>();
-}
-
-template<intmax_t n, class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename return_copy<typename std::remove_reference<T>::type>::type >::type int_as()
-{
-	return n;
-}
-#define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
 
 // data representation conventions
 // general series sum/product: std::vector
@@ -376,42 +385,6 @@ restart:
 		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 		goto restart;
 	}	
-}
-
-// not guaranteed effective for long double
-// it is possible to optimize this with reinterpret_cast goo
-// probably should fix the constants to cope with non-binary floating point
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , unsigned long long>::type _mantissa_as_int(T mantissa)
-{
-	unsigned long long ret = 0;
-	while(0.0<mantissa)
-		{
-		ret <<= 1;
-		if (0.5<=mantissa) ret += 1;
-		mantissa = scalbn(mantissa,1);
-		mantissa -= 1.0;
-		}
-	return ret;
-}
-
-// for integer types, this just discards factors of two.  Definitions are to play nice with floating-point arithmetic
-template<class T>
-typename std::enable_if<std::is_integral<T>::value &&  std::is_unsigned<T>::value, unsigned long long>::type _mantissa_as_int(T mantissa)
-{
-	unsigned long long ret = mantissa;
-	if (0==ret) return;
-	while(0 == (ret & 1)) ret >>= 1; 
-	return ret;
-}
-
-template<class T>
-typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value, unsigned long long>::type _mantissa_as_int(T mantissa)
-{
-	unsigned long long ret = (0<=mantissa ? mantissa : (-std::numeric_limits<T>::max()<=mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<T>::max())+1ULL));
-	if (0==ret) return;
-	while(0 == (ret & 1)) ret >>= 1; 
-	return ret;
 }
 
 // exponent values are from frexp

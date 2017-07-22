@@ -52,7 +52,37 @@ constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned
 	return false;
 }
 
+namespace math {
 
+template<class T>
+struct static_cache
+{
+	template<intmax_t n> 
+	static typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		typename return_copy<T>::type>::type as()
+	{
+		static const T ret(n);
+		return ret;
+	}
+};
+
+template<intmax_t n, class T>
+typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type int_as()
+{
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as<n>();
+}
+
+template<intmax_t n, class T>
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename return_copy<typename std::remove_reference<T>::type>::type >::type int_as()
+{
+	return n;
+}
+#define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
+
+}	// namespace math
 }	// namespace zaimoni
 
 #endif
