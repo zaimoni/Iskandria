@@ -421,18 +421,20 @@ typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value,
 
 // exponent values are from frexp
 // we assume the lhs has fewer significant digits, so would be more useful to have in the [0.5,1.0) range
+// return true iff a change was made
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , void>::type _rebalance_exponents(T& lhs, T& rhs, int lhs_exponent, int rhs_exponent)
+typename std::enable_if<std::is_floating_point<T>::value , bool>::type _rebalance_exponents(T& lhs, T& rhs, int lhs_exponent, int rhs_exponent)
 {
-	if (1==lhs_exponent) return;
+	if (1==lhs_exponent) return false;
 	const int delta_lhs_exp = lhs_exponent-1;
 	const int abs_delta_lhs_exp = (0<delta_lhs_exp ? delta_lhs_exp : -delta_lhs_exp);
 	const int clearance = (0<delta_lhs_exp ? std::numeric_limits<T>::max_exponent-rhs_exponent : rhs_exponent-std::numeric_limits<T>::min_exponent);
-	if (0==clearance) return;
+	if (0==clearance) return false;
 	const int abs_delta = (abs_delta_lhs_exp < clearance ? abs_delta_lhs_exp : clearance);
 	const int delta_exp = (0<delta_lhs_exp ? abs_delta : -abs_delta);
 	lhs = scalbn(lhs,delta_exp);
 	rhs = scalbn(rhs,delta_exp);
+	return true;
 }
 
 // 1 success, 0 no-op, -2 failed to evaluate
@@ -591,40 +593,31 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange
 	int predicted_exponent = exponent[0]+exponent[1]-1;
 	if (0.5==mantissa[0] || -0.5==mantissa[0])
 		{	// should be exact
-		if (   std::numeric_limits<T>::max_exponent < predicted_exponent
-			|| std::numeric_limits<T>::min_exponent > predicted_exponent)
+		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent)
 			{
-			_rebalance_exponents(lhs,rhs,exponent[0],exponent[1]);
-			return false;
+exact_product:
+			lhs *= rhs;
+			rhs = 1.0;
+			return true;
 			}
-		lhs *= rhs;
-		rhs = 1.0;
-		return true;
+		_rebalance_exponents(lhs,rhs,exponent[0],exponent[1]);
+		return false;
 		}
 	if (0.5==mantissa[1] || -0.5==mantissa[1])
 		{	// should be exact.
-		if (   std::numeric_limits<T>::max_exponent < predicted_exponent	// overflows
-			|| std::numeric_limits<T>::min_exponent > predicted_exponent)	// underflows
-			{
-			_rebalance_exponents(rhs,lhs,exponent[1],exponent[0]);
-			return false;
-			}
-		lhs *= rhs;
-		rhs = 1.0;
-		return true;
+		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent) goto exact_product;
+		_rebalance_exponents(rhs,lhs,exponent[1],exponent[0]);
+		return false;
 		}
 
 	boost::numeric::interval<double> predicted_mantissa(mantissa[0]);
 	predicted_mantissa *= mantissa[1];
-	if (0.5<=predicted_mantissa.lower() || -0.5>=predicted_mantissa.upper()) predicted_exponent++;
-	if (   std::numeric_limits<T>::max_exponent > predicted_exponent
-		&& std::numeric_limits<T>::min_exponent < predicted_exponent
-		&& predicted_mantissa.lower()==predicted_mantissa.upper())
-		{	// exact.
-		lhs *= rhs;
-		rhs = 1.0;
-		return true;
+	if (predicted_mantissa.lower()==predicted_mantissa.upper())
+		{
+		if (0.5<=predicted_mantissa.lower() || -0.5>=predicted_mantissa.upper()) predicted_exponent++;
+		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent) goto exact_product;
 		}
+
 	// XXX want to see the mantissas as integers to decide which one to optimize
 	const unsigned long long mantissa_as_int[2] = {_mantissa_as_int(copysign(mantissa[0],1.0)), _mantissa_as_int(copysign(mantissa[1],1.0))};
 	if (mantissa_as_int[0]<mantissa_as_int[1]) {
@@ -639,6 +632,129 @@ template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
 {
 	return false;	// no-op to allow compiling
+}
+
+// 1 success, 0 no-op, -2 failed to evaluate
+template<class T, class U>
+typename std::enable_if<ZAIMONI_INT_AS_DEFINED(U) , int>::type identity_quotient(T& lhs, const U& identity)
+{
+	if (int_as<1,U>() == identity) return 1;
+	if (int_as<-1,U>() != identity) return 0;
+	return self_negate(lhs) ? 1 : -2;
+}
+
+
+// trivial_quotient family returns -1 for lhs annihilated, 1 for rhs annihilated; -2 on error
+template<class T, class U>
+typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, int>::type trivial_quotient(T& lhs, U& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+
+	if (int_as<0,U>()==rhs)
+		{
+		if (int_as<0,T>()==lhs)  throw std::runtime_error("0/0 NaN");
+		if (!isinf(lhs)) throw std::overflow_error("division by zero");
+		// infinity/0 is ...not great, but at least not degenerating
+		set_signbit(lhs,signbit(lhs)!=signbit(rhs));
+		return 1;
+		}
+	if (isinf(lhs))
+		{
+		if (isinf(rhs)) throw std::runtime_error("infinity/infinity NaN");
+		set_signbit(lhs,signbit(lhs)!=signbit(rhs));
+		return 1;		
+		}
+	if (isinf(rhs))
+		{
+		bool is_negative = (signbit(lhs)!=signbit(rhs));
+		lhs = 0.0;
+		set_signbit(lhs,is_negative);
+		return 1;
+		}
+	return identity_quotient(lhs,rhs);
+}
+
+template<class T, class U>
+typename std::enable_if<std::is_arithmetic<T>::value && std::is_floating_point<U>::value, int>::type trivial_quotient(T& lhs, boost::numeric::interval<U>& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+
+	if (rhs.lower()==rhs.upper())
+		{
+		T tmp(rhs.upper());
+		int ret = trivial_product(lhs,tmp);
+		if (ret) rhs = tmp;
+		return ret;
+		}
+	if (0.0 >= rhs.lower() && 0.0 <= rhs.upper()) throw std::overflow_error("division by interval containing zero");
+	if (isinf(lhs))
+		{
+		set_signbit(lhs,signbit(lhs)!=signbit(rhs));
+		return 1;
+		}
+	return 0;
+}
+
+template<class T, class U>
+typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<U>::value, int>::type trivial_quotient(boost::numeric::interval<T>& lhs, U& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+
+	if (lhs.lower()==lhs.upper())
+		{
+		T tmp(lhs.upper());
+		int ret = trivial_product(tmp,rhs);
+		if (ret) lhs = tmp;
+		return ret;
+		}
+	if (int_as<0,U>()==rhs) throw std::overflow_error("division by zero");
+	if (isinf(rhs))
+		{
+		T tmp = 0.0;
+		if (!signbit(lhs.lower()))
+			{
+			set_signbit(tmp,signbit(rhs));
+			lhs = tmp;
+			return 1;
+			}
+		if (signbit(lhs.upper()))
+			{
+			set_signbit(tmp,!signbit(rhs));
+			lhs = tmp;
+			return 1;
+			}
+		set_signbit(tmp,true);
+		lhs.assign(tmp,0.0);
+		return 1;
+		}
+	return identity_quotient(lhs,rhs);
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quotient(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+
+	if (rhs.lower()==rhs.upper())
+		{
+		T tmp(rhs.upper());
+		int ret = trivial_product(lhs,tmp);
+		if (ret) rhs = tmp;
+		return ret;
+		}
+	if (lhs.lower()==lhs.upper())
+		{
+		T tmp(lhs.upper());
+		int ret = trivial_product(tmp,rhs);
+		if (ret) lhs = tmp;
+		return ret;
+		}
+	if (0.0 >= rhs.lower() && 0.0 <= rhs.upper()) throw std::overflow_error("division by interval containing zero");
+	return 0;
 }
 
 // interval arithmetic wrappers
