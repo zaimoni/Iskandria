@@ -82,6 +82,39 @@ self_negate(boost::numeric::interval<T>& x)
 	return true;
 }
 
+// abs is taken by the standard library.
+// norm is meant to be the "typical" measure of absolute value; for real numbers should be abs
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_floating_point<T>::value,
+T>::type norm(T x) {return 0<=x ? x : -x;}
+
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_unsigned<T>::value,
+T>::type norm(T x) {return x;}
+
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_signed<T>::value
+&& std::numeric_limits<T>::min() >= -std::numeric_limits<T>::max(),
+typename std::make_unsigned<T>::type>::type norm(T x) {return 0<=x ? x : -x;}
+
+// XXX operator > will close the template prematurely
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_signed<T>::value
+&& std::numeric_limits<T>::min() < -std::numeric_limits<T>::max(),
+typename std::make_unsigned<T>::type>::type norm(T x)
+{	// XXX 2's complement integer minimum is undefined behavior to negate
+	return 0<=x ? x
+	  : (-std::numeric_limits<T>::max()<=x) ? -x
+			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
+}
+
 // numerical error calculation
 template<class T>
 struct numerical
@@ -372,9 +405,7 @@ struct power_term : public std::pair<T,U>
 
 		typename interval_type<T>::type new_base(int_as<1,typename interval_type<T>::type>());
 		new_base /= base();
-
-		if (-std::numeric_limits<U>::max()<=power()) return canonical_type(new_base(),-power());
-		return canonical_type(new_base(),(uintmax_t)std::numeric_limits<U>::max()+(uintmax_t)(-std::numeric_limits<U>::max()-power()));	// XXX 2's complement
+		return canonical_type(new_base,norm(-power()));
 	}
 private:
 	void _standard_form() {
@@ -889,7 +920,7 @@ typename std::enable_if<numerical<base>::error_tracking ,base>::type quotient_of
 	if (1==divisor.lower()) divisor.pop_front();
 	else if (1==divisor.upper()) divisor.pop_back();
 //	if (divisor.empty()) return eval(numerator);
-	if (0>=divisor.lower() || 0<=divisor.upper()) throw std::runtime_error("division by zero NaN");
+	if (0>=divisor.lower() && 0<=divisor.upper()) throw std::runtime_error("division by zero NaN");
 	
 
 	// intermediate data structures

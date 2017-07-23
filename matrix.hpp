@@ -565,11 +565,11 @@ struct rw_mode<zaimoni::math::covector<T,N> >
 
 }	// namespace zaimoni
 
-#ifdef TEST_APP
+#ifdef TEST_APP2
 // example build line (have to copy from *.hpp to *.cpp or else main not seen
-// g++ -omatrix.exe -Llib/host -DTEST_APP matrix.cpp -lz_stdio_log
+// g++ -omatrix.exe -Llib/host -DTEST_APP2 matrix.cpp -lz_stdio_log
 // If doing INFORM-based debugging
-// g++ -std=c++11 -omatrix.exe -DTEST_APP matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+// g++ -std=c++11 -omatrix.exe -DTEST_APP2 matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
 // Also test driver for Euclidean.hpp, overprecise.hpp
 
@@ -635,6 +635,7 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(tmp_mat.col(0)[0],"\n");
 	INTERVAL_TO_STDOUT(c_tmp_sq_mat.col(0)[0],"\n");
 	INTERVAL_TO_STDOUT(c_tmp_mat.col(0)[0],"\n");
+	STRING_LITERAL_TO_STDOUT("accessors ok\n");
 
 	// double with operator +=
 	tmp_vec += tmp_vec;
@@ -719,6 +720,13 @@ int main(int argc, char* argv[])
 		INFORM(x.what());
 		}
 	INFORM("zaimoni::math::trivial_sum negative tests ok");
+
+#if 2
+	zaimoni::math::power_term<boost::numeric::interval<double>, uintmax_t > x_n(3.0,3);
+	zaimoni::math::int_range<uintmax_t> factorial_3(2,3);
+	boost::numeric::interval<double> ret(zaimoni::math::quotient_of_series_products(x_n,factorial_3));
+//	INTERVAL_TO_STDOUT(ret,"\n");
+#endif
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
