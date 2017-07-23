@@ -402,6 +402,7 @@ struct power_term : public std::pair<T,U>
 {
 	ZAIMONI_STATIC_ASSERT((std::is_same<U,intmax_t>::value) || (std::is_same<U,uintmax_t>::value));
 	typedef std::pair<T,U> super;
+	typedef power_term<typename interval_type<T>::type,uintmax_t> canonical_type;
 
 	power_term() = default;
 	// note that using std::conditional to try to optimize alignment of the type, is very contorted for this constructor
@@ -412,6 +413,42 @@ struct power_term : public std::pair<T,U>
 	typename return_copy<T>::type base() const {return this->first;};
 	U& power() {return this->second;};
 	U power() const {return this->second;};
+
+	T bootstrap_evel() {
+		assert(!isnan(*this));
+		if (1==power()%2)
+			{
+			power()--;
+			return base();
+			}
+		int_as<1,T>();
+	}
+	// not so safe
+	bool iter_eval(T& ret)
+	{
+		assert(!isnan(*this));
+		if (0>=power()) return false;
+		if (1==power()%2)
+			{
+			power()--;
+			ret *= base();
+			return true;
+			}
+		base() = square(base());
+		power() /= 2;
+		return true;
+	}
+
+	canonical_type standardize() const {
+		assert(!isnan(*this));
+		if (0<=power()) return canonical_type(base(),power());
+
+		typename interval_type<T>::type new_base(int_as<1,typename interval_type<T>::type>());
+		new_base /= base();
+
+		if (-std::numeric_limits<U>::max()<=power()) return canonical_type(new_base(),-power());
+		return canonical_type(new_base(),(uintmax_t)std::numeric_limits<U>::max()+(uintmax_t)(-std::numeric_limits<U>::max()-power()));	// XXX 2's complement
+	}
 private:
 	void _standard_form() {
 		if (0 == this->second) {
@@ -423,6 +460,11 @@ private:
 			return;
 		}
 		if (1 == this->second) return;	// normal-form
+		if (int_as<0,T>() == this->first) {
+			// 0^n is 0.
+			this->second = 1;
+			return;
+		}
 		if (int_as<1,T>() == this->first) {
 			// 1^n is 1.
 			this->second = 1;
@@ -443,6 +485,28 @@ constexpr bool isnan(const power_term<T,U>& x)
 {
 	return isnan(x.base())
         || (0==x.power() && int_as<0,T>()==x.base());
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_same<power_term<T,U>, typename power_term<T,U>::canonical_type>::value,typename interval_type<T>::type>::type self_eval(power_term<T,uintmax_t>& x)
+{
+	assert(!isnan(x));
+	if (1==x.power()) return x.base();
+	auto ret(x.bootstrap_eval());
+	while(x,iter_eval(ret));
+	return ret;
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_same<power_term<T,U>, typename power_term<T,U>::canonical_type>::value,typename interval_type<T>::type>::type eval(power_term<T,U> x)
+{
+	return self_eval(x);
+}
+
+template<class T,class U>
+typename std::enable_if<!std::is_same<power_term<T,U>, typename power_term<T,U>::canonical_type>::value,typename interval_type<T>::type>::type eval(power_term<T,U> x)
+{
+	return eval(x.standardize());
 }
 
 // algebra on fundamental types
@@ -890,15 +954,14 @@ typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quo
 	return 0;
 }
 
-#if 0
 template<class base, class power, class divisor_type>
 typename std::enable_if<numerical<base>::error_tracking ,base>::type quotient_of_series_products(power_term<base,power> numerator, int_range<divisor_type> divisor)
 {
-	assert(!isnan(numerator))
-	if (divisor.empty()) return eval(numerator);
+	assert(!isnan(numerator));
+//	if (divisor.empty()) return eval(numerator);
 	if (1==divisor.lower()) divisor.pop_front();
 	else if (1==divisor.upper()) divisor.pop_back();
-	if (divisor.empty()) return eval(numerator);
+//	if (divisor.empty()) return eval(numerator);
 	if (0>=divisor.lower() || 0<=divisor.upper()) throw std::runtime_error("division by zero NaN");
 	
 
@@ -908,9 +971,9 @@ typename std::enable_if<numerical<base>::error_tracking ,base>::type quotient_of
 	std::vector<typename numerical<base>::exact_arithmetic_type> power_of_two_scale;
 	std::vector<divisor_type> series_divisor;	// one of uintmax_t or intmax_t so exact
 
-	defer_overflow(numerator,power_of_two_scale);
+	// broken return driver to allow incremental compile testing
+	return int_as<0,base>();
 }
-#endif
 
 // interval arithmetic wrappers
 // we need proper function overloading here so use static member functions of a template class
