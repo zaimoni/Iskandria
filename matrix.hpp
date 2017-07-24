@@ -722,11 +722,16 @@ int main(int argc, char* argv[])
 	INFORM("zaimoni::math::trivial_sum negative tests ok");
 
 #if 2
-	zaimoni::math::power_term<boost::numeric::interval<double>, uintmax_t > x_n(3.0,3);
+	zaimoni::math::power_term<boost::numeric::interval<long double>, uintmax_t > x_n(3.0,3);
 	zaimoni::math::int_range<uintmax_t> factorial_3(2,3);
-	boost::numeric::interval<double> ret(zaimoni::math::quotient_of_series_products(x_n,factorial_3));
+	boost::numeric::interval<long double> ret(zaimoni::math::quotient_of_series_products(x_n,factorial_3));
 //	INTERVAL_TO_STDOUT(ret,"\n");
 #endif
+
+	STRING_LITERAL_TO_STDOUT("floating point stats: digits\n");
+	INFORM(std::numeric_limits<float>::digits);
+	INFORM(std::numeric_limits<double>::digits);
+	INFORM(std::numeric_limits<long double>::digits);
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
