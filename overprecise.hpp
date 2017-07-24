@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dicounter.hpp"
 #include "lossy.hpp"
 #include "int_range.hpp"
 #include "Zaimoni.STL/Pure.C/auto_int.h"
@@ -351,9 +352,9 @@ public:
 };
 
 template<class T>
-fp_stats<typename std:;remove_cv<T>::type> get_fp_stats(T& x)
+fp_stats<typename std::remove_cv<T>::type> get_fp_stats(T& x)
 {
-	return fp_stats<typename std:;remove_cv<T>::type>(x);
+	return fp_stats<typename std::remove_cv<T>::type>(x);
 }
 
 template<class T> struct would_overflow;
@@ -977,13 +978,12 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 	uintmax_t quotient_accumulator = 1;
 	// could replace these by two arbitrary-precision integers
 	uintmax_t quotient_power_of_2 = 0;
-	uintmax_t numerator_power_of_2 = 0;		// one of these two should be zero at all times: class candidate
-	uintmax_t numerator_neg_power_of_2 = 0;
+	dicounter numerator_power_of_2;
 
-#if 0
 	auto base_stats(get_fp_stats(numerator.base()));
 	auto accumulator_stats(get_fp_stats(accumulator));
 
+#if 0
 	if (1>stats.exponent() && std::numeric_limits<uintmax_t>::max()-numerator_neg_power_of_2>=numerator.power())
 		{	// underflow defense
 		int delta_exponent = 1-stats.exponent();

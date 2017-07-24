@@ -569,7 +569,7 @@ struct rw_mode<zaimoni::math::covector<T,N> >
 // example build line (have to copy from *.hpp to *.cpp or else main not seen
 // g++ -omatrix.exe -Llib/host -DTEST_APP2 matrix.cpp -lz_stdio_log
 // If doing INFORM-based debugging
-// g++ -std=c++11 -omatrix.exe -DTEST_APP2 matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+// g++ -std=c++11 -omatrix.exe -DTEST_APP2 -D__STDC_LIMIT_MACROS matrix.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
 // Also test driver for Euclidean.hpp, overprecise.hpp
 
