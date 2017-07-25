@@ -24,6 +24,7 @@ using std::isfinite;
 using std::isinf;
 using std::isnan;
 using std::signbit;
+using std::scalbn;
 
 template<class T>
 constexpr bool isnan(const boost::numeric::interval<T>& x)
@@ -37,6 +38,12 @@ template<class T>
 constexpr bool isfinite(const boost::numeric::interval<T>& x)
 {
 	return std::isfinite(x.lower()) && std::isfinite(x.upper());
+}
+
+template<class T>
+constexpr boost::numeric::interval<T> scalbn(const boost::numeric::interval<T>& x, int n)
+{
+	return boost::numeric::interval<T>(scalbn(x.lower(),n),scalbn(x.upper(),n));
 }
 
 // several choices of how to define.

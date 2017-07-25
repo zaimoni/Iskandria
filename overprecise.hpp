@@ -15,6 +15,36 @@
 // interval division of floating point can legitimately create intervals with an infinite endpoint.
 // Nothing legitimately creates NaN; just assume it's pre-screened.
 
+template<class T>
+inline void INFORM(const boost::numeric::interval<T>& x)
+{
+	if (x.lower()==x.upper())
+		{
+		INFORM(x.lower());
+		return;
+		}
+	INC_INFORM("[");
+	INC_INFORM(x.lower());
+	INC_INFORM(",");
+	INC_INFORM(x.upper());
+	INFORM("]");
+}
+
+template<class T>
+inline void INC_INFORM(const boost::numeric::interval<T>& x)
+{
+	if (x.lower()==x.upper())
+		{
+		INC_INFORM(x.lower());
+		return;
+		}
+	INC_INFORM("[");
+	INC_INFORM(x.lower());
+	INC_INFORM(",");
+	INC_INFORM(x.upper());
+	INC_INFORM("]");
+}
+
 namespace zaimoni {
 
 using std::swap;
@@ -217,10 +247,10 @@ public:
 	fp_stats() = delete;
 	explicit fp_stats(T src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);}
 	fp_stats(const fp_stats& src) = delete;
-	fp_stats(fp_stats&& src) = delete;
+	fp_stats(fp_stats&& src) = default;
 	~fp_stats() = default;
 	void operator=(const fp_stats& src) = delete;
-	void operator=(fp_stats&& src) = delete;
+	fp_stats& operator=(fp_stats&& src) = default;
 	void operator=(T src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);} 
 
 	// while we don't want to copy, we do want to swap
@@ -231,6 +261,8 @@ public:
 	double mantissa() const {return _mantissa;};
 	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
 	uintmax_t divisibilty_test() const {return _mantissa_as_int(_mantissa);}
+	int safe_2_n_multiply() const {return std::numeric_limits<T>::min_exponent-_exponent;};
+	int safe_2_n_divide() const {return _exponent-std::numeric_limits<T>::min_exponent;};
 
 	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
 
@@ -269,7 +301,7 @@ public:
 	fp_stats() = delete;
 	explicit fp_stats(uintmax_t src) {assert(0!=src); _exponent = INT_LOG2(src)+1; _x = src;}
 	fp_stats(const fp_stats& src) = delete;
-	fp_stats(fp_stats&& src) = delete;
+	fp_stats(fp_stats&& src) = default;
 	~fp_stats() = default;
 	void operator=(const fp_stats& src) = delete;
 	void operator=(fp_stats&& src) = delete;
@@ -300,7 +332,7 @@ template<>
 template<class T>
 class fp_stats<boost::numeric::interval<T> >
 {
-	typedef boost::numeric::interval<double> value_type;
+	typedef boost::numeric::interval<T> value_type;
 private:
 	fp_stats<double> _lb;
 	fp_stats<double> _ub;
@@ -308,7 +340,7 @@ public:
 	fp_stats() = delete;
 	explicit fp_stats(const value_type& src) : _lb(src.lower()),_ub(src.upper()) {}
 	fp_stats(const fp_stats& src) = delete;
-	fp_stats(fp_stats&& src) = delete;
+	fp_stats(fp_stats&& src) = default;
 	~fp_stats() = default;
 	void operator=(const fp_stats& src) = delete;
 	void operator=(fp_stats&& src) = delete;
@@ -319,8 +351,77 @@ public:
 
 	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 	uintmax_t divisibility_test() {return gcd(_lb.divisibilty_test(),_ub.divisibilty_test());}
+	int exponent() const {return _lb.exponent()<=_ub.exponent() ? _ub.exponent() : _lb.exponent();};
+	int safe_2_n_multiply() const {return _lb.safe_2_n_multiply()<=_ub.safe_2_n_multiply() ? _lb.safe_2_n_multiply() : _ub.safe_2_n_multiply();};
+	int safe_2_n_divide() const {return _lb.safe_2_n_divide()<=_ub.safe_2_n_divide() ? _lb.safe_2_n_divide() : _ub.safe_2_n_divide();};
+
+	void update(value_type& x, dicounter& power_of_2)
+	{
+		*this = x;
+		if (1==exponent()) return;
+		if (1< exponent())
+			{
+			uintmax_t delta = exponent()-1;
+			uintmax_t test = power_of_2.add_capacity();
+			if (test>=delta)
+				{
+				x = scalbn(x,-((int)delta));
+				power_of_2.add(delta);
+				*this = x;
+				return;
+				}
+			else if (0<test)
+				{
+				x = scalbn(x,-((int)test));
+				power_of_2.add(test);
+				*this = x;
+				return;
+				}
+			}
+		else{
+			uintmax_t delta = 1-exponent();
+			uintmax_t test = power_of_2.sub_capacity();
+			if (test>=delta)
+				{
+				x = scalbn(x,(int)delta);
+				power_of_2.sub(delta);
+				*this = x;
+				return;
+				}
+			else if (0<test)
+				{
+				x = scalbn(x,(int)test);
+				power_of_2.sub(test);
+				*this = x;
+				return;
+				}
+			}
+	}
+
+	int missed_good_exponent_by(const int useful_exponent, value_type& x, dicounter& power_of_2)
+	{
+		if (useful_exponent<=exponent()) return 0;
+		uintmax_t delta = useful_exponent-exponent();
+		uintmax_t test = power_of_2.sub_capacity();
+		if (test>=delta)
+			{
+			x = scalbn(x,(int)delta);
+			power_of_2.sub(delta);
+			delta = 0;
+			*this = x;
+			return 0;
+			}
+		else if (0<test)
+			{
+			x = scalbn(x,(int)test);
+			power_of_2.sub(test);
+			delta -= test;
+			*this = x;
+			}
+		return (int)delta;
+	}
+
 #if 0
-	int exponent() const {return _exponent;};
 	double mantissa() const {return _mantissa;};
 	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
 
@@ -418,6 +519,15 @@ struct power_term : public std::pair<T,U>
 	U& power() {return this->second;};
 	U power() const {return this->second;};
 
+	// algebra support
+	typename interval_type<T>::type apply_factor(typename interval_type<T>::type& x)
+	{
+		lossy<typename numerical<T>::exact_type>::self_product(x,base());
+		power()--;
+		return x;		
+	}
+
+	// eval support
 	T bootstrap_eval() {
 		assert(!isnan(*this));
 		if (1==power()%2)
@@ -432,12 +542,10 @@ struct power_term : public std::pair<T,U>
 	{
 		assert(!isnan(*this));
 		if (0>=power()) return false;
-		if (1==power()%2)
-			{
-			power()--;
-			lossy<typename numerical<T>::exact_type>::self_product(ret,base());
+		if (1==power()%2) {
+			apply_factor(ret);
 			return true;
-			}
+		}
 		base() = lossy<typename numerical<T>::exact_type>::square(base());
 		power() /= 2;
 		return true;
@@ -474,7 +582,7 @@ private:
 		}
 		if (int_as<-1,T>() == this->first) {
 			// XXX \todo any element that is period 2 would work here.  Issue is a problem with matrices.
-			if (0 == this->second%2) this->first = T(1);
+			if (0 == this->second%2) this->first = int_as<1,T>();
 			this->second = 1;
 			return;
 		}
@@ -956,6 +1064,24 @@ typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quo
 	return 0;
 }
 
+inline void eval_series_product(int_range<uintmax_t>& src, uintmax_t& accumulator,uintmax_t& power_of_2)	// XXX would be ok for non-header implementation, but may need to convert to template instead
+{
+	assert(1<=src.lower());	// special cases to handle this...probably would benefit from a true class
+
+	while(!src.empty()) {
+		uintmax_t tmp = src.lower();
+		unsigned tmp_power_of_2 = 0;
+		while(0==tmp%2) {
+			tmp /= 2;
+			tmp_power_of_2++;
+		};
+		if (UINTMAX_MAX/accumulator < tmp || UINTMAX_MAX-power_of_2<tmp_power_of_2) return;
+		accumulator *= tmp;
+		power_of_2 += tmp_power_of_2;
+		src.pop_front();
+	}
+}
+
 // cf. return type of power_term::standardize()
 template<class base>
 typename std::enable_if<
@@ -966,7 +1092,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 	assert(!isnan(numerator));
 	if (divisor.empty()) return eval(numerator);
 	if (1==divisor.lower() && 1==divisor.upper()) return eval(numerator);
-	if (0>=divisor.lower() && 0<=divisor.upper()) throw std::runtime_error("division by zero NaN");
+	if (0>=divisor.lower()) throw std::runtime_error("division by zero NaN");
 
 	if (1==divisor.lower()) divisor.pop_front();
 	else if (1==divisor.upper()) divisor.pop_back();
@@ -978,164 +1104,154 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 	uintmax_t quotient_accumulator = 1;
 	// could replace these by two arbitrary-precision integers
 	uintmax_t quotient_power_of_2 = 0;
-	dicounter numerator_power_of_2;
+	dicounter numerator_power_of_2;	// zero-initializes
 
 	auto base_stats(get_fp_stats(numerator.base()));
 	auto accumulator_stats(get_fp_stats(accumulator));
 
-#if 0
-	if (1>stats.exponent() && std::numeric_limits<uintmax_t>::max()-numerator_neg_power_of_2>=numerator.power())
+	if (1>base_stats.exponent() && numerator_power_of_2.sub_capacity()>=numerator.power())
 		{	// underflow defense
-		int delta_exponent = 1-stats.exponent();
-		if (std::numeric_limits<uintmax_t>::max()/numerator.power()<delta_exponent) delta_exponent = std::numeric_limits<uintmax_t>::max()/numerator.power();
+		int delta_exponent = 1-base_stats.exponent();
+		if (UINTMAX_MAX/numerator.power()<delta_exponent) delta_exponent = UINTMAX_MAX/numerator.power();
 		numerator.base() = scalbn(numerator.base(),delta_exponent);
-		numerator_neg_power_of_2 = delta_exponent*numerator.power();
+		uintmax_t tmp = delta_exponent*numerator.power();
+		numerator_power_of_2.sub(tmp);
 		base_stats = numerator.base();
 		}
 
-	while(0<numerator.power() || !divisor.empty() || 1<quotient_accumulator || 0<quotient_power_of_2 || 0<numerator_power_of_2 || 0<numerator_neg_power_of_2)
+	while((!divisor.empty() || 1<quotient_accumulator) && (0<numerator.power() || 0<quotient_power_of_2 || 0<numerator_power_of_2.positive() || 0<numerator_power_of_2.negative()))
 		{
 		if (!divisor.empty() && 1==quotient_accumulator) eval_series_product(divisor,quotient_accumulator,quotient_power_of_2);
-		if (0<quotient_power_of_2)
-			{
-			if (quotient_power_of_2<=numerator_power_of_2)
-				{
-				numerator_power_of_2 -= quotient_power_of_2;
-				quotient_power_of_2 = 0;
-				}
-			else if (0<numerator_power_of_2)
-				{
-				quotient_power_of_2 -= numerator_power_of_2;
-				numerator_power_of_2 = 0;
-				numerator_neg_power_of_2 = quotient_power_of_2;
-				quotient_power_of_2 = 0;
-				}
-			else{
-				const uintmax_t tmp = std::numeric_limits<uintmax_t>::max()-numerator_neg_power_of_2;
-				else if (tmp>=quotient_power_of_2)
-					{
-					numerator_neg_power_of_2 += quotient_power_of_2;
-					quotient_power_of_2 = 0;
-					}
-				else if (0<tmp)
-					{
-					quotient_power_of_2 -= tmp;
-					numerator_neg_power_of_2 = std::numeric_limits<uintmax_t>::max();
-					}
-				}
-			};
 
-		bool restart = false;
-		while(numerator.power()<=numerator_neg_power_of_2 && 1<base_stats.exponent())
-			{	// only do this if underflow-safe
-			numerator.base() = scalbn(numerator.base(),-1);
-			numerator_neg_power_of_2 -= numerator.power();
-			base_stats = numerator.base();
-			restart = true;
-			}
-		if (0<numerator_neg_power_of_2 && 1<base_stats.exponent())
+		if (0<quotient_power_of_2) numerator_power_of_2.sub(quotient_power_of_2); 
+		if (0<numerator_power_of_2.negative() && 1<base_stats.exponent())
 			{
-			numerator.base() = scalbn(numerator.base(),-1);
-			numerator_power_of_2 = numerator.power()-numerator_neg_power_of_2;
-			numerator_neg_power_of_2 = 0;
-			base_stats = numerator.base();
-			restart = true;
+			int delta = base_stats.exponent()-1;
+			if (numerator_power_of_2.sub_capacity()/numerator.power() < delta) delta = numerator_power_of_2.sub_capacity()/numerator.power();
+			if (0<delta)
+				{
+				numerator.base() = scalbn(numerator.base(),-delta);
+				uintmax_t tmp = delta*numerator.power();
+				numerator_power_of_2.add(tmp);
+				base_stats = numerator.base();
+				continue;
+				}
 			}
-		if (restart && 0<quotient_power_of_2) continue;
+
+		// try to concel out factors
+		if (1<quotient_accumulator)
+			{
+			uintmax_t test = gcd(quotient_accumulator,accumulator_stats.divisibility_test());
+			if (1<test)
+				{	// don't bother trying to recover against numerator.base();
+				accumulator_stats.missed_good_exponent_by(INT_LOG2(test)+2, accumulator, numerator_power_of_2);
+				accumulator /= base((typename numerical<base>::exact_type)test);
+				accumulator_stats.update(accumulator,numerator_power_of_2);
+				quotient_accumulator /= test;
+				continue;
+				}
+			test = gcd(quotient_accumulator,base_stats.divisibility_test());
+			if (1<test)
+				{
+				base tmp(numerator.base());
+				tmp /= base((typename numerical<base>::exact_type)test);
+				accumulator *= tmp;	// XXX
+				numerator.power()--;
+				accumulator_stats.update(accumulator,numerator_power_of_2);
+				quotient_accumulator /= test;
+				continue;
+				}
+			}
 
 		if (1<quotient_accumulator)
 			{
-			const int useful_exponent = INT_LOG2(quotient_accumulator)+2;	// this exponent on the main accumulator assures we can divide reasonably
-			if (useful_exponent>accumulator_stats.exponent())
+			int delta = accumulator_stats.missed_good_exponent_by(INT_LOG2(quotient_accumulator)+2, accumulator, numerator_power_of_2);
+			if (0<delta)
 				{
-				int delta = useful_exponent-accumulator_stats.exponent();
-				if (delta <= numerator_power_of_2)
-					{
-					accumulator = scalbn(accumulator,delta);
-					numerator_power_of_2 -= delta;
-					delta = 0;
-					accumulator_stats = accumulator;
-					}
-				else if (0<numerator_power_of_2)
-					{
-					accumulator = scalbn(accumulator,numerator_power_of_2);
-					delta -= numerator_power_of_2;
-					numerator_power_of_2 = 0;
-					accumulator_stats = accumulator;
-					}
-				if (0<delta && std::numeric_limits<uiintmax_t>::max()-numerator_neg_power_of_2>=delta)
-					{
-					const uintmax_t test = std::numeric_limits<uiintmax_t>::max()-numerator_neg_power_of_2;
-					if (test>=delta)
-						{
-						accumulator = scalbn(accumulator,delta);
-						numerator_neg_power_of_2 += delta;
-						delta = 0;
-						accumulator_stats = accumulator;
-						if (1<base_stats.exponent()) continue;
-						}
-					else if (0<test)
-						{
-						accumulator = scalbn(test);
-						numerator_neg_power_of_2 += std::numeric_limits<uiintmax_t>::max();
-						delta -= test;
-						accumulator_stats = accumulator;
-						if (1<base_stats.exponent()) continue;
-						}
-					}
-				if (0<delta && 0<numerator.power() && 1==base_stats.exponent())
+				if (1<base_stats.exponent()) continue;
+				if (1==base_stats.exponent())
 					{	// exponent should be 1 we werent' able to restart
 						// so squaring will not overflow
 					if (1==numerator.power()%2)
 						{	// XXX should be operation of power_term
-						accumulator *= numerator.base();
-						numerator.power()-1;
-						accumulator_stats = accumulator;
+						accumulator_stats = numerator.apply_factor(accumulator);
 						continue;
 						}
 					else{	// XXX should be operation of power_term
 						numerator.base() = square(numerator.base());
 						numerator.power() /= 2;
-						base_stats = numerator.base();
-						if (int_as<0,base>()==numerator.base()) throw new std::underflow_error("x^n underflow");
+						base_stats = numerator.base();	// won't underflow
 						continue;
 						}
 					}
 				}
-			accumulator /= base(quotient_accumulator);
+			accumulator /= base((typename numerical<base>::exact_type)quotient_accumulator);
+			accumulator_stats.update(accumulator,numerator_power_of_2);
 			quotient_accumulator = 1;
+			continue;
+			}
+		};	// main loop: both x^n and k..m not reduced
+
+	while(0<numerator.power())
+		{	// 
+		if (1==numerator.power()%2)
+			{	// XXX should be operation of power_term
+			numerator.apply_factor(accumulator);
+			accumulator_stats.update(accumulator,numerator_power_of_2);
+			}
+		else{	// XXX should be operation of power_term
+			numerator.base() = square(numerator.base());
+			numerator.power() /= 2;
+			base_stats = numerator.base();	// won't underflow
+			}
+
+		}
+	assert(divisor.empty());
+
+	// final cleanup
+	if (numerator_power_of_2.negative())
+		{
+		if (accumulator_stats.safe_2_n_divide()>numerator_power_of_2.negative())
+			{
+			accumulator = scalbn(accumulator,-((int)numerator_power_of_2.negative()));
+			uintmax_t tmp = numerator_power_of_2.negative();
+			numerator_power_of_2.add(tmp);
 			accumulator_stats = accumulator;
-			if (1==accumulator.exponent()) continue;
-			if (1<accumulator.exponent())
-				{
-				int delta = accumulator.exponent()-1;
-				if (0<numerator_neg_power_of_2)
-					{
-					}
-				}
-			else{
-				int delta = 1-accumulator.exponent();
-				if (0<numerator_power_of_2)
-					{
-					}
-				}
+			}
+		else if (0<accumulator_stats.safe_2_n_divide())
+			{
+			accumulator = scalbn(accumulator,-accumulator_stats.safe_2_n_divide());
+			uintmax_t tmp = accumulator_stats.safe_2_n_divide();
+			numerator_power_of_2.add(tmp);
+			accumulator_stats = accumulator;
 			}
 		}
-#endif
+	else if (numerator_power_of_2.positive())
+		{
+		if (accumulator_stats.safe_2_n_multiply()>numerator_power_of_2.positive())
+			{
+			accumulator = scalbn(accumulator,numerator_power_of_2.positive());
+			uintmax_t tmp = numerator_power_of_2.positive();
+			numerator_power_of_2.sub(tmp);
+			accumulator_stats = accumulator;
+			}
+		else if (0<accumulator_stats.safe_2_n_multiply())
+			{
+			accumulator = scalbn(accumulator,accumulator_stats.safe_2_n_multiply());
+			uintmax_t tmp = accumulator_stats.safe_2_n_multiply();
+			numerator_power_of_2.sub(tmp);
+			accumulator_stats = accumulator;
+			}
+		}
+	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
+		{	// underflow
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
+		return scalbn(accumulator,-((int)(numerator_power_of_2.negative())));
+		}
 
-	// broken return driver to allow incremental compile testing
-	return int_as<0,base>();
-
-#if 0
-	// self-eval implementation...we want to stabilize this with the quotient
-	assert(!isnan(x));
-	if (1==x.power()) return x.base();
-	auto ret(x.bootstrap_eval());
-	while(x.iter_eval(ret));
-	return ret;
-#endif
-#if 0
-#endif
+	return accumulator;
 }
 
 template<class base>
