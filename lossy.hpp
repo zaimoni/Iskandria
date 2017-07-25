@@ -157,6 +157,26 @@ struct lossy
 		return lhs;
 	}
 
+	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
+	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		if (0.0 == rhs) throw std::runtime_error("division by zero NaN");
+		lhs /= rhs;
+		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("quotient");
+		return lhs;
+	}
+
+	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
+	{
+		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		if (0.0 > rhs.lower() && 0.0 < rhs.upper()) throw std::runtime_error("division by zero NaN");
+		if (0.0 == rhs.lower() && 0.0 == rhs.upper()) throw std::runtime_error("division by zero NaN");
+		const bool infinite_out_ok = (0.0==rhs.lower() || 0.0==rhs.upper());
+		lhs /= rhs;
+		if (incoming_finite && !infinite_out_ok && !isfinite(lhs)) throw std::overflow_error("quotient");
+		return lhs;
+	}
+
 	static typename interval_type<T>::type self_product(typename interval_type<T>::type& lhs, typename const_param<T>::type rhs) 
 	{
 		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
@@ -189,6 +209,12 @@ struct lossy
 		return x;
 	}
 };
+
+template<class T>
+boost::numeric::interval<T> quotient(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::quotient(lhs,rhs);
+}
 
 }	// namespace math
 }	// namespace zaimoni

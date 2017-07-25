@@ -156,7 +156,8 @@ struct numerical
 	typedef typename std::remove_cv<T>::type exact_type;			// exact version of this type
 	typedef typename std::remove_cv<T>::type exact_arithmetic_type;	// exact version of the individual coordinates of this type
 
-	constexpr int error(const T& src) {return 0;}
+	static constexpr int error(const T& src) {return 0;}
+	static constexpr bool causes_division_by_zero(const T& src) {return int_as<0,T>()==src;};
 };
 
 template<>
@@ -169,10 +170,16 @@ struct numerical<boost::numeric::interval<T> >
 	typedef typename std::remove_cv<T>::type exact_type;
 	typedef typename std::remove_cv<T>::type exact_arithmetic_type;
 
-	long double error(const boost::numeric::interval<T>& src) {
+	static long double error(const boost::numeric::interval<T>& src) {
 		boost::numeric::interval<long double> err(src.upper());
 		err -= src.lower();
 		return err.upper();
+	}
+	static bool causes_division_by_zero(const boost::numeric::interval<T>& src)
+	{
+		if (int_as<0,T>() > src.lower() && int_as<0,T>() < src.upper()) return true;
+		if (int_as<0,T>() == src.lower() && int_as<0,T>() == src.upper()) return true;
+		return false;	
 	}
 };
 
@@ -421,6 +428,42 @@ public:
 		return (int)delta;
 	}
 
+	void prepare_return_value(value_type& x, dicounter& power_of_2)
+	{
+		if (power_of_2.negative())
+			{
+			const int tmp = safe_2_n_divide();
+			if (tmp>power_of_2.negative())
+				{
+				x = scalbn(x,-((int)power_of_2.negative()));
+				power_of_2.safe_add(power_of_2.negative());
+				*this = x;
+				}
+			else if (0<tmp)
+				{
+				x = scalbn(x,-tmp);
+				power_of_2.safe_add(tmp);
+				*this = x;
+				}
+			}
+		else if (power_of_2.positive())
+			{
+			const int tmp = safe_2_n_multiply();
+			if (tmp>power_of_2.positive())
+				{
+				x = scalbn(x,power_of_2.positive());
+				power_of_2.safe_sub(power_of_2.positive());
+				*this = x;
+				}
+			else if (0<tmp)
+				{
+				x = scalbn(x,tmp);
+				power_of_2.safe_sub(tmp);
+				*this = x;
+				}
+			}
+	}
+
 #if 0
 	double mantissa() const {return _mantissa;};
 	uintmax_t int_mantissa() const {return _mantissa_as_int(_mantissa);}
@@ -495,6 +538,12 @@ struct would_overflow<intmax_t>
                         || (0>rhs && std::numeric_limits<intmax_t>::max()/lhs>rhs))
 			: false);
 	}
+};
+
+template<class T>
+struct is_series_product 
+{
+	enum {value = 0};
 };
 
 // data representation conventions
@@ -588,6 +637,13 @@ private:
 		}
 		// XXX reduce small periods n?
 	}
+};
+
+template<>
+template<class T,class U>
+struct is_series_product<power_term<T,U> >
+{
+	enum {value = 1};
 };
 
 template<class T,class U>
@@ -1082,6 +1138,227 @@ inline void eval_series_product(int_range<uintmax_t>& src, uintmax_t& accumulato
 	}
 }
 
+// XXX lhs corresponds to both numerator and accumulator in quotient_of_series_products
+template<class base>
+typename std::enable_if<
+	    numerical<base>::error_tracking
+    && !is_series_product<base>::value,	// these should go to a quotient_of_series_products
+base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
+{
+	assert(!isnan(lhs));
+	if (divisor.empty()) return lhs;
+	if (1==divisor.lower() && 1==divisor.upper()) return lhs;
+	if (0>=divisor.lower()) throw std::runtime_error("division by zero NaN");
+
+	if (1==divisor.lower()) divisor.pop_front();
+	else if (1==divisor.upper()) divisor.pop_back();
+	if (divisor.lower()==divisor.upper()) return quotient(lhs,base(divisor.lower()));
+
+	// intermediate data structures
+	uintmax_t quotient_accumulator = 1;
+	// could replace these by two arbitrary-precision integers
+	uintmax_t quotient_power_of_2 = 0;
+	dicounter numerator_power_of_2;	// zero-initializes
+
+	auto lhs_stats(get_fp_stats(lhs));	// XXX corresponds to both base_stats and accumulator_stats in quotient_of_series_of_products
+
+	if (1>lhs_stats.exponent() && numerator_power_of_2.sub_capacity()>=1)
+		{	// underflow defense
+		int delta_exponent = 1-lhs_stats.exponent();
+		lhs = scalbn(lhs,delta_exponent);
+		numerator_power_of_2.safe_sub(delta_exponent);
+		lhs_stats = lhs;
+		}
+
+	while((!divisor.empty() || 1<quotient_accumulator))
+		{
+		if (!divisor.empty() && 1==quotient_accumulator) eval_series_product(divisor,quotient_accumulator,quotient_power_of_2);
+
+		if (0<quotient_power_of_2) numerator_power_of_2.sub(quotient_power_of_2); 
+		if (0<numerator_power_of_2.negative() && 1<lhs_stats.exponent())
+			{
+			int delta = lhs_stats.exponent()-1;
+			if (numerator_power_of_2.sub_capacity() < delta) delta = numerator_power_of_2.sub_capacity();
+			if (0<delta)
+				{
+				lhs = scalbn(lhs,-delta);
+				numerator_power_of_2.safe_add(delta);
+				lhs_stats = lhs;
+				continue;
+				}
+			}
+
+		// try to concel out factors
+		if (1<quotient_accumulator)
+			{
+			uintmax_t test = gcd(quotient_accumulator,lhs_stats.divisibility_test());
+			if (1<test)
+				{	// don't bother trying to recover against numerator.base();
+				lhs_stats.missed_good_exponent_by(INT_LOG2(test)+2, lhs, numerator_power_of_2);
+				lhs /= base((typename numerical<base>::exact_type)test);
+				lhs_stats.update(lhs,numerator_power_of_2);
+				quotient_accumulator /= test;
+				continue;
+				}
+			}
+
+		if (1<quotient_accumulator)
+			{
+			int delta = lhs_stats.missed_good_exponent_by(INT_LOG2(quotient_accumulator)+2, lhs, numerator_power_of_2);
+			lhs /= base((typename numerical<base>::exact_type)quotient_accumulator);
+			lhs_stats.update(lhs,numerator_power_of_2);
+			quotient_accumulator = 1;
+			continue;
+			}
+		};	// main loop: k..m not reduced
+
+	assert(divisor.empty());
+
+	lhs_stats.prepare_return_value(lhs,numerator_power_of_2);
+
+	if (!isfinite(lhs)) throw std::overflow_error("overflow: quotient by series product");
+	if (0==lhs_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient by series product");
+	if (0==lhs_stats.safe_2_n_divide() && numerator_power_of_2.negative())
+		{	// underflow
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(lhs,-std::numeric_limits<long double>::digits-1);
+		return scalbn(lhs,-((int)(numerator_power_of_2.negative())));
+		}
+
+	return lhs;
+}
+
+#if 0
+// cf. return type of power_term::standardize()
+template<class base>
+typename std::enable_if<
+	   numerical<base>::error_tracking 
+	&& std::is_same<base, typename interval_type<base>::type>::value,
+base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
+{
+	assert(!isnan(numerator));
+	if (1==numerator.power()) return quotient(numerator.base(),rhs);
+	if (int_as<1,base>() == rhs) return eval(numerator);
+	if (0>=divisor.lower()) throw std::runtime_error("division by zero NaN");
+
+	// intermediate data structures
+	base accumulator(int_as<1,base>());
+	uintmax_t quotient_accumulator = 1;
+	// could replace these by two arbitrary-precision integers
+	uintmax_t quotient_power_of_2 = 0;
+	dicounter numerator_power_of_2;	// zero-initializes
+
+	auto base_stats(get_fp_stats(numerator.base()));
+	auto accumulator_stats(get_fp_stats(accumulator));
+
+	if (1>base_stats.exponent() && numerator_power_of_2.sub_capacity()>=numerator.power())
+		{	// underflow defense
+		int delta_exponent = 1-base_stats.exponent();
+		if (UINTMAX_MAX/numerator.power()<delta_exponent) delta_exponent = UINTMAX_MAX/numerator.power();
+		numerator.base() = scalbn(numerator.base(),delta_exponent);
+		numerator_power_of_2.safe_sub(delta_exponent*numerator.power());
+		base_stats = numerator.base();
+		}
+
+	while((!divisor.empty() || 1<quotient_accumulator) && (0<numerator.power() || 0<quotient_power_of_2 || 0<numerator_power_of_2.positive() || 0<numerator_power_of_2.negative()))
+		{
+		if (!divisor.empty() && 1==quotient_accumulator) eval_series_product(divisor,quotient_accumulator,quotient_power_of_2);
+
+		if (0<quotient_power_of_2) numerator_power_of_2.sub(quotient_power_of_2); 
+		if (0<numerator_power_of_2.negative() && 1<base_stats.exponent())
+			{
+			int delta = base_stats.exponent()-1;
+			if (numerator_power_of_2.sub_capacity()/numerator.power() < delta) delta = numerator_power_of_2.sub_capacity()/numerator.power();
+			if (0<delta)
+				{
+				numerator.base() = scalbn(numerator.base(),-delta);
+				numerator_power_of_2.safe_add(delta*numerator.power());
+				base_stats = numerator.base();
+				continue;
+				}
+			}
+
+		// try to concel out factors
+		if (1<quotient_accumulator)
+			{
+			uintmax_t test = gcd(quotient_accumulator,accumulator_stats.divisibility_test());
+			if (1<test)
+				{	// don't bother trying to recover against numerator.base();
+				accumulator_stats.missed_good_exponent_by(INT_LOG2(test)+2, accumulator, numerator_power_of_2);
+				accumulator /= base((typename numerical<base>::exact_type)test);
+				accumulator_stats.update(accumulator,numerator_power_of_2);
+				quotient_accumulator /= test;
+				continue;
+				}
+			test = gcd(quotient_accumulator,base_stats.divisibility_test());
+			if (1<test)
+				{
+				base tmp(numerator.base());
+				tmp /= base((typename numerical<base>::exact_type)test);
+				accumulator *= tmp;	// XXX
+				numerator.power()--;
+				accumulator_stats.update(accumulator,numerator_power_of_2);
+				quotient_accumulator /= test;
+				continue;
+				}
+			}
+
+		if (1<quotient_accumulator)
+			{
+			int delta = accumulator_stats.missed_good_exponent_by(INT_LOG2(quotient_accumulator)+2, accumulator, numerator_power_of_2);
+			if (0<delta)
+				{
+				if (1<base_stats.exponent()) continue;
+				if (1==base_stats.exponent())
+					{	// exponent should be 1 we werent' able to restart
+						// so squaring will not overflow
+					if (1==numerator.power()%2)
+						{	// XXX should be operation of power_term
+						accumulator_stats = numerator.apply_factor(accumulator);
+						continue;
+						}
+					else{	// XXX should be operation of power_term
+						numerator.base() = square(numerator.base());
+						numerator.power() /= 2;
+						base_stats = numerator.base();	// won't underflow
+						continue;
+						}
+					}
+				}
+			accumulator /= base((typename numerical<base>::exact_type)quotient_accumulator);
+			accumulator_stats.update(accumulator,numerator_power_of_2);
+			quotient_accumulator = 1;
+			continue;
+			}
+		};	// main loop: both x^n and k..m not reduced
+
+	while(0<numerator.power())
+		{	// 
+		if (1==numerator.power()%2)
+			{	// XXX should be operation of power_term
+			numerator.apply_factor(accumulator);
+			accumulator_stats.update(accumulator,numerator_power_of_2);
+			}
+		else{	// XXX should be operation of power_term
+			numerator.base() = square(numerator.base());
+			numerator.power() /= 2;
+			base_stats = numerator.base();	// won't underflow
+			}
+
+		}
+	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
+
+	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
+		{	// underflow
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
+		return scalbn(accumulator,-((int)(numerator_power_of_2.negative())));
+		}
+
+	return accumulator;
+}
+#endif
+
 // cf. return type of power_term::standardize()
 template<class base>
 typename std::enable_if<
@@ -1096,7 +1373,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 
 	if (1==divisor.lower()) divisor.pop_front();
 	else if (1==divisor.upper()) divisor.pop_back();
-//	if (1==numerator.power()) return quotient_by_series_product(numerator.base(),divisor);
+	if (1==numerator.power()) return quotient_by_series_product(numerator.base(),divisor);
 //	if (divisor.lower()==divisor.upper()) return quotient(numerator,divisor.lower());
 
 	// intermediate data structures
@@ -1114,8 +1391,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 		int delta_exponent = 1-base_stats.exponent();
 		if (UINTMAX_MAX/numerator.power()<delta_exponent) delta_exponent = UINTMAX_MAX/numerator.power();
 		numerator.base() = scalbn(numerator.base(),delta_exponent);
-		uintmax_t tmp = delta_exponent*numerator.power();
-		numerator_power_of_2.sub(tmp);
+		numerator_power_of_2.safe_sub(delta_exponent*numerator.power());
 		base_stats = numerator.base();
 		}
 
@@ -1131,8 +1407,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 			if (0<delta)
 				{
 				numerator.base() = scalbn(numerator.base(),-delta);
-				uintmax_t tmp = delta*numerator.power();
-				numerator_power_of_2.add(tmp);
+				numerator_power_of_2.safe_add(delta*numerator.power());
 				base_stats = numerator.base();
 				continue;
 				}
@@ -1208,41 +1483,8 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 		}
 	assert(divisor.empty());
 
-	// final cleanup
-	if (numerator_power_of_2.negative())
-		{
-		if (accumulator_stats.safe_2_n_divide()>numerator_power_of_2.negative())
-			{
-			accumulator = scalbn(accumulator,-((int)numerator_power_of_2.negative()));
-			uintmax_t tmp = numerator_power_of_2.negative();
-			numerator_power_of_2.add(tmp);
-			accumulator_stats = accumulator;
-			}
-		else if (0<accumulator_stats.safe_2_n_divide())
-			{
-			accumulator = scalbn(accumulator,-accumulator_stats.safe_2_n_divide());
-			uintmax_t tmp = accumulator_stats.safe_2_n_divide();
-			numerator_power_of_2.add(tmp);
-			accumulator_stats = accumulator;
-			}
-		}
-	else if (numerator_power_of_2.positive())
-		{
-		if (accumulator_stats.safe_2_n_multiply()>numerator_power_of_2.positive())
-			{
-			accumulator = scalbn(accumulator,numerator_power_of_2.positive());
-			uintmax_t tmp = numerator_power_of_2.positive();
-			numerator_power_of_2.sub(tmp);
-			accumulator_stats = accumulator;
-			}
-		else if (0<accumulator_stats.safe_2_n_multiply())
-			{
-			accumulator = scalbn(accumulator,accumulator_stats.safe_2_n_multiply());
-			uintmax_t tmp = accumulator_stats.safe_2_n_multiply();
-			numerator_power_of_2.sub(tmp);
-			accumulator_stats = accumulator;
-			}
-		}
+	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
+
 	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
 	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient of series products");
 	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())

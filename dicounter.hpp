@@ -42,6 +42,23 @@ struct dicounter : std::pair<uintmax_t,uintmax_t>
 			src -= test;	\
 			return;	\
 		}	\
+	}	\
+	void safe_##OP (uintmax_t src) {	\
+		if (0==src) return;	\
+		if (0<NEG) {	\
+			if (src <= NEG) {	\
+				NEG -= src;	\
+			} else {	\
+				src -= NEG;	\
+				NEG = 0;	\
+				POS = src;	\
+			}	\
+			return;	\
+		}	\
+		const uintmax_t test = UINTMAX_MAX-POS;	\
+		assert(test>=src);	\
+		POS += src;	\
+		return;	\
 	}
 
 ZAIMONI_ADD_DEF(add_capacity,add,positive(),negative())
