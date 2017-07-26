@@ -76,11 +76,31 @@ typename std::enable_if<
 }
 
 template<intmax_t n, class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename return_copy<typename std::remove_reference<T>::type>::type >::type int_as()
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as()
 {
 	return n;
 }
 #define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
+
+// numerical error calculation -- baseline
+template<class T>
+struct numerical
+{
+	enum {
+		error_tracking = 0
+	};
+	typedef typename std::remove_cv<T>::type exact_type;			// exact version of this type
+	typedef typename std::remove_cv<T>::type exact_arithmetic_type;	// exact version of the individual coordinates of this type
+
+	static constexpr int error(typename const_param<T>::type src) {return 0;}
+	static constexpr bool causes_division_by_zero(typename const_param<T>::type src) {return int_as<0,T>()==src;};
+};
+
+template<class T>
+constexpr bool causes_division_by_zero(T src)
+{
+	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::causes_division_by_zero(src);
+}
 
 }	// namespace math
 }	// namespace zaimoni

@@ -92,6 +92,31 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
 
+// extend numerical error support to boost::numeric::interval
+template<>
+template<class T>
+struct numerical<boost::numeric::interval<T> >
+{
+	enum {
+		error_tracking = 1
+	};
+	typedef typename std::remove_cv<T>::type exact_type;
+	typedef typename std::remove_cv<T>::type exact_arithmetic_type;
+
+	static long double error(const boost::numeric::interval<T>& src) {
+		boost::numeric::interval<long double> err(src.upper());
+		err -= src.lower();
+		return err.upper();
+	}
+	static bool causes_division_by_zero(const boost::numeric::interval<T>& src)
+	{
+		if (int_as<0,T>() > src.lower() && int_as<0,T>() < src.upper()) return true;
+		if (int_as<0,T>() == src.lower() && int_as<0,T>() == src.upper()) return true;
+		return false;	
+	}
+};
+
+
 // interval arithmetic wrappers
 // we need proper function overloading here so use static member functions of a template class
 template<class T>
@@ -160,6 +185,7 @@ struct lossy
 	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
 		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN");
 		if (0.0 == rhs) throw std::runtime_error("division by zero NaN");
 		lhs /= rhs;
 		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("quotient");
