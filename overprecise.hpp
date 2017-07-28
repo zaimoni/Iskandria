@@ -113,8 +113,16 @@ self_negate(boost::numeric::interval<T>& x)
 }
 
 // will need greatest common divisor for divisibility tests
-inline uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
+inline constexpr uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
 {
+    return  0==rhs ? lhs
+         : (0==lhs ? rhs 
+         : (1==rhs ? 1 
+         : (1==lhs ? 1 
+         : (lhs==rhs ? lhs
+         : (lhs<rhs ? gcd(lhs,rhs%lhs) 
+				    : gcd(rhs,lhs%rhs))))));
+#if 0
 	if (0==rhs) return lhs;
 	if (0==lhs) return rhs;
 	if (1==rhs) return 1;
@@ -134,6 +142,7 @@ inline uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
 		if (1==lhs) return 1;
 		}
 	while(true);
+#endif
 }
 
 // not guaranteed effective for long double
