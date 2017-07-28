@@ -3,7 +3,6 @@
 #ifndef OVERPRECISE_HPP
 #define OVERPRECISE_HPP 1
 
-#include <limits>
 #include <stdexcept>
 #include <utility>
 
@@ -111,39 +110,6 @@ self_negate(boost::numeric::interval<T>& x)
 {
 	x = -x;
 	return true;
-}
-
-// abs is taken by the standard library.
-// norm is meant to be the "typical" measure of absolute value; for real numbers should be abs
-template<class T>
-constexpr  typename std::enable_if<
-   std::is_floating_point<T>::value,
-T>::type norm(T x) {return 0<=x ? x : -x;}
-
-template<class T>
-constexpr  typename std::enable_if<
-   std::is_integral<T>::value
-&& std::is_unsigned<T>::value,
-T>::type norm(T x) {return x;}
-
-template<class T>
-constexpr  typename std::enable_if<
-   std::is_integral<T>::value
-&& std::is_signed<T>::value
-&& std::numeric_limits<T>::min() >= -std::numeric_limits<T>::max(),
-typename std::make_unsigned<T>::type>::type norm(T x) {return 0<=x ? x : -x;}
-
-// XXX operator > will close the template prematurely
-template<class T>
-constexpr  typename std::enable_if<
-   std::is_integral<T>::value
-&& std::is_signed<T>::value
-&& std::numeric_limits<T>::min() < -std::numeric_limits<T>::max(),
-typename std::make_unsigned<T>::type>::type norm(T x)
-{	// XXX 2's complement integer minimum is undefined behavior to negate
-	return 0<=x ? x
-	  : (-std::numeric_limits<T>::max()<=x) ? -x
-			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
 }
 
 // will need greatest common divisor for divisibility tests
@@ -1223,7 +1189,7 @@ base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
 	lhs_stats.prepare_return_value(lhs,numerator_power_of_2);
 
 	if (!isfinite(lhs)) throw std::overflow_error("overflow: quotient by series product");
-	if (0==lhs_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient by series product");
+	if (0==lhs_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient by series product");
 	if (0==lhs_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
 		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(lhs,-std::numeric_limits<long double>::digits-1);
@@ -1310,7 +1276,7 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
 
 	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
-	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient of series products");
 	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
 		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
@@ -1440,20 +1406,18 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 			numerator.power() /= 2;
 			base_stats = numerator.base();	// won't underflow
 			}
-
 		}
 	assert(divisor.empty());
 
 	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
 
 	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
-	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("overflow: quotient of series products");
+	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient of series products");
 	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
 		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
 		return scalbn(accumulator,-((int)(numerator_power_of_2.negative())));
 		}
-
 	return accumulator;
 }
 

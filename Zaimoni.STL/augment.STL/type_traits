@@ -3,6 +3,7 @@
 #ifndef ZAIMONI_AUGMENT_STL_TYPETRAITS
 #define ZAIMONI_AUGMENT_STL_TYPETRAITS 1
 
+#include <limits>
 #include <type_traits>
 
 namespace zaimoni {
@@ -18,6 +19,66 @@ template<class T> struct return_copy
 	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , 
 		typename std::add_lvalue_reference<const T>::type 
 	>::type type;
+};
+
+// we don't have good compile-time detection for operators, and STL conflicts with mathematics at times anyway
+template<class T> struct op_works
+{
+	enum {
+		add = std::is_arithmetic<T>::value,
+		sub = std::is_arithmetic<T>::value,
+		mult = std::is_arithmetic<T>::value,
+		div = std::is_arithmetic<T>::value,
+		negate = std::is_arithmetic<T>::value,
+		less_than = std::is_arithmetic<T>::value
+	};
+};
+
+// abs is taken by the standard library.
+// norm is meant to be the "typical" measure of absolute value; for real numbers should be abs
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_floating_point<T>::value,
+T>::type norm(T x) {return 0<=x ? x : -x;}
+
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_unsigned<T>::value,
+T>::type norm(T x) {return x;}
+
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_signed<T>::value
+&& std::numeric_limits<T>::min() >= -std::numeric_limits<T>::max(),
+typename std::make_unsigned<T>::type>::type norm(T x) {return 0<=x ? x : -x;}
+
+// XXX operator > will close the template prematurely
+template<class T>
+constexpr  typename std::enable_if<
+   std::is_integral<T>::value
+&& std::is_signed<T>::value
+&& std::numeric_limits<T>::min() < -std::numeric_limits<T>::max(),
+typename std::make_unsigned<T>::type>::type norm(T x)
+{	// XXX 2's complement integer minimum is undefined behavior to negate
+	return 0<=x ? x
+	  : (-std::numeric_limits<T>::max()<=x) ? -x
+			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
+}
+
+// correct-size type estimation
+template<uintmax_t n>
+struct min_unsigned
+{
+	typedef typename std::conditional<std::numeric_limits<unsigned int>::max()<=n,
+			typename std::conditional<std::numeric_limits<unsigned char>::max()<=n,
+				unsigned char,
+				typename std::conditional<std::numeric_limits<unsigned short>::max(),
+					unsigned short,
+					unsigned int>::type
+			>::type,
+			typename std::conditional<std::numeric_limits<unsigned long>::max()<=n,	unsigned long, uintmax_t>::type>::type type;
 };
 
 // extend some cmath functions to integers
@@ -65,6 +126,15 @@ struct static_cache
 		static const T ret(n);
 		return ret;
 	}
+
+	template<uintmax_t n> 
+	static typename std::enable_if<
+			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()<n,
+		typename return_copy<T>::type>::type as2()
+	{
+		static const T ret(n);
+		return ret;
+	}
 };
 
 template<intmax_t n, class T>
@@ -78,7 +148,29 @@ typename std::enable_if<
 template<intmax_t n, class T>
 constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as()
 {
-	return n;
+       return n;
+}
+
+template<uintmax_t n, class T>
+typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()>=n,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type unint_as()
+{
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as<n>();
+}
+
+template<uintmax_t n, class T>
+typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()<n,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type unint_as()
+{
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as2<n>();
+}
+
+template<uintmax_t n, class T>
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type uint_as()
+{
+       return n;
 }
 #define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
 
@@ -103,6 +195,7 @@ constexpr bool causes_division_by_zero(T src)
 }
 
 }	// namespace math
+
 }	// namespace zaimoni
 
 #endif
