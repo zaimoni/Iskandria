@@ -14,36 +14,6 @@
 // interval division of floating point can legitimately create intervals with an infinite endpoint.
 // Nothing legitimately creates NaN; just assume it's pre-screened.
 
-template<class T>
-inline void INFORM(const boost::numeric::interval<T>& x)
-{
-	if (x.lower()==x.upper())
-		{
-		INFORM(x.lower());
-		return;
-		}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INFORM("]");
-}
-
-template<class T>
-inline void INC_INFORM(const boost::numeric::interval<T>& x)
-{
-	if (x.lower()==x.upper())
-		{
-		INC_INFORM(x.lower());
-		return;
-		}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INC_INFORM("]");
-}
-
 namespace zaimoni {
 
 using std::swap;

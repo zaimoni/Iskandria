@@ -26,8 +26,10 @@ private:
 	// * upper bound on term size
 	// ** upper bound on absolute value of a_n coming out
 	// * non-strictly alternating series
+
+	typename fn_algebraic_properties::bitmap_type _bitmap;
 public:
-	TaylorSeries(const std::function<COEFF (uintmax_t)>& src) : term_numerator(src) {};
+	TaylorSeries(const std::function<COEFF (uintmax_t)>& src,typename fn_algebraic_properties::bitmap_type src_bitmap=0) : term_numerator(src),_bitmap(src_bitmap) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(TaylorSeries);
 
 	COEFF a(uintmax_t n) const {return term_numerator(n);};
@@ -57,7 +59,7 @@ public:
 	template<class DomainRange> DomainRange scale_term(const DomainRange& x, uintmax_t n1, uintmax_t n0) const
 	{
 		assert(n0<n1);
-		if (1==n1-n0) return quotient(x,n1);
+		if (1==n1-n0) return quotient(x,DomainRange(n1));	// XXX
 		// general case: go from x^n0/n0! to x^n1/n1!
 		return quotient_of_series_products(power_term<DomainRange,uintmax_t>(x,n1-n0)/* x^n */,int_range<uintmax_t>(n0+1,n1) /* n! */);
 	}
@@ -84,16 +86,17 @@ public:
 		// if numerical error is swamping the term, stop evaluation and return
 		// otherwise accumulate
 
-		// start assumed loop
-		uintmax_t n_1 = n;
-		if (!next_nonzero_term(n_1,a_n)) return accumulator[0];
-		DomainRange scale = scale_term(x,n_1,n);
-		core_term *= scale;
-		full_term = DomainRange(a_n)*core_term;
-		// this is where error estimation would go
-		// if we think adding the term will *increase* the numerical error, abort
-		accumulator.push_back(full_term);
-		// end assumed loop
+		do	{
+			uintmax_t n_1 = n;
+			if (!next_nonzero_term(n_1,a_n)) return accumulator[0];
+			DomainRange scale = scale_term(x,n_1,n);
+			core_term *= scale;
+			full_term = DomainRange(a_n)*core_term;
+			// this is where error estimation would go
+			// if we think adding the term will *increase* the numerical error, abort
+			accumulator.push_back(full_term);
+			n = n_1;
+		} while(true);
 	}
 };
 
