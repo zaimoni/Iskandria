@@ -16,6 +16,37 @@
 namespace zaimoni {
 namespace math {
 
+namespace linear {
+
+template<intmax_t a_1_numerator, intmax_t a_1_denominator, intmax_t a_0> struct map;
+
+template<>
+template<intmax_t a_1_divisor>
+struct map<1, a_1_divisor, 0>
+{
+	template<class DomainRange> static DomainRange eval(const DomainRange& x) {return x/int_as<a_1_divisor,DomainRange>();}	// XXX want integer math for integer types, but overprecise overrides for boost::numeric::interval
+};
+
+template<>
+template<intmax_t a_0>
+struct map<1,1, a_0>
+{
+	template<class DomainRange> static DomainRange eval(const DomainRange& x) {return x+int_as<a_0,DomainRange>();}
+};
+
+// division by zero shall not compile
+template<>
+template<intmax_t a_1_numerator, intmax_t a_0> struct map<a_1_numerator, 0, a_0>;
+
+// this probably wants overprecision support rather than just lossy arithmetic support
+template<intmax_t a_1_numerator, intmax_t a_1_denominator, intmax_t a_0>
+struct map
+{
+	template<class DomainRange> static DomainRange eval(const DomainRange& x) {return int_as<a_1_numerator,DomainRange>()*x/int_as<a_1_denominator,DomainRange>()+int_as<a_0,DomainRange>();}
+};
+
+}	// namespace linear
+
 // figure out where this goes later
 static const zaimoni::math::mod_n::cyclic_fn_enumerated<2,signed char>&  alternator()
 {
@@ -24,16 +55,24 @@ static const zaimoni::math::mod_n::cyclic_fn_enumerated<2,signed char>&  alterna
 	return ret;
 }
 
+// unsigned_fn<0>::template kronecker_delta<Z_<2> >(n) * alternator o linear::map<1,2,0>::template eval<uintmax_t>(n)
+// unsigned_fn<1>::template kronecker_delta<Z_<2> >(n) * alternator o linear::map<1,2,0>::template eval<uintmax_t> o linear_map<1,1,-1>::template eval<uintmax_t>
+
 
 const TaylorSeries<int>& cos()
 {
-	static TaylorSeries<int> ret(alternator());
+	static TaylorSeries<int> ret(product(std::function<int (uintmax_t)>(unsigned_fn<0>::template kronecker_delta<Z_<2> >),
+	                             compose(std::function<int (uintmax_t)>(alternator()),
+	                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>))));
 	return ret;
 }
 
 const TaylorSeries<int>& sin()
 {
-	static TaylorSeries<int> ret(alternator());
+	static TaylorSeries<int> ret(product(std::function<int (uintmax_t)>(unsigned_fn<1>::template kronecker_delta<Z_<2> >),
+	                                     compose(compose(std::function<int (uintmax_t)>(alternator()),
+	                                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>)),
+										         std::function<uintmax_t (uintmax_t)>(linear::map<1,1,-1>::template eval<uintmax_t>))));
 	return ret;
 }
 
@@ -49,7 +88,6 @@ const TaylorSeries<int>& sin()
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <functional>
 
 // console-mode application
 #define STRING_LITERAL_TO_STDOUT(A) fwrite(A,sizeof(A)-1,1,stdout)
@@ -79,6 +117,24 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
+	INFORM(zaimoni::math::cos().a(0));
+	INFORM(zaimoni::math::cos().a(1));
+	INFORM(zaimoni::math::cos().a(2));
+	INFORM(zaimoni::math::cos().a(3));
+	INFORM(zaimoni::math::cos().a(4));
+
+	STRING_LITERAL_TO_STDOUT("cos coefficients a_0..4\n");
+
+	INFORM(zaimoni::math::sin().a(0));
+	INFORM(zaimoni::math::sin().a(1));
+	INFORM(zaimoni::math::sin().a(2));
+	INFORM(zaimoni::math::sin().a(3));
+	INFORM(zaimoni::math::sin().a(4));
+
+	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
+
+	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
+	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

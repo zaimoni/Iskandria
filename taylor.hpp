@@ -5,7 +5,7 @@
 
 #include "int_range.hpp"
 #include "overprecise.hpp"
-#include <functional>
+#include "Zaimoni.STL/augment.STL/functional"
 
 // strictly speaking could also handle Laurent series here, but the poles *probably* require special handling.
 
@@ -30,11 +30,12 @@ public:
 	TaylorSeries(const std::function<COEFF (uintmax_t)>& src) : term_numerator(src) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(TaylorSeries);
 
+	COEFF a(uintmax_t n) const {return term_numerator(n);};
+
 	// XXX need two kinds of overflow-aware integer arithmetic
 	// bool return
 	// throws std::overflow
-
-	bool next_nonzero_term(uintmax_t& n, COEFF& a_n)
+	bool next_nonzero_term(uintmax_t& n, COEFF& a_n) const
 	{
 		while(UINTMAX_MAX>n)
 			{
@@ -44,16 +45,16 @@ public:
 		return false;
 	}
 
-	template<class DomainRange> DomainRange term(const DomainRange& x, uintmax_t n)
+	template<class DomainRange> DomainRange term(const DomainRange& x, uintmax_t n) const
 	{
-		if (0==n) return int_as<0,DomainRange>;	// a*1/0!
+		if (0==n) return int_as<0,DomainRange>();	// a*1/0!
 		if (1==n) return x;// x^1/1!
 		// general case: x^n/n!
 
 		return quotient_of_series_products(power_term<DomainRange,uintmax_t>(x,n)/* x^n */,int_range<uintmax_t>(2,n) /* n! */);
 	}
 
-	template<class DomainRange> DomainRange scale_term(const DomainRange& x, uintmax_t n1, uintmax_t n0)
+	template<class DomainRange> DomainRange scale_term(const DomainRange& x, uintmax_t n1, uintmax_t n0) const
 	{
 		assert(n0<n1);
 		if (1==n1-n0) return quotient(x,n1);
@@ -61,10 +62,9 @@ public:
 		return quotient_of_series_products(power_term<DomainRange,uintmax_t>(x,n1-n0)/* x^n */,int_range<uintmax_t>(n0+1,n1) /* n! */);
 	}
 
-	template<class DomainRange> DomainRange eval(const DomainRange& x)
+	template<class DomainRange> DomainRange eval(const DomainRange& x) const
 	{
-		assert(!isnan(x));
-		assert(!isinf(x));
+		assert(isfinite(x));
 		COEFF a_n = term_numerator(0);
 		if (int_as<0,DomainRange>()==x) return DomainRange(a_n);
 
@@ -86,7 +86,7 @@ public:
 
 		// start assumed loop
 		uintmax_t n_1 = n;
-		if (!next_non_zero_term(n_1,a_n)) return accumulator[0];
+		if (!next_nonzero_term(n_1,a_n)) return accumulator[0];
 		DomainRange scale = scale_term(x,n_1,n);
 		core_term *= scale;
 		full_term = DomainRange(a_n)*core_term;

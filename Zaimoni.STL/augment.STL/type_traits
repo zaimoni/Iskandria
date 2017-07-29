@@ -1,7 +1,7 @@
-// Zaimoni.STL/Augment.STL/typetraits
+// Zaimoni.STL/augment.STL/typetraits
 
-#ifndef ZAIMONI_AUGMENT_STL_TYPETRAITS
-#define ZAIMONI_AUGMENT_STL_TYPETRAITS 1
+#ifndef ZAIMONI_AUGMENT_STL_TYPE_TRAITS
+#define ZAIMONI_AUGMENT_STL_TYPE_TRAITS 1
 
 #include <limits>
 #include <type_traits>
@@ -153,16 +153,16 @@ constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_refere
 
 template<uintmax_t n, class T>
 typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()>=n,
-		typename return_copy<typename std::remove_reference<T>::type>::type>::type unint_as()
+			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()>=n,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type uint_as()
 {
 	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as<n>();
 }
 
 template<uintmax_t n, class T>
 typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()<n,
-		typename return_copy<typename std::remove_reference<T>::type>::type>::type unint_as()
+			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value && std::numeric_limits<intmax_t>::max()<n,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type uint_as()
 {
 	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::template as2<n>();
 }

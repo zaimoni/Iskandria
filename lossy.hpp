@@ -237,9 +237,65 @@ struct lossy
 };
 
 template<class T>
+boost::numeric::interval<T> sum(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::sum(lhs,rhs);
+}
+
+// XXX one would like to use std::is_convertible here, but boost::numeric::interval constructors are very promiscuous and
+// and false-succeed as the rhs/destination of std::is_convertible
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type sum(const boost::numeric::interval<T>& lhs, const U& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::sum(lhs,boost::numeric::interval<T>(rhs));
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type sum(const U& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::sum(boost::numeric::interval<T>(lhs),rhs);
+}
+
+template<class T>
+boost::numeric::interval<T> product(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::product(lhs,rhs);
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type product(const boost::numeric::interval<T>& lhs, const U& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::product(lhs,boost::numeric::interval<T>(rhs));
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type product(const U& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::product(boost::numeric::interval<T>(lhs),rhs);
+}
+
+template<class T>
 boost::numeric::interval<T> quotient(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
 {
 	return lossy<typename std::remove_cv<T>::type>::quotient(lhs,rhs);
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type quotient(const boost::numeric::interval<T>& lhs, const U& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::quotient(lhs,boost::numeric::interval<T>(rhs));
+}
+
+template<class T,class U>
+typename std::enable_if<std::is_arithmetic<U>::value,
+	boost::numeric::interval<T> >::type quotient(const U& lhs, const boost::numeric::interval<T>& rhs)
+{
+	return lossy<typename std::remove_cv<T>::type>::quotient(boost::numeric::interval<T>(lhs),rhs);
 }
 
 }	// namespace math

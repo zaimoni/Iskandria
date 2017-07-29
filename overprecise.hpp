@@ -1097,7 +1097,7 @@ typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quo
 		if (ret) lhs = tmp;
 		return ret;
 		}
-	if (0.0 >= rhs.lower() && 0.0 <= rhs.upper()) throw std::overflow_error("division by interval containing zero");
+	if (causes_division_by_zero(rhs)) throw std::overflow_error("division by interval containing zero");
 	return 0;
 }
 
