@@ -14,7 +14,7 @@ inline void INFORM(const boost::numeric::interval<T>& x)
 {
 	if (x.lower()==x.upper())
 		{
-		INFORM(x.lower());
+		INFORM(x.upper());
 		return;
 		}
 	INC_INFORM("[");
@@ -29,7 +29,7 @@ inline void INC_INFORM(const boost::numeric::interval<T>& x)
 {
 	if (x.lower()==x.upper())
 		{
-		INC_INFORM(x.lower());
+		INC_INFORM(x.upper());
 		return;
 		}
 	INC_INFORM("[");
@@ -68,6 +68,12 @@ template<class T>
 constexpr bool isfinite(const boost::numeric::interval<T>& x)
 {
 	return std::isfinite(x.lower()) && std::isfinite(x.upper());
+}
+
+template<class T>
+constexpr bool isinf(const boost::numeric::interval<T>& x)
+{
+	return (isinf(x.lower()) && 0<x.lower()) || (isinf(x.upper()) && 0 > x.upper());
 }
 
 template<class T>

@@ -653,7 +653,7 @@ int main(int argc, char* argv[])
 	// check rearrange arithmatic
 	double lhs = 1.0;
 	double rhs = 1.0;
-	bool ok = zaimoni::math::rearrange_sum(lhs,rhs);
+	int ok = zaimoni::math::rearrange_sum(lhs,rhs);
 	ZAIMONI_PASSTHROUGH_ASSERT(ok);
 	ZAIMONI_PASSTHROUGH_ASSERT(2.0==lhs);
 	STRING_LITERAL_TO_STDOUT("1,0+1.0 = 2.0\n");

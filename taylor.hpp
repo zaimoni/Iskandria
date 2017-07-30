@@ -6,6 +6,7 @@
 #include "int_range.hpp"
 #include "overprecise.hpp"
 #include "Zaimoni.STL/augment.STL/functional"
+#include "series_sum.hpp"
 
 // strictly speaking could also handle Laurent series here, but the poles *probably* require special handling.
 
@@ -74,10 +75,10 @@ public:
 		if (int_as<0,COEFF>()==a_n && !next_nonzero_term(n,a_n)) return int_as<0,DomainRange>();	// give up if all visible terms non-zero
 
 		// bootstrapping;  We need the initial x^n/n! as an intermediate stage, and the actual term.
-		std::vector<DomainRange> accumulator;	// possibly should be an outright series summation type
+		series_sum<DomainRange> accumulator;	// possibly should be an outright series summation type
 
 		DomainRange core_term = term(x,n);
-		auto full_term = DomainRange(a_n)*core_term;
+		auto full_term = DomainRange(a_n)*core_term;	// XXX
 
 		accumulator.push_back(full_term);
 
@@ -88,10 +89,10 @@ public:
 
 		do	{
 			uintmax_t n_1 = n;
-			if (!next_nonzero_term(n_1,a_n)) return accumulator[0];
+			if (!next_nonzero_term(n_1,a_n)) return accumulator.eval();
 			DomainRange scale = scale_term(x,n_1,n);
-			core_term *= scale;
-			full_term = DomainRange(a_n)*core_term;
+			core_term *= scale;	// XXX
+			full_term = DomainRange(a_n)*core_term;	// XXX
 			// this is where error estimation would go
 			// if we think adding the term will *increase* the numerical error, abort
 			accumulator.push_back(full_term);

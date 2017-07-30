@@ -179,7 +179,7 @@ public:
 	int safe_2_n_multiply() const {return std::numeric_limits<T>::min_exponent-_exponent;};
 	int safe_2_n_divide() const {return _exponent-std::numeric_limits<T>::min_exponent;};
 
-	double delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
+	T delta(int n) const { return copysign(scalbn(0.5,n),_mantissa); };	// usually prepared for subtractive cancellation
 
 	// these are in terms of absolute value
 	std::pair<int,int> safe_subtract_exponents()
@@ -639,7 +639,7 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type delta_can
 
 // trivial_sum family returns -1 for lhs annihilated, 1 for rhs annihilated
 template<class T, class U>
-typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T) && ZAIMONI_INT_AS_DEFINED(U), int>::type trivial_sum(T& lhs, U& rhs)
+typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T) && ZAIMONI_INT_AS_DEFINED(U), int>::type trivial_sum(const T& lhs, const U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
@@ -647,19 +647,102 @@ typename std::enable_if<ZAIMONI_INT_AS_DEFINED(T) && ZAIMONI_INT_AS_DEFINED(U), 
 	if (int_as<0,T>() == lhs) return -1;
 	if (isinf(lhs))
 		{
-		if (!isinf(rhs)) return 1;
-		if (signbit(lhs)!=signbit(rhs)) throw std::runtime_error("infinity-infinity NaN");
+		if (isinf(rhs) && signbit(lhs)!=signbit(rhs)) throw std::runtime_error("infinity-infinity NaN");
 		return 1;
 		}
 	if (isinf(rhs)) return -1;
 	return 0;
 }
 
-// the rearrange_sum family returns true iff rhs has been annihilated with exact arithmetic
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_sum(T& lhs, T& rhs)
+int trivial_sum(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+{
+	assert(!isnan(lhs));
+	assert(!isnan(rhs));
+	const int inf_code = 8*isinf(rhs.upper())+4*isinf(rhs.lower())+2*isinf(lhs.upper())+isinf(rhs.lower());
+	switch(inf_code)
+	{
+	case 15:		// lhs infinite, rhs infinite
+		if (signbit(lhs.lower())!=signbit(rhs.lower())) throw std::runtime_error("infinity-infinity NaN");
+		return 1;
+
+	case 14:		// rhs infinite, lhs.upper() positive infinity: open ray annihilated
+	case 13:		// rhs infinite, lhs.lower() negative infinity: open ray annihilated
+	case 12:	return -1;	// rhs infinity, lhs finite
+
+	case 11:		// lhs infinite, rhs.upper() negative infinity: open ray annihilated
+	case 7:		// lhs infinite, rhs.lower() negative infinity: open ray annihilated
+	case 3:		return 1;	// lhs infinite, rhs finite
+
+	case 9:	// rhs.upper() positive infinity, lhs.lower negative infinity
+	case 6:	// lhs.upper() positive infinity, rhs.lower negative infinity
+		throw std::runtime_error("(-infinity,infinity) NaN");
+
+	case 8:	// rhs.upper() positive infinity, lhs finite
+		rhs.assign(rhs.lower(),lhs.upper());	// reduce to case 10	
+		return trivial_sum(lhs.lower(),rhs.lower());	// inline rather than goto
+	case 2:	// lhs.upper() positive infinity, rhs finite
+		rhs.assign(rhs.lower(),lhs.upper());	// reduce to case 10	
+		// intentional fall through
+	case 10: return trivial_sum(lhs.lower(),rhs.lower());	// rhs.upper() and lhs.upper() both negative infinity
+
+	case 4:	// rhs.lower() negative infinity, lhs finite
+		lhs.assign(rhs.lower(),lhs.upper());	// reduce to case 5
+		return trivial_sum(lhs.upper(),rhs.upper());	// inline rather than goto
+	case 1:	// lhs.lower() negative infinity, rhs finite
+		rhs.assign(lhs.lower(),rhs.upper());	// reduce to case 5
+		// intentional fall through
+	case 5: return trivial_sum(lhs.upper(),rhs.upper());	// rhs.lower() and lhs.lower() both negative infinity
+//	case 0:
+//	default:
+	}
+	// no infinite endpoints survive past here
+
+	const int rhs_zero_code = 2*(rhs.upper()==int_as<0,T>())+(rhs.lower()==int_as<0,T>());
+	if (3==rhs_zero_code) return 1;
+
+	const int lhs_zero_code = 2*(lhs.upper()==int_as<0,T>())+(lhs.lower()==int_as<0,T>());
+	if (3==lhs_zero_code) return 1;
+
+	switch(3*rhs_zero_code+lhs_zero_code)
+	{
+	// zero-splices
+	case 7:	// rhs.upper() zero, lhs.lower() zero
+		lhs.assign(rhs.lower(),lhs.upper());
+		rhs = int_as<0,T>();
+		return 1;
+	case 5:	// rhs.lower() zero, lhs.upper.zero()
+		lhs.assign(lhs.lower(),rhs.upper());
+		rhs = int_as<0,T>();
+		return 1;
+#if 0
+	case 8:	// rhs.upper(), lhs.upper() zero
+		break;
+	case 6:	// rhs.upper() zero,
+		break;
+	case 4:	// rhs.lower() zero, lhs.lower() zero
+		break;
+	case 3:	// rhs.lower() zero
+		break;
+	case 2:	// lhs.upper() zero
+		break;
+	case 1:	// lhs.lower() zero
+		break;
+//	case 0:
+//	default:
+#endif
+	}
+
+	return 0;
+}
+
+// the rearrange_sum family returns true/1 iff rhs has been annihilated with exact arithmetic, 2 if any change
+// negative values are reserved for C-style error codes, should they be eventually needed.
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(T& lhs, T& rhs)
 {
 	assert(!trivial_sum(lhs,rhs));
+	bool any_change = false;
 
 	// 0: lhs
 	// 1: rhs
@@ -694,6 +777,7 @@ restart:
 			rhs += lhs;
 			lhs = tmp;
 			if (0.0 == rhs) return true;
+			any_change = true;
 			goto hard_restart;	// could be more clever here if breaking const
 		}
 		if (0==exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
@@ -701,13 +785,15 @@ restart:
 			rhs -= tmp;
 			rhs += lhs;
 			lhs = tmp;
+			any_change = true;
 			goto restart;
 		}
 		const std::pair<int,int> lhs_safe(lhs_stats.safe_add_exponents());
 		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
-		if (lhs_safe.first>rhs_safe.second) return false;
+		if (lhs_safe.first>rhs_safe.second) return 2*any_change;
 
 		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+		any_change = true;
 		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 		goto restart;
 	} else {
@@ -726,11 +812,145 @@ restart:
 		const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
 		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
 		// lhs larger
-		if (lhs_safe.first>rhs_safe.second) return false;
+		if (lhs_safe.first>rhs_safe.second) return 2*any_change;
 		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
+		any_change = true;
 		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
 		goto restart;
 	}	
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+{
+	assert(!trivial_sum(lhs,rhs));
+	// all four coordinates are finite
+	assert(!isinf(lhs.lower()));
+	assert(!isinf(lhs.upper()));
+	assert(!isinf(rhs.lower()));
+	assert(!isinf(rhs.upper()));
+
+	// we can have zero coordinates leaking through
+	const int rhs_zero_code = 2*(rhs.upper()==int_as<0,T>())+(rhs.lower()==int_as<0,T>());
+	assert(2>=rhs_zero_code);
+
+	const int lhs_zero_code = 2*(lhs.upper()==int_as<0,T>())+(lhs.lower()==int_as<0,T>());
+	assert(2>=lhs_zero_code);
+
+	const int zero_code = 3*rhs_zero_code+lhs_zero_code;
+	assert(7!=zero_code);
+	assert(5!=zero_code);
+
+	T tmp_bounds[4] = {lhs.lower(), rhs.lower(), lhs.upper(), rhs.upper()};
+	bool any_change = false;
+
+#if 0
+	switch(zero_code)
+	{
+	case 8:	// rhs.upper(), lhs.upper() zero
+		break;
+	case 6:	// rhs.upper() zero,
+		break;
+	case 4:	// rhs.lower() zero, lhs.lower() zero
+		break;
+	case 3:	// rhs.lower() zero
+		break;
+	case 2:	// lhs.upper() zero
+		break;
+	case 1:	// lhs.lower() zero
+		break;
+	case 0:	// no coordinates zero
+	}
+#endif
+	int lower_rearrange_code = 0;
+	switch(zero_code)
+	{
+	case 8:	// rhs.upper(), lhs.upper() zero
+	case 6:	// rhs.upper() zero,
+	case 2:	// lhs.upper() zero
+	case 0:	// no coordinates zero
+		lower_rearrange_code = rearrange_sum(tmp_bounds[0],tmp_bounds[1]);
+		break;
+	case 1:	// lhs.lower() zero
+		swap(tmp_bounds[0],tmp_bounds[1]);	// intentional fall-through
+	case 4:	// rhs.lower() zero, lhs.lower() zero
+	case 3:	// rhs.lower() zero
+		lower_rearrange_code = 1;	// simulate; 0 is rhs.lower()
+	}
+	int upper_rearrange_code = 0;
+	switch(zero_code)
+	{
+	case 4:	// rhs.lower() zero, lhs.lower() zero
+	case 3:	// rhs.lower() zero
+	case 1:	// lhs.lower() zero
+	case 0:	// no coordinates zero
+		upper_rearrange_code = rearrange_sum(tmp_bounds[2],tmp_bounds[3]);
+		break;
+	case 2:	// lhs.upper() zero
+		swap(tmp_bounds[2],tmp_bounds[3]);	// intentional fall-through		
+	case 8:	// rhs.upper(), lhs.upper() zero
+	case 6:	// rhs.upper() zero,
+		upper_rearrange_code = 1;	// simulate: 0 is rhs.upper()
+	}
+
+	const int rearrange_code = 3*upper_rearrange_code+lower_rearrange_code;
+#if 0
+	switch(rearrange_code)
+	{
+	// upper changed
+	case 8:	// lower changed
+		break;
+	case 7:	// lower rhs zero
+		break;
+	case 6:	// lower no change
+		break;
+	// upper went rhs zero
+	case 5:	// lower changed
+		break;
+	case 4:	// lower rhs zero
+		break;
+	case 3:	// lower no change
+		break;
+	// no change upper
+	case 2:	// lower changed
+		break;
+	case 1:	// lower rhs zero
+		break;
+	case 0:	return 0;	// no change
+	}
+#endif
+	// early exit;
+	switch(rearrange_code)
+	{
+	case 0:	return 0;	// no change
+	case 4:	// upper, lower rhs zero
+		lhs.assign(tmp_bounds[0],tmp_bounds[0]);
+		rhs = int_as<0,T>();
+		return 1;
+	}
+	bool direct_legal = (tmp_bounds[0]<=tmp_bounds[2] && tmp_bounds[1]<=tmp_bounds[3]);
+	bool chiasm_legal = (tmp_bounds[0]<=tmp_bounds[3] && tmp_bounds[1]<=tmp_bounds[2]);
+	assert(direct_legal || chiasm_legal);	// have not verified whether tbis is a logic paradox.  If not, we should do special handling.
+	if (direct_legal && chiasm_legal)
+		{	// standardize
+		if (tmp_bounds[0]>tmp_bounds[1]) swap(tmp_bounds[0],tmp_bounds[1]);
+		if (tmp_bounds[2]>tmp_bounds[3]) swap(tmp_bounds[2],tmp_bounds[3]);
+		direct_legal = false;	// chiasm mode guaranteed to concentrate the error
+		}
+	// but assume rearrange failure is not a logic paradox here
+	if (chiasm_legal)
+		{
+		lhs.assign(tmp_bounds[0],tmp_bounds[3]);
+		rhs.assign(tmp_bounds[1],tmp_bounds[2]);
+		return 2;
+		}
+	else if (direct_legal)
+		{
+		lhs.assign(tmp_bounds[0],tmp_bounds[2]);
+		rhs.assign(tmp_bounds[1],tmp_bounds[3]);
+		return 2;
+		}	
+	return 0;
 }
 
 // exponent values are from frexp
