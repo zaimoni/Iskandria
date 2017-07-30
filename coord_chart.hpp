@@ -53,11 +53,25 @@ class spherical_vector
 	typedef std::pair<boost::numeric::interval<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(T[])> , void>	// doesn't work
-	template<class T> static void to_cartesian(const coord_type& src, T&  dest)
+	template<class T> static void to_cartesian(const coord_type& src, T*  dest)	// just do array destinations for now
 	{	// general idea
 		// x: rcos(theta)sin(phi1)...sin(phin)
 		// y: rsin(theta)sin(phi1)...sin(phin)
 		// z: rcos(phi1)sin(phi2)...sin(phin)
+		boost::numeric::interval<double> _sin;
+		boost::numeric::interval<double> _cos;
+		boost::numeric::interval<double> tmp(src.first);
+
+		size_t i = N-1;
+		while(1< --i)
+			{
+			src.second[i].sincos(_sin,_cos);
+			dest[i+1] = tmp*_cos;
+			tmp *= _sin;
+			};
+		src.second[0].sincos(_sin,_cos);
+		dest[1] = tmp*_sin;
+		dest[0] = tmp*_cos;
 	}
 	template<class T> static void from_cartesian(const T& src, coord_type& dest);
 };

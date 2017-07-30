@@ -5,6 +5,7 @@
 
 #include <boost/numeric/interval.hpp>
 #include <cmath>
+#include "Zaimoni.STL/Compiler.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -17,15 +18,14 @@ namespace circle {
 // 360 degrees is 360*60*60 seconds: 2^7 is a factor
 // so representing 360 degrees as 10125 is fine; scaling is *225/8
 
+// XXX decision *not* to template feels weirder now than in 2006ish.
+
 class angle {
 private:
 	boost::numeric::interval<double> _theta;
 public:
-	explicit angle(boost::numeric::interval<double> degrees)
-	: _theta(degrees) {_to_standard_form();};
-	angle(const angle& src) : _theta(src._theta) {};
-	// default destructor ok
-	// default assignment probably ok
+	explicit angle(boost::numeric::interval<double> degrees) : _theta(degrees) {_to_standard_form();};
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(angle);
 
 	bool is_whole_circle() const {return 10125<=_theta.upper()-_theta.lower();};
 	boost::numeric::interval<double> degrees() const {return (_theta*8.0)/225.0;}
