@@ -1,0 +1,60 @@
+// Zaimoni.STL/augment.STL/functional
+
+#ifndef ZAIMONI_AUGMENT_STL_FUNCTIONAL
+#define ZAIMONI_AUGMENT_STL_FUNCTIONAL 1
+
+#include <functional>
+
+namespace zaimoni {
+namespace math {
+
+struct fn_algebraic_properties
+{
+	enum {	// bit 0 is "validated"
+		EVEN = 1ULL<<1,		// == only
+		NONZERO = 1ULL<<2,
+		ODD = 1ULL<<3,		// unary - needed
+		ALTERNATING = 1ULL<<4,	// total ordering < needed (not lexicographic, mathematical).  Non-strict alternating here.
+		NONNEGATIVE = 1ULL<<5,
+		NONPOSITIVE = 1ULL<<6
+	};
+	typedef unsigned char bitmap_type;
+};
+
+template<class Range, class Bridge, class Domain>
+struct fn_compose
+{
+	typedef Range type(Domain);
+private:
+	std::function<Range (Bridge)> _lhs;
+	std::function<Bridge (Domain)> _rhs;
+public:
+	fn_compose(const std::function<Range (Bridge)>& lhs, const std::function<Bridge (Domain)>& rhs) : _lhs(lhs),_rhs(rhs) {}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(fn_compose);
+
+	Range operator()(Domain x) {return _lhs(_rhs(x)); }
+};
+
+template<class Range, class Bridge, class Domain>
+std::function<Range (Domain)> compose(const std::function<Range (Bridge)>& lhs, const std::function<Bridge (Domain)>& rhs) {return fn_compose<Range, Bridge, Domain>(lhs,rhs);}
+
+template<class Range, class Domain>
+struct fn_product
+{
+private:
+	std::function<Range (Domain)> _lhs;
+	std::function<Range (Domain)> _rhs;
+public:
+	fn_product(const std::function<Range (Domain)>& lhs, const std::function<Range (Domain)>& rhs) : _lhs(lhs),_rhs(rhs) {}
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(fn_product);
+
+	Range operator()(Domain x) {return _lhs(x)*_rhs(x); }
+};
+
+template<class Range, class Domain>
+std::function<Range (Domain)> product(const std::function<Range (Domain)>& lhs, const std::function<Range (Domain)>& rhs) {return fn_product<Range, Domain>(lhs,rhs);}
+
+}	// namespace math
+}	// namespace zaimoni
+
+#endif
