@@ -135,6 +135,20 @@ struct static_cache
 		static const T ret(n);
 		return ret;
 	}
+
+	static typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		T>::type as3(intmax_t n)
+	{
+		return T(n);
+	}
+
+	static typename std::enable_if<
+			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value,
+		T>::type as4(uintmax_t n)
+	{
+		return T(n);
+	}
 };
 
 template<intmax_t n, class T>
@@ -147,6 +161,20 @@ typename std::enable_if<
 
 template<intmax_t n, class T>
 constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as()
+{
+       return n;
+}
+
+template<class T>
+typename std::enable_if<
+			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
+		typename return_copy<typename std::remove_reference<T>::type>::type>::type int_as(intmax_t n)
+{
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as3(n);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as(intmax_t n)
 {
        return n;
 }
@@ -172,22 +200,21 @@ constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_refere
 {
        return n;
 }
+
+template<class T>
+typename std::enable_if<
+			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value,
+		typename std::remove_reference<T>::type>::type uint_as(uintmax_t n)
+{
+	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as4(n);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type uint_as(uintmax_t n)
+{
+       return n;
+}
 #define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
-
-template<uintmax_t n>
-struct unsigned_fn
-{
-	constexpr static uintmax_t constant() { return n; }
-	template<class T> static bool kronecker_delta(typename const_param<T>::type rhs) { return uint_as<n,T>()==rhs; }
-};
-
-template<intmax_t n>
-struct signed_fn
-{
-	constexpr static intmax_t constant() { return n; }
-	template<class T> static bool kronecker_delta(typename const_param<T>::type rhs) { return int_as<n,T>()==rhs; }
-};
-
 
 // numerical error calculation -- baseline
 template<class T>
@@ -201,6 +228,7 @@ struct numerical
 
 	static constexpr int error(typename const_param<T>::type src) {return 0;}
 	static constexpr bool causes_division_by_zero(typename const_param<T>::type src) {return int_as<0,T>()==src;};
+	static constexpr bool equals(typename const_param<T>::type lhs, typename const_param<exact_type>::type rhs) {return lhs==rhs;};
 };
 
 template<class T>
@@ -208,6 +236,26 @@ constexpr bool causes_division_by_zero(T src)
 {
 	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::causes_division_by_zero(src);
 }
+
+template<class T>
+constexpr bool exact_equals(const T& lhs, typename const_param<typename numerical<T>::exact_type>::type rhs)
+{
+	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::equals(lhs,rhs);
+}
+
+template<uintmax_t n>
+struct unsigned_fn
+{
+	template<class T> constexpr static uintmax_t constant(typename const_param<T>::type rhs) { return n; }
+	template<class T> static bool kronecker_delta(typename const_param<T>::type rhs) { return uint_as<n,T>()==rhs; }
+};
+
+template<intmax_t n>
+struct signed_fn
+{
+	template<class T> constexpr static intmax_t constant(typename const_param<T>::type rhs) { return n; }
+	template<class T> static bool kronecker_delta(typename const_param<T>::type rhs) { return int_as<n,T>()==rhs; }
+};
 
 }	// namespace math
 

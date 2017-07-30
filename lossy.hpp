@@ -89,6 +89,39 @@ constexpr bool signbit(const boost::numeric::interval<T>& x)
 	return std::signbit(x.upper());
 }
 
+// testing indicates Boost's numeric interval Does The Wrong Thing here (crashes sin by div-by-zero)
+template<>
+template<class T>
+struct static_cache<boost::numeric::interval<T> >
+{
+	template<intmax_t n> 
+	static const boost::numeric::interval<T>& as()
+	{
+		static const boost::numeric::interval<T> ret((T)n);
+		return ret;
+	}
+
+	template<uintmax_t n> 
+	static typename std::enable_if<
+			std::numeric_limits<intmax_t>::max()<n,
+		const boost::numeric::interval<T>& >::type as2()
+	{
+		static const boost::numeric::interval<T> ret((T)n);
+		return ret;
+	}
+
+	static boost::numeric::interval<T> as3(intmax_t n)
+	{
+		return boost::numeric::interval<T>(T(n));
+	}
+
+	static boost::numeric::interval<T> as4(uintmax_t n)
+	{
+		return boost::numeric::interval<T>(T(n));
+	}
+};
+
+
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
 template<class T> struct interval_type
@@ -150,6 +183,7 @@ struct numerical<boost::numeric::interval<T> >
 		if (int_as<0,T>() == src.lower() && int_as<0,T>() == src.upper()) return true;
 		return false;	
 	}
+	static constexpr bool equals(const boost::numeric::interval<T>& lhs, exact_type rhs) {return lhs.lower()==rhs && lhs.upper()==rhs;};
 };
 
 // XXX anything using this class could be micro-optimized
@@ -253,7 +287,7 @@ struct lossy
 	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
 		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
-		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN");
+		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 		lhs /= rhs;
 		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("quotient");
 		return lhs;
@@ -262,7 +296,7 @@ struct lossy
 	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
 		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
-		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN");
+		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 		const bool infinite_out_ok = (0.0==rhs.lower() || 0.0==rhs.upper());
 		lhs /= rhs;
 		if (incoming_finite && !infinite_out_ok && !isfinite(lhs)) throw std::overflow_error("quotient");

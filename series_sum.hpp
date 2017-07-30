@@ -19,11 +19,11 @@ public:
 	series_sum(std::vector<T>&& src) : _x(src) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(series_sum);
 
-	void push_back(const T& src)
+	void push_back(T src)
 	{
 		assert(!isnan(src));
 		// cf trivial_sum
-		if (int_as<0,T>() == src) return;
+		if (exact_equals(src,0)) return;	// XXX fails for intervals: std::terminate
 		const bool no_further_op = _x.empty();
 		if (!no_further_op) {
 			const bool was_finite = isfinite(_x.front());
@@ -86,7 +86,7 @@ retry:
 					if (1<test_vertex-i) swap(_raw[i],_raw[test_vertex-1]);
 					if (test_vertex<_x.size()-1) swap(_raw[test_vertex],_raw[_x.size()-1]);
 					--test_vertex;
-					if (int_as<0,T>()==_raw[test_vertex])
+					if (exact_equals(_raw[test_vertex],0))
 						{
 						if (test_vertex<_x.size()-2) swap(_raw[test_vertex],_raw[_x.size()-2]);
 						_x.pop_back();

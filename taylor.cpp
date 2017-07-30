@@ -65,7 +65,8 @@ const TaylorSeries<int>& cos()
 	static TaylorSeries<int> ret(product(std::function<int (uintmax_t)>(unsigned_fn<0>::template kronecker_delta<Z_<2> >),
 	                             compose(std::function<int (uintmax_t)>(alternator()),
 	                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>))),
-								 fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::EVEN);
+	                             std::function<int (uintmax_t)>(unsigned_fn<1>::template constant<uintmax_t>),
+	                             fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::EVEN);
 	return ret;
 }
 
@@ -75,7 +76,8 @@ const TaylorSeries<int>& sin()
 	                                     compose(compose(std::function<int (uintmax_t)>(alternator()),
 	                                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>)),
 										         std::function<uintmax_t (uintmax_t)>(linear::map<1,1,-1>::template eval<uintmax_t>))),
-								 fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::ODD);
+	                             std::function<int (uintmax_t)>(unsigned_fn<1>::template constant<uintmax_t>),
+	                             fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::ODD);
 	return ret;
 }
 
@@ -136,8 +138,15 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
 
+	INC_INFORM("sin(0): ");
 	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
+	INC_INFORM("cos(0): ");
 	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
+
+	INC_INFORM("sin(1): ");
+	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<1,boost::numeric::interval<long double> >()));
+	INC_INFORM("cos(1): ");
+	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<1,boost::numeric::interval<long double> >()));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
