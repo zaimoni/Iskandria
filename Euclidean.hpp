@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 #include <vector>
-#include "overprecise.hpp"
+#include "series_sum.hpp"
 
 namespace zaimoni {
 namespace math {
@@ -28,8 +28,8 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 {
 	assert(lhs.size()==rhs.size());
 	assert(0<lhs.size());
-	std::vector<typename interval_type<typename T1::value_type>::type> accumulator;
-//	std::vector<typename interval_type<typename T1::value_type>::type::base_type> accumulator_exact;
+	series_sum<typename interval_type<typename T1::value_type>::type> accumulator;
+//	series_sum<typename interval_type<typename T1::value_type>::type::base_type> accumulator_exact;
 	std::vector<typename std::remove_cv<typename T1::value_type>::type> lhs_terms;
 	std::vector<typename std::remove_cv<typename T2::value_type>::type> rhs_terms;
 
@@ -53,7 +53,7 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		case -1:	swap(lhs_term,rhs_term);
 		// intentional fall-through
 		case 1:
-			if (typename std::remove_cv<typename T1::value_type>::type(0)==lhs_term) continue;		// ignore additive identity 0
+			if (lhs_term==int_as<0,typename std::remove_cv<typename T1::value_type>::type>()) continue;		// ignore additive identity 0
 
 		}
 		if (rearranged_product || rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
@@ -62,18 +62,15 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 //			if (lhs_term.lower()==lhs_term.upper())
 //				{	// esact
 //				accumulator_exact.push_back(lhs_term);
-//				incremental_rearrange_sum(accumulator_exact,accumulator);
 //				}
 //			else{
 				accumulator.push_back(lhs_term);
-//				incremental_rearrange_sum(accumulator,accumulator_exact);
 //				}
 			continue;
 			}
 defer_product:
 		lhs_terms.push_back(lhs_term);
 		rhs_terms.push_back(rhs_term);
-//		incremental_rearrange_dot(lhs_term,rhs_term,accumulator,accumulator_exact);
 		}
 	}	// end scoping brace
 	while(!lhs_terms.empty())
@@ -81,16 +78,8 @@ defer_product:
 		accumulator.push_back(lossy<typename interval_type<typename T1::value_type>::type::base_type>::product(lhs_terms.back(),rhs_terms.back()));
 		lhs_terms.pop_back();
 		rhs_terms.pop_back();
-//		incremental_rearrange_sum(accumulator,accumulator_exact);
 		}
-	if (accumulator.empty() /* && accumulator_exact.empty() */) return 0;	// zero-term sum is usually defined as zero
-	// XXX replace this with something reasonable
-	while(1<accumulator.size())
-		{
-		accumulator.front() += accumulator.back();
-		accumulator.pop_back();
-		}
-	return accumulator.front();
+	return accumulator.eval();
 }
 
 #define NO_CV(A) typename std::remove_cv<A>::type
@@ -112,26 +101,18 @@ typename std::enable_if<(2<N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typena
 	assert(0<lhs.size());
 
 	size_t i = lhs.size();
-	std::vector<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
-	typename T1::value_type zero(0);
+	series_sum<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
 	while(0<i)
 		{
 		--i;
 		// XXX need to handle other exceptional conditions by type; e.g. double NaN or infinity
 		typename std::remove_cv<typename T1::value_type>::type tmp(rhs[i]-lhs[i]);
-		if (zero == tmp) continue;
-		if (1==N%2 && zero > tmp) tmp = -tmp;
+		if (int_as<0,typename T1::value_type>() == tmp) continue;
+		if (1==N%2 && int_as<0,typename T1::value_type>() > tmp) tmp = -tmp;
 		// XXX need to handle overflow by type
 		accumulator.push_back(pow(tmp,N));
 		}
-
-	if (accumulator.empty()) return 0;
-	// XXX need to be overflow-aware when doing this sum, etc.
-	while(2<=accumulator.size()) {
-		accumulator[0] += accumulator.back();
-		accumulator.pop_back();
-	}
-	return pow(accumulator.front(),1.0/N);
+	return pow(accumulator.eval(),1.0/N);
 }
 
 template<size_t N,class T1, class T2>
@@ -141,25 +122,18 @@ typename std::enable_if<(2==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 	assert(0<lhs.size());
 
 	size_t i = lhs.size();
-	std::vector<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
-	typename T1::value_type zero(0);
+	series_sum<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
 	while(0<i)
 		{
 		--i;
 		// XXX need to handle other exceptional conditions by type; e.g. double NaN or infinity
 		typename std::remove_cv<typename T1::value_type>::type tmp(rhs[i]-lhs[i]);
-		if (zero == tmp) continue;
+		if (int_as<0,typename T1::value_type>() == tmp) continue;
 		// XXX need to handle overflow by type
 		accumulator.push_back(square(tmp));
 		}
 
-	if (accumulator.empty()) return 0;
-	// XXX need to be overflow-aware when doing this sum, etc.
-	while(2<=accumulator.size()) {
-		accumulator[0] += accumulator.back();
-		accumulator.pop_back();
-	}
-	return sqrt(accumulator.front());
+	return sqrt(accumulator.eval());
 }
 
 template<size_t N,class T1, class T2>
@@ -169,26 +143,18 @@ typename std::enable_if<(1==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 	assert(0<lhs.size());
 
 	size_t i = lhs.size();
-	std::vector<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
-	typename T1::value_type zero(0);
+	series_sum<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
 	while(0<i)
 		{
 		--i;
 		// XXX need to handle other exceptional conditions by type; e.g. double NaN or infinity
 		typename std::remove_cv<typename T1::value_type>::type tmp(rhs[i]-lhs[i]);
-		if (zero == tmp) continue;
-		if (zero > tmp) tmp = -tmp;
+		if (int_as<0,typename T1::value_type>() == tmp) continue;
+		if (int_as<0,typename T1::value_type>() > tmp) tmp = -tmp;
 		// XXX need to handle overflow by type
 		accumulator.push_back(tmp);
 		}
-
-	if (accumulator.empty()) return 0;
-	// XXX need to be overflow-aware when doing this sum, etc.
-	while(2<=accumulator.size()) {
-		accumulator[0] += accumulator.back();
-		accumulator.pop_back();
-	}
-	return accumulator.front();
+	return accumulator.eval();
 }
 
 template<size_t N,class T1, class T2>
@@ -198,15 +164,14 @@ typename std::enable_if<(0==N), ONLY_IF_NO_CV_SAME(typename T1::value_type,typen
 	assert(0<lhs.size());
 
 	size_t i = lhs.size();
-	typename T1::value_type zero(0);
 	typename std::remove_cv<typename T1::value_type>::type ub(0);
 	while(0<i)
 		{
 		--i;
 		// XXX need to handle other exceptional conditions by type; e.g. double NaN or infinity
 		typename std::remove_cv<typename T1::value_type>::type tmp(rhs[i]-lhs[i]);
-		if (zero == tmp) continue;
-		if (1==N%2 && zero > tmp) tmp = -tmp;
+		if (int_as<0,typename T1::value_type>() == tmp) continue;
+		if (1==N%2 && int_as<0,typename T1::value_type>() > tmp) tmp = -tmp;
 		if (ub < tmp) ub = tmp;
 		}
 	return ub;
@@ -220,26 +185,18 @@ ONLY_IF_NO_CV_SAME(typename T1::value_type,typename T2::value_type) Minkowski(co
 
 	size_t i = lhs.size();
 	int negate = negative_coords;
-	std::vector<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
-	typename T1::value_type zero(0);
+	series_sum<typename std::remove_cv<typename T1::value_type>::type> accumulator(i);
 	while(0<i)
 		{
 		--i;
 		--negate;
 		// XXX need to handle other exceptional conditions by type; e.g. double NaN or infinity
 		typename std::remove_cv<typename T1::value_type>::type tmp(rhs[i]-lhs[i]);
-		if (zero == tmp) continue;
+		if (int_as<0,typename T1::value_type>() == tmp) continue;
 		// XXX need to handle overflow by type
 		accumulator.push_back(0<=negate ? -square(tmp) : square(tmp));
 		}
-
-	if (accumulator.empty()) return 0;
-	// XXX need to be overflow-aware when doing this sum, etc.
-	while(2<=accumulator.size()) {
-		accumulator[0] += accumulator.back();
-		accumulator.pop_back();
-	}
-	return sqrt(accumulator.front());
+	return sqrt(accumulator.eval());
 }
 
 #undef NO_CV
