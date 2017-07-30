@@ -1,4 +1,4 @@
-// vector_sum.hpp
+// series_sum.hpp
 
 #ifndef SERIES_SUM_HPP
 #define SERIES_SUM_HPP 1

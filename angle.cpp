@@ -2,6 +2,8 @@
 
 #include "angle.hpp"
 
+#include "taylor.hpp"
+
 void zaimoni::circle::angle::_standard_form()
 {
 	if (is_whole_circle())
@@ -53,12 +55,36 @@ void zaimoni::circle::angle::_to_standard_form()
 	(_theta*=225)/=8;
 }
 
-#if 0
+void static enforce_circle(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
+{
+	boost::numeric::interval<double> test(1.0);
+	test -= square(_sin);
+	test = sqrt(test);
+	if (0.0>_cos.upper()) test = -test;
+	else if (0.0>_cos.lower()) test.assign(-test.upper(),test.upper());	// XXX might be able to do better if 0.0<test.lower()
+
+	assert(test.lower()<=_cos.upper());
+	assert(test.upper()>=_cos.lower());
+	if (_cos.lower()<test.lower() || _cos.upper()>test.upper()) _cos.assign((_cos.lower()<test.lower() ? test.lower() : _cos.lower()),(_cos.upper()>test.upper() ? test.upper() : _cos.upper()));
+}
+
 void zaimoni::circle::angle::_radian_sincos(boost::numeric::interval<double> radians, boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
 {
-	_sin = sin(radians);	// Boost fails on these two lines.  Simulate with Taylor series?
-	_cos = cos(radians);
+	_sin = zaimoni::math::sin().template eval(radians);	// using Taylor series as Boost compile-errors here
+	_cos = zaimoni::math::cos().template eval(radians);
 //	\todo post-processing
+	// since we know the domain is the real numbers, we have some additional specializations:
+	// * range is [-1,1]
+	// sin^2+cos^2 = 1
+	assert(1.0>=_sin.lower());
+	assert(1.0>=_cos.lower());
+	assert(-1.0>=_sin.upper());
+	assert(-1.0>=_cos.upper());
+	if (-1.0>_sin.lower() || 1.0<_sin.upper()) _sin.assign((-1.0>_sin.lower() ? -1.0 : _sin.lower()),(1.0<_sin.upper() ? 1.0 : _sin.upper()));
+	if (-1.0>_cos.lower() || 1.0<_cos.upper()) _cos.assign((-1.0>_cos.lower() ? -1.0 : _cos.lower()),(1.0<_cos.upper() ? 1.0 : _cos.upper()));
+
+	enforce_circle(_sin,_cos);
+	enforce_circle(_cos,_sin);
 }
 
 // x is in the internal representation
@@ -93,14 +119,27 @@ void zaimoni::circle::angle::sincos(boost::numeric::interval<double>& _sin, boos
 		}
 	_sincos(_theta,_sin,_cos);
 }
-#endif
 
-#ifdef TEST_APP
+#ifdef TEST_APP3
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_APP angle.cpp
+// g++ -std=c++11 -oangle.exe -Os -DTEST_APP3 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp
+// If doing INFORM-based debugging
+// g++ -std=c++11 -oangle.exe -Os -DTEST_APP3 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+
+// console-mode application
+#define STRING_LITERAL_TO_STDOUT(A) fwrite(A,sizeof(A)-1,1,stdout)
+#define C_STRING_TO_STDOUT(A) fwrite(A,strlen(A),1,stdout)
+#define STL_STRING_TO_STDOUT(A) fwrite((A).data(),(A).size(),1,stdout)
+#define STL_PTR_STRING_TO_STDOUT(A) fwrite((A)->data(),(A)->size(),1,stdout)
+
 int main(int argc, char* argv[])
 {
+	STRING_LITERAL_TO_STDOUT("starting main\n");
+
 	zaimoni::circle::angle test(0);;
+
+	STRING_LITERAL_TO_STDOUT("tests finished\n");
+
 	return 0;
 }
 #endif

@@ -33,18 +33,14 @@ public:
 //	boost::numeric::interval<double> radians() const {return (((_theta*8)/225)/180)*M_PI;}
 	boost::numeric::interval<double> radians() const {return ((_theta*2.0)*M_PI)/1125.0;}
 
-#if 0
 	void sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos);
-#endif
 private:
 	void _standard_form();
 	bool _deg_to_whole_circle();
 	void _to_standard_form();
 
-#if 0
 	static void _sincos(boost::numeric::interval<double> x, boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos);
 	static void _radian_sincos(boost::numeric::interval<double> radians, boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos);
-#endif
 };
 
 }	// namespace circle
