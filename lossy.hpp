@@ -152,6 +152,38 @@ struct numerical<boost::numeric::interval<T> >
 	}
 };
 
+// XXX anything using this class could be micro-optimized
+template<class T>
+struct fp_compare
+{
+	static bool good_sum_lt(const T& lhs, const T& rhs)
+	{
+		int exponent[2];
+		// only has to work reasonably after preprocessing by rearrange sum
+		frexp(lhs, exponent+0);
+		frexp(rhs, exponent+1);
+		return exponent[0]<exponent[1];
+	}
+};
+
+template<>
+template<class T>
+struct fp_compare<boost::numeric::interval<T> >
+{
+	static bool good_sum_lt(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+	{
+		int exponent[5];
+		// only has to work reasonably after preprocessing by rearrange sum
+		frexp(lhs.lower(),exponent+0);
+		frexp(lhs.upper(),exponent+1);
+		frexp(rhs.lower(),exponent+2);
+		frexp(rhs.upper(),exponent+3);
+		exponent[4] = (exponent[0]<exponent[1] ? exponent[1] : exponent[0]);
+		exponent[5] = (exponent[2]<exponent[3] ? exponent[3] : exponent[2]);
+		return exponent[4]<exponent[5];
+	}
+};
+
 
 // interval arithmetic wrappers
 // we need proper function overloading here so use static member functions of a template class
