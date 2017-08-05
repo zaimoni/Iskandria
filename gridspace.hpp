@@ -18,6 +18,7 @@ class cartesian_2d final : public isk::Object
 {
 public:
 	typedef typename zaimoni::math::Cartesian_vector<ptrdiff_t,2>::coord_type coord_type;
+	typedef unsigned char orientation_type;
 private:
 //	std::vector<std::weak_ptr<agent> > _agents;
 //	std::vector<std::weak_ptr<craft> > _crafts;

@@ -74,15 +74,17 @@ static const agent_species _species[16] = {
 	{CIV_ZAIMONIHOME, ZAIMONIHOME_HOLOGRAM, sizeof(ZAIMONIHOME_HOLOGRAM)-1, ZAIMONIHOME_HOLOGRAM_DESC, sizeof(ZAIMONIHOME_HOLOGRAM_DESC)-1}
 };
 
-static const agent_species* species = _species;
-static const size_t species_len = STATIC_SIZE(_species);
+const agent_species* agent::species = _species;
+const size_t agent::species_len = STATIC_SIZE(_species);
 
 agent::agent(FILE* src)
-{	// XXX
+{
+	_species_index = zaimoni::read<decltype(_species_index)>(src,species_len);
 };
 
 void agent::save(FILE* dest)
-{	// XXX
+{
+	zaimoni::write(_species_index,dest,species_len);
 }
 
 
@@ -162,7 +164,7 @@ void agent::update_all()
 
 #ifdef TEST_APP2
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_APP2 agent.cpp world_manager.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
+// g++ -std=c++11 -otest.exe -Os -DTEST_APP2 -D__STDC_LIMIT_MACROS agent.cpp world_manager.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
 int main(int argc, char* argv[])
 {
 	iskandria::agent::world_setup();

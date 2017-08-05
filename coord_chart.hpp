@@ -3,11 +3,7 @@
 #ifndef COORD_CHART_HPP
 #define COORD_CHART_HPP 1
 
-#include <type_traits>
 #include <limits.h>
-#include <stdint.h>
-
-#include "Zaimoni.STL/Compiler.h"
 
 #include "Euclidean.hpp"
 #include "matrix.hpp"

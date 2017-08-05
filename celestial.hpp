@@ -4,9 +4,9 @@
 #define CELESTIAL_HPP
 
 #include "constants.hpp"
-#include "angle.hpp"
 #include "conventions.hpp"
 #include "object.hpp"
+#include "coord_chart.hpp"
 
 // A celestial body of some kind.
 // Imposes a spherical coordinate system (r,theta,phi).  We actually get two systems: the sidereal one, and the anchored-surface one.
@@ -23,10 +23,17 @@
 // ** gravity: Newtonian orbit approximation
 // ** rotation: constant approximation
 
+// requirements
+// * we must be able to state the position of a celestial body, in the inertial coordinate system of a celestial body
+// * we must be able to state the position of an airplane/helicoper-like craft, in the co-moving coordinate frame of a celestial body
+// * we must be able to state the position of an orbiting craft, in the inertial coordinate system of a celestial body.
+
 namespace iskandria {
 
 class celestial_body final : public isk::Object
 {
+public:
+	typedef typename zaimoni::math::spherical_vector<3>::coord_type coord_type;
 private:
 	celestial_body(FILE* src);
 public:

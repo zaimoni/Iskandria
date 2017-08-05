@@ -44,10 +44,14 @@ public:
 	static const agent_species* species;		// external configuration would be strictly for modding support.
 	static const size_t species_len;
 private:
+	size_t _species_index;
+
 	agent(FILE* src);
 public:
 	agent() = default;
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(agent);
+
+	const agent_species& type() const {return species[_species_index];}
 
 	static std::weak_ptr<agent> track(std::shared_ptr<agent> src);
 

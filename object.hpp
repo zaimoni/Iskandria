@@ -4,7 +4,6 @@
 #define OBJECT_HPP 1
 
 #include <stddef.h>
-#include <stdio.h>
 #include <vector>
 #include <memory>
 #include <type_traits>
