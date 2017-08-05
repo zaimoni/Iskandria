@@ -27,16 +27,18 @@ static const craft_model _models[4] = {
 	{CIV_ISKANDRAN, DRIVE_TRACKS, AMBLER_I, sizeof(AMBLER_I)-1, AMBLER_I_DESC, sizeof(AMBLER_I_DESC)-1}
 };
 
-static const craft_model* models = _models;
-static const size_t models_len = STATIC_SIZE(_models);
+const craft_model* craft::models = _models;
+const size_t craft::models_len = STATIC_SIZE(_models);
 
 
 craft::craft(FILE* src)
-{	// XXX
+{
+	_model_index = zaimoni::read<decltype(_model_index)>(src,models_len);
 };
 
 void craft::save(FILE* dest)
-{	// XXX
+{
+	zaimoni::write(_model_index,dest,models_len);
 }
 
 

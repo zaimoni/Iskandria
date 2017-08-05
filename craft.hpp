@@ -50,10 +50,14 @@ public:
 	static const craft_model* models;	// may need to allow external configuration to manage RAM loading.
 	static const size_t models_len;
 private:
+	size_t _model_index;
+
 	craft(FILE* src);
 public:
 	craft() = default;
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(craft);
+
+	const craft_model& type() const {return models[_model_index];}
 
 	static std::weak_ptr<craft> track(std::shared_ptr<craft> src);
 
@@ -65,7 +69,7 @@ private:
 	void save(FILE* dest);
 	static void update_all();
 	static void gc_all();
-	static void load_all(FILE* src);;
+	static void load_all(FILE* src);
 	static void save_all(FILE* dest);
 
 	static std::vector<std::shared_ptr<craft> >& cache();
