@@ -35,6 +35,13 @@ class celestial_body final : public isk::Object
 public:
 	typedef typename zaimoni::math::spherical_vector<3>::coord_type coord_type;
 private:
+	// need entries for
+	// reference ellipsoid
+	// dtheta/dt (sidereal rotation rate)
+	// the constant GM (usually known more precisely than Newtonian G), or alternately M
+
+	// we calculate solar day from the sidereal and the orbit
+
 	celestial_body(FILE* src);
 public:
 	celestial_body() = default;
