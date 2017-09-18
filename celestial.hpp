@@ -25,6 +25,9 @@
 
 // requirements
 // * we must be able to state the position of a celestial body, in the inertial coordinate system of a celestial body
+// ** useful restriction: (t,pos) for a given pair of celestial bodies
+// ** useful restruction: pos(body2 relative to body1 at time t)
+// ** would expect to be able to model (proper) time derivatives as well
 // * we must be able to state the position of an airplane/helicoper-like craft, in the co-moving coordinate frame of a celestial body
 // * we must be able to state the position of an orbiting craft, in the inertial coordinate system of a celestial body.
 

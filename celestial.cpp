@@ -73,6 +73,8 @@ void celestial_body::save_all(FILE* dest)
 	size_t tmp = cache().size();
 	ZAIMONI_FWRITE_OR_DIE(size_t,tmp,dest)
 	for(auto i : cache()) i->save(dest);
+	// \todo position cache (body1, body2, t, pos) ends up here as well
+	// however, only save the non-interpolated records (we can re-interpolate records on game load)
 }
 
 void celestial_body::update_all()
