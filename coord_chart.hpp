@@ -56,6 +56,7 @@ class spherical_vector
 		// z: rcos(phi1)sin(phi2)...sin(phin)
 		// above convention (in the source code below) is that in a calculus textbook i.e. phi 0...180 degrees.
 		// Alternate convention: -90 degrees to 90 degrees (south pole to north pole); transform is geocentric phi = 90 degrees - calculus phi.
+		// neither of these are a canonical geodetic coordinate system: https://en.wikipedia.org/wiki/Reference_ellipsoid
 		boost::numeric::interval<double> _sin;
 		boost::numeric::interval<double> _cos;
 		boost::numeric::interval<double> tmp(src.first);
