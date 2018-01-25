@@ -36,7 +36,7 @@ namespace iskandria {
 class celestial_body final : public isk::Object
 {
 public:
-	typedef typename zaimoni::math::spherical_vector<3>::coord_type coord_type;	// possibly not the coordinate type we want (should be compatible with a reference ellipsoid)
+	typedef typename zaimoni::math::geocentric_vector<3>::coord_type coord_type;	// reference ellipsoid (geodetic) and geocentric coordinates use the same conventions
 private:
 	// need entries for
 	// reference ellipsoid
