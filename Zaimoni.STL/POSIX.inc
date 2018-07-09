@@ -1,9 +1,9 @@
 # GNU compatibility core
-prefix = /MingW32
-exec_prefix = $(prefix)
-bindir = $(exec_prefix)/bin
-includedir = $(exec_prefix)/include
-libdir = $(exec_prefix)/lib
+# prefix = ...
+# exec_prefix = $(prefix)
+# bindir = $(exec_prefix)/bin
+# includedir = $(exec_prefix)/include
+# libdir = $(exec_prefix)/lib
 
 # install host-built libraries here for Z.C++ here
 # (stage 1 of three-stage bootstrap)
