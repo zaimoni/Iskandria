@@ -25,11 +25,17 @@ auto_int.h : int_probe.c
 	$(CC) -oint_probe.exe $(CFLAGS) $(ARCH_FLAGS) int_probe.c
 	./int_probe.exe > auto_int.h
 
-comptest.h : comptest.in compile.test/exists_MS_io_h.c
+comptest.h : comptest.in compile.test/exists_MS_io_h.c compile.test/realloc_0.c compile.test/exists_timespec.c
 	cp comptest.in comptest.h
 	-$(CC) -oexists_MS_io_h.exe $(CFLAGS) $(ARCH_FLAGS) compile.test/exists_MS_io_h.c
 	-./exists_MS_io_h.exe >> comptest.h
 	-rm exists_MS_io_h.exe
+	-$(CC) -oexists_timespec.exe $(CFLAGS) $(ARCH_FLAGS) compile.test/exists_timespec.c
+	-./exists_timespec.exe >> comptest.h
+	-rm exists_timespec.exe
+	-$(CC) -oexists_nanosleep.exe $(CFLAGS) -Werror=implicit-function-declaration $(ARCH_FLAGS) compile.test/exists_nanosleep.c
+	-./exists_nanosleep.exe >> comptest.h
+	-rm exists_nanosleep.exe
 	-$(CC) -orealloc_0.exe $(CFLAGS) $(ARCH_FLAGS) compile.test/realloc_0.c
 	-./realloc_0.exe >> comptest.h
 	-rm realloc_0.exe
