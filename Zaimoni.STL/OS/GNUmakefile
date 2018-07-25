@@ -10,7 +10,7 @@ include ../POSIX.dep
 CFLAGS := $(CFLAGS_CORE) $(CFLAGS_MICROOPT)
 CXXFLAGS := $(CFLAGS)
 
-LIBS := libz_log_adapter.a
+LIBS := libz_log_adapter.a libz_console.a libz_cstdio_console.a
 
 # GNU targets we know about
 all: $(LIBS)
@@ -21,9 +21,9 @@ clean:
 host_install: $(addprefix ../../$(host_libdir)/, $(LIBS))
 
 # rules
-log_adapter_inform.o: log_adapter_inform.cpp ../pure.C/format_util.c
-log_adapter_inc_inform.o: log_adapter_inc_inform.cpp ../pure.C/format_util.c
-log_adapter_log.o: log_adapter_log.cpp ../pure.C/format_util.c
+log_adapter_inform.o: log_adapter_inform.cpp ../{ure.C/format_util.c
+log_adapter_inc_inform.o: log_adapter_inc_inform.cpp ../Pure.C/format_util.c
+log_adapter_log.o: log_adapter_log.cpp ../Pure.C/format_util.c
 
 .cpp.o:
 	$(CXX) -c $< $(CXXFLAGS) $(ARCH_FLAGS) -o $*.o
@@ -31,6 +31,18 @@ log_adapter_log.o: log_adapter_log.cpp ../pure.C/format_util.c
 libz_log_adapter.a: log_adapter_inc_inform.o log_adapter_inform.o log_adapter_log.o
 	$(AR) $(ARFLAGS) libz_log_adapter.a log_adapter_inc_inform.o log_adapter_inform.o log_adapter_log.o
 
+libz_console.a: console.o
+	$(AR) $(ARFLAGS) libz_console.a console.o
+
+libz_cstdio_console.a: cstdio_console.o
+	$(AR) $(ARFLAGS) libz_cstdio_console.a cstdio_console.o
+
 ../../$(host_libdir)/libz_log_adapter.a: libz_log_adapter.a
 	cp libz_log_adapter.a ../../$(host_libdir)/libz_log_adapter.a
+
+../../$(host_libdir)/libz_console.a: libz_console.a
+	cp libz_console.a ../../$(host_libdir)/libz_console.a
+
+../../$(host_libdir)/libz_cstdio_console.a: libz_cstdio_console.a
+	cp libz_cstdio_console.a ../../$(host_libdir)/libz_cstdio_console.a
 

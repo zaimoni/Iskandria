@@ -4,7 +4,7 @@
 // (C)2009 Kenneth Boyd, license: MIT.txt
 
 #include "../Logging.h"
-#include "../pure.C/format_util.h"
+#include "../Pure.C/format_util.h"
 #include <limits.h>
 #include <stdio.h>
 
