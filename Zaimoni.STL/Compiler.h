@@ -19,11 +19,13 @@
 #define ZAIMONI_NULL_TERMINATE(A)
 #define ZAIMONI_ISO_PARAM(A)
 #define ZAIMONI_ISO_FAILOVER(A,B) A
+#define ZAIMONI_ISO_ONLY(A)
 #else
 #define ZAIMONI_LEN_WITH_NULL(A) ((A)+1)
 #define ZAIMONI_NULL_TERMINATE(A) A = '\0'
 #define ZAIMONI_ISO_PARAM(A) , A
 #define ZAIMONI_ISO_FAILOVER(A,B) B
+#define ZAIMONI_ISO_ONLY(A) A
 #endif
 
 /* delayed expansion of preprocessing operators */
@@ -48,16 +50,6 @@
 /* some macros to help with aggregate initialization */
 #define DICT_STRUCT(A) { (A), sizeof(A)-1 }
 #define DICT2_STRUCT(A,B) { (A), sizeof(A)-1, (B) }
-
-/* declaration helper for normal classes */
-#if __cplusplus >= 201103L
-#define ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(TYPE)	\
-	TYPE(const TYPE& src) = default;	\
-	TYPE(TYPE&& src) = default;	\
-	~TYPE() = default;	\
-	TYPE& operator=(const TYPE& src) = default;	\
-	TYPE& operator=(TYPE&& src) = default
-#endif
 
 /* platform config copied from Boost */
 /* would prefer to use BOOST_PLATFORM, but strings aren't allowed in preprocessor tests */
