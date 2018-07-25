@@ -34,7 +34,7 @@ const size_t craft::models_len = STATIC_SIZE(_models);
 craft::craft(FILE* src)
 {
 	_model_index = zaimoni::read<decltype(_model_index)>(src,models_len);
-};
+}
 
 void craft::save(FILE* dest)
 {

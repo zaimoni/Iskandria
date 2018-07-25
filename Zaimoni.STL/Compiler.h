@@ -11,10 +11,19 @@
 #include <stdbool.h>
 #endif
 
-/* This macro turns on trying to compile as ISO, rather than with the memory manager extensions */
-#ifdef ZAIMONI_FORCE_ISO
+/* these two control macros are command-line, not auto-detected */
+/* ZAIMONI_HAVE_ACCURATE_MSIZE should be defined when linking with the custom memory manager */
+/* ZAIMONI_FORCE_ISO should be defined when intentionally ISO even then */
+#if defined(ZAIMONI_HAVE_ACCURATE_MSIZE) && !defined(ZAIMONI_FORCE_ISO)
+#define ZAIMONI_LEN_WITH_NULL(A) (A)
+#define ZAIMONI_NULL_TERMINATE(A)
+#define ZAIMONI_ISO_PARAM(A)
+#define ZAIMONI_ISO_FAILOVER(A,B) A
+#else
 #define ZAIMONI_LEN_WITH_NULL(A) ((A)+1)
 #define ZAIMONI_NULL_TERMINATE(A) A = '\0'
+#define ZAIMONI_ISO_PARAM(A) , A
+#define ZAIMONI_ISO_FAILOVER(A,B) B
 #endif
 
 /* delayed expansion of preprocessing operators */

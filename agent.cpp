@@ -80,7 +80,7 @@ const size_t agent::species_len = STATIC_SIZE(_species);
 agent::agent(FILE* src)
 {
 	_species_index = zaimoni::read<decltype(_species_index)>(src,species_len);
-};
+}
 
 void agent::save(FILE* dest)
 {

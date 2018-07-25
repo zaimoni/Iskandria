@@ -43,6 +43,8 @@
 //! the memory block size.
 
 #define ZAIMONI_STL_IN_MEMORY_CPP 1
+#undef ZAIMONI_FORCE_ISO
+#define ZAIMONI_HAVE_ACCURATE_MSIZE
 
 #include "../z_memory.h"
 #include "../Pure.C/format_util.h"
