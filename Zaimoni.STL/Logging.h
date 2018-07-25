@@ -6,6 +6,7 @@
 #define ZAIMONI_LOGGING_H
 
 #include "Compiler.h"
+#include "flat_alg.h"	/* abusive, but this is the most logical injection point */
 #include <string.h>		/* need strlen here */
 
 /* deal with assert */
@@ -26,14 +27,14 @@
  *
  * \param B C string containing fatal error message
  */
-EXTERN_C void _fatal(const char* const B) NO_RETURN;
+MS_NO_RETURN EXTERN_C void _fatal(const char* const B) NO_RETURN;
 
 /*!
  * reports error, then calls exit(exit_code).
  *
  * \param B C string containing fatal error message
  */
-EXTERN_C void _fatal_code(const char* const B,int exit_code) NO_RETURN;
+MS_NO_RETURN EXTERN_C void _fatal_code(const char* const B,int exit_code) NO_RETURN;
 
 EXTERN_C void _inform(const char* const B, size_t len);		/* Windows GUI crippled (assumes len := strlen() */
 EXTERN_C void _inc_inform(const char* const B, size_t len);	/* only C stdio */
@@ -46,10 +47,10 @@ EXTERN_C void _log(const char* const B, size_t len);		/* Windows GUI crippled (a
 #ifdef __cplusplus
 /* overloadable adapters for C++ and debug-mode code */
 /* all-uppercased because we may use macro wrappers on these */
-void FATAL(const char* const B) NO_RETURN;
+MS_NO_RETURN void FATAL(const char* const B) NO_RETURN;
 inline void FATAL(const char* const B) {_fatal(B);}
 
-void FATAL_CODE(const char* const B,int exit_code) NO_RETURN;
+MS_NO_RETURN void FATAL_CODE(const char* const B,int exit_code) NO_RETURN;
 inline void FATAL_CODE(const char* const B,int exit_code) {_fatal_code(B,exit_code);}
 
 /* SEVERE_WARNING, WARNING, INFORM, and LOG are distinct in behavior only for the custom console */
