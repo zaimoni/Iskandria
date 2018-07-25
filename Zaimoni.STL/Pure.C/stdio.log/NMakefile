@@ -17,15 +17,12 @@ all: $(LIBS)
 clean:
 	del *.lib *.obj
 
-install: $(libdir)\z_stdio_log.lib
-
-uninstall:
-	del $(libdir)\z_stdio_log.lib
+host_install: ../../../$(host_libdir)/z_stdio_log.lib
 
 # rules (defaulting .c.obj)
 z_stdio_log.lib: fatal.obj fatal_code.obj inform.obj inc_inform.obj log.obj
 	$(AR) /OUT:z_stdio_log.lib fatal.obj fatal_code.obj inform.obj inc_inform.obj log.obj
 
-$(libdir)/z_stdio_log.lib: z_stdio_log.lib
-	copy /Y z_stdio_log.lib $(libdir)\z_stdio_log.lib
+../../../$(host_libdir)/z_stdio_log.lib: z_stdio_log.lib
+	copy /Y z_stdio_log.lib ../../../$(host_libdir)/z_stdio_log.lib
 
