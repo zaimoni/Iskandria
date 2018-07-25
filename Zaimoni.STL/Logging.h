@@ -6,7 +6,6 @@
 #define ZAIMONI_LOGGING_H
 
 #include "Compiler.h"
-#include "flat_alg.h"	/* abusive, but this is the most logical injection point */
 #include <string.h>		/* need strlen here */
 
 /* deal with assert */
