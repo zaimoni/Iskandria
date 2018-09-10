@@ -9,6 +9,10 @@
 // SI values are to be imported from CODATA
 class fundamental_constants {
 public:
+	// dimensionless constants
+	static const boost::numeric::interval<double> inv_alpha;	// inverse fine structure constant
+	static const boost::numeric::interval<double> alpha;	// fine structure constant
+
 	// tracking representative units
 	boost::numeric::interval<double> distance_unit;	// in meters
 	boost::numeric::interval<double> time_unit;	// in seconds

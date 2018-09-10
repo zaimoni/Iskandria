@@ -2,6 +2,11 @@
 
 #include "constants.hpp"
 
+// interval entries down at +/1 standard deviation [sic]
+
+const boost::numeric::interval<double> fundamental_constants::inv_alpha(137.035999108, 137.035999170);
+const boost::numeric::interval<double> fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);
+
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
 
@@ -232,6 +237,14 @@ int main(int argc, char* argv[])
 	char buf[100];
 
 	STRING_LITERAL_TO_STDOUT("starting main\n");
+
+	// XXX boost::numeric::interval<double> clearly broken, returned interval is not in normal form
+	// XXX CODATA 2014 does not look consistent even after taking that into account
+	STRING_LITERAL_TO_STDOUT("dimensionless: inv-alpha and alpha\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::inv_alpha, "\n");
+	INTERVAL_TO_STDOUT(1.0/fundamental_constants::alpha, "\n");
+	INTERVAL_TO_STDOUT(1.0/fundamental_constants::inv_alpha, "\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::alpha, "\n");
 
 	STRING_LITERAL_TO_STDOUT("speed of light\n");
 	INTERVAL_TO_STDOUT(SI_units().c," m/s\n");
