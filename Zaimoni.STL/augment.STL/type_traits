@@ -81,12 +81,20 @@ struct min_unsigned
 			typename std::conditional<std::numeric_limits<unsigned long>::max()<=n,	unsigned long, uintmax_t>::type>::type type;
 };
 
+// hooks for some common tests that easily cause compiler errors when done naively
+template<class T>
+constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_zero(T x)
+{
+	return 0==x;
+}
+
+
 // extend some cmath functions to integers
 // This *will* hard-error if math.h is used rather than cmath on TDM GCC 5.1 (defines)
 template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isinf(T x)
 {
-	return true;
+	return false;
 }
 
 template<class T>
