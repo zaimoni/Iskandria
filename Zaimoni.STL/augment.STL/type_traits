@@ -29,8 +29,9 @@ template<class T> struct op_works
 		sub = std::is_arithmetic<T>::value,
 		mult = std::is_arithmetic<T>::value,
 		div = std::is_arithmetic<T>::value,
-		negate = std::is_arithmetic<T>::value,
-		less_than = std::is_arithmetic<T>::value
+		negate = std::is_arithmetic<T>::value,	// unsigned integral types should not be surprising when modulo arithmetic kicks in
+		less_than = std::is_arithmetic<T>::value,	// unsigned integral types should not be surprising when modulo arithmetic kicks in
+		has_negative_zero = std::is_floating_point<T>::value
 	};
 };
 
@@ -81,11 +82,41 @@ struct min_unsigned
 			typename std::conditional<std::numeric_limits<unsigned long>::max()<=n,	unsigned long, uintmax_t>::type>::type type;
 };
 
-// hooks for some common tests that easily cause compiler errors when done naively
+// hooks for some common tests that easily cause compiler errors when done naively, or can be inefficient on more complex types
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_zero(T x)
+constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_zero(T x)	// could use kronecker delta for this
 {
 	return 0==x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type contains_zero(T x)
+{
+	return 0 == x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_one(T x)	// could use kronecker delta for this
+{
+	return 1 == x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type is_negative_one(T x)	// could use kronecker delta for this, *except* that would fail for unsigned integers
+{
+	return -1 == x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type is_negative_one(T x)
+{
+	return -1 == x;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_signed<T>::value, bool>::type is_negative_one(T x)
+{
+	return false;
 }
 
 
