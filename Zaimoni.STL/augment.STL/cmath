@@ -1,0 +1,10 @@
+// Zaimoni.STL/augment.STL/cmath
+
+#ifndef ZAIMONI_AUGMENT_STL_TYPE_CMATH
+#define ZAIMONI_AUGMENT_STL_TYPE_CMATH 1
+
+#include <cmath>
+#include "type_traits"
+
+
+#endif
