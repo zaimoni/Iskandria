@@ -21,15 +21,15 @@ public:
 
 	void push_back(T src)
 	{
-		assert(!isnan(src));
+		assert(!isNaN(src));
 		// cf trivial_sum
 		if (exact_equals(src,0)) return;	// XXX fails for intervals: std::terminate
 		const bool no_further_op = _x.empty();
 		if (!no_further_op) {
-			const bool was_finite = isfinite(_x.front());
+			const bool was_finite = isFinite(_x.front());
 			const int code = trivial_sum(_x.front(),src);
 			if (-1==code) _x.front() = src;
-			if (was_finite && !isfinite(_x.front()))
+			if (was_finite && !isFinite(_x.front()))
 				{
 				size_t i = _x.size();
 				size_t ub = i-1;

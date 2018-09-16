@@ -54,7 +54,7 @@ template<class T>
 typename std::enable_if< std::is_floating_point<T>::value, bool >::type
 self_negate(T& x)
 {
-	set_signbit(x,!signbit(x));
+	set_signbit(x,!std::signbit(x));
 	return true;
 }
 
@@ -160,13 +160,13 @@ private:
 	double _mantissa;
 public:
 	fp_stats() = delete;
-	explicit fp_stats(T src) {assert(0.0!=src); assert(isfinite(src)); _mantissa = frexp(src,&_exponent);}
+	explicit fp_stats(T src) {assert(0.0!=src); assert(isFinite(src)); _mantissa = frexp(src,&_exponent);}
 	fp_stats(const fp_stats& src) = delete;
 	fp_stats(fp_stats&& src) = default;
 	~fp_stats() = default;
 	void operator=(const fp_stats& src) = delete;
 	fp_stats& operator=(fp_stats&& src) = default;
-	void operator=(T src) {assert(0.0!=src);assert(isfinite(src)); _mantissa = frexp(src,&_exponent);} 
+	void operator=(T src) {assert(0.0!=src);assert(isFinite(src)); _mantissa = frexp(src,&_exponent);} 
 
 	// while we don't want to copy, we do want to swap
 	void swap(fp_stats& rhs) { std::swap(_exponent,rhs._exponent); std::swap(_mantissa,rhs._mantissa); }
@@ -194,7 +194,7 @@ public:
 	std::pair<int,int> safe_add_exponents()	// not for denormals
 	{
 		std::pair<int,int> ret(_exponent-std::numeric_limits<T>::digits,_exponent);
-		const double abs_mantissa = (signbit(_mantissa) ? -_mantissa : _mantissa);
+		const double abs_mantissa = (signBit(_mantissa) ? -_mantissa : _mantissa);
 		double mantissa_delta = 0.5;
 		while(1.0-mantissa_delta < abs_mantissa)
 			{
@@ -280,14 +280,14 @@ public:
 			const uintmax_t test = power_of_2.add_capacity();
 			if (test>=delta)
 				{
-				x = scalbn(x,-delta);
+				x = scalBn(x,-delta);
 				power_of_2.safe_add(delta);
 				*this = x;
 				return;
 				}
 			else if (0<test)
 				{
-				x = scalbn(x,-((int)test));
+				x = scalBn(x,-((int)test));
 				power_of_2.safe_add(test);
 				*this = x;
 				return;
@@ -298,14 +298,14 @@ public:
 			const uintmax_t test = power_of_2.sub_capacity();
 			if (test>=delta)
 				{
-				x = scalbn(x,delta);
+				x = scalBn(x,delta);
 				power_of_2.safe_sub(delta);
 				*this = x;
 				return;
 				}
 			else if (0<test)
 				{
-				x = scalbn(x,(int)test);
+				x = scalBn(x,(int)test);
 				power_of_2.safe_sub(test);
 				*this = x;
 				return;
@@ -323,14 +323,14 @@ public:
 			const uintmax_t test = power_of_2.add_capacity();
 			if (test>=delta)
 				{
-				x = scalbn(x,-delta);
+				x = scalBn(x,-delta);
 				power_of_2.safe_sub(delta);
 				*this = x;
 				return;
 				}
 			else if (0<test)
 				{
-				x = scalbn(x,-((int)test));
+				x = scalBn(x,-((int)test));
 				power_of_2.safe_sub(test);
 				*this = x;
 				return;
@@ -341,14 +341,14 @@ public:
 			const uintmax_t test = power_of_2.sub_capacity();
 			if (test>=delta)
 				{
-				x = scalbn(x,delta);
+				x = scalBn(x,delta);
 				power_of_2.safe_add(delta);
 				*this = x;
 				return;
 				}
 			else if (0<test)
 				{
-				x = scalbn(x,(int)test);
+				x = scalBn(x,(int)test);
 				power_of_2.safe_add(test);
 				*this = x;
 				return;
@@ -363,7 +363,7 @@ public:
 		uintmax_t test = power_of_2.sub_capacity();
 		if (test>=delta)
 			{
-			x = scalbn(x,(int)delta);
+			x = scalBn(x,(int)delta);
 			power_of_2.sub(delta);
 			delta = 0;
 			*this = x;
@@ -371,7 +371,7 @@ public:
 			}
 		else if (0<test)
 			{
-			x = scalbn(x,(int)test);
+			x = scalBn(x,(int)test);
 			power_of_2.sub(test);
 			delta -= test;
 			*this = x;
@@ -386,13 +386,13 @@ public:
 			const int tmp = safe_2_n_divide();
 			if (tmp>power_of_2.negative())
 				{
-				x = scalbn(x,-((int)power_of_2.negative()));
+				x = scalBn(x,-((int)power_of_2.negative()));
 				power_of_2.safe_add(power_of_2.negative());
 				*this = x;
 				}
 			else if (0<tmp)
 				{
-				x = scalbn(x,-tmp);
+				x = scalBn(x,-tmp);
 				power_of_2.safe_add(tmp);
 				*this = x;
 				}
@@ -402,13 +402,13 @@ public:
 			const int tmp = safe_2_n_multiply();
 			if (tmp>power_of_2.positive())
 				{
-				x = scalbn(x,power_of_2.positive());
+				x = scalBn(x,power_of_2.positive());
 				power_of_2.safe_sub(power_of_2.positive());
 				*this = x;
 				}
 			else if (0<tmp)
 				{
-				x = scalbn(x,tmp);
+				x = scalBn(x,tmp);
 				power_of_2.safe_sub(tmp);
 				*this = x;
 				}
@@ -529,7 +529,7 @@ struct power_term : public std::pair<T,U>
 
 	// eval support
 	T bootstrap_eval() {
-		assert(!isnan(*this));
+		assert(!isNaN(*this));
 		if (1==power()%2)
 			{
 			power()--;
@@ -540,7 +540,7 @@ struct power_term : public std::pair<T,U>
 	// not so safe
 	bool iter_eval(T& ret)
 	{
-		assert(!isnan(*this));
+		assert(!isNaN(*this));
 		if (0>=power()) return false;
 		if (1==power()%2) {
 			apply_factor(ret);
@@ -552,7 +552,7 @@ struct power_term : public std::pair<T,U>
 	}
 
 	canonical_type standardize() const {
-		assert(!isnan(*this));
+		assert(!isNaN(*this));
 		if (0<=power()) return canonical_type(base(),power());
 
 		typename interval_type<T>::type new_base(int_as<1,typename interval_type<T>::type>());
@@ -598,16 +598,16 @@ struct is_series_product<power_term<T,U> >
 };
 
 template<class T,class U>
-constexpr bool isnan(const power_term<T,U>& x)
+constexpr bool isNaN(const power_term<T,U>& x)
 {
-	return isnan(x.base())
+	return isNaN(x.base())
         || (0==x.power() && int_as<0,T>()==x.base());
 }
 
 template<class T>
 typename std::enable_if<std::is_same<power_term<T,uintmax_t>, typename power_term<T,uintmax_t>::canonical_type>::value,typename interval_type<T>::type>::type self_eval(power_term<T,uintmax_t>& x)
 {
-	assert(!isnan(x));
+	assert(!isNaN(x));
 	if (1==x.power()) return x.base();
 	auto ret(x.bootstrap_eval());
 	while(x.iter_eval(ret));
@@ -641,29 +641,29 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type delta_can
 template<class T, class U>
 typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, int>::type trivial_sum(const T& lhs, const U& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
+	assert(!isNaN(lhs));
+	assert(!isNaN(rhs));
 	if (int_as<0,U>() == rhs) return 1;
 	if (int_as<0,T>() == lhs) return -1;
-	if (isinf(lhs))
+	if (isINF(lhs))
 		{
-		if (isinf(rhs) && signbit(lhs)!=signbit(rhs)) throw std::runtime_error("infinity-infinity NaN");
+		if (isINF(rhs) && signBit(lhs)!=signBit(rhs)) throw std::runtime_error("infinity-infinity NaN");
 		return 1;
 		}
-	if (isinf(rhs)) return -1;
+	if (isINF(rhs)) return -1;
 	return 0;
 }
 
 template<class T>
 int trivial_sum(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
-	const int inf_code = 8*isinf(rhs.upper())+4*isinf(rhs.lower())+2*isinf(lhs.upper())+isinf(rhs.lower());
+	assert(!isNaN(lhs));
+	assert(!isNaN(rhs));
+	const int inf_code = 8*isINF(rhs.upper())+4*isINF(rhs.lower())+2* isINF(lhs.upper())+ isINF(rhs.lower());
 	switch(inf_code)
 	{
 	case 15:		// lhs infinite, rhs infinite
-		if (signbit(lhs.lower())!=signbit(rhs.lower())) throw std::runtime_error("infinity-infinity NaN");
+		if (signBit(lhs.lower())!=signBit(rhs.lower())) throw std::runtime_error("infinity-infinity NaN");
 		return 1;
 
 	case 14:		// rhs infinite, lhs.upper() positive infinity: open ray annihilated
@@ -748,7 +748,7 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 	// 1: rhs
 hard_restart:
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
+	const bool is_negative[2] = {std::signbit(lhs) , std::signbit(rhs)};
 
 	// epsilon exponent is simply -std::numeric_limits<T>::digits+1 (+1 from bias)
 	// remember: 1.0 maps to exponent 1, mantissa 0.5
@@ -825,10 +825,10 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 {
 	assert(!trivial_sum(lhs,rhs));
 	// all four coordinates are finite
-	assert(!isinf(lhs.lower()));
-	assert(!isinf(lhs.upper()));
-	assert(!isinf(rhs.lower()));
-	assert(!isinf(rhs.upper()));
+	assert(!isINF(lhs.lower()));
+	assert(!isINF(lhs.upper()));
+	assert(!isINF(rhs.lower()));
+	assert(!isINF(rhs.upper()));
 
 	// we can have zero coordinates leaking through
 	const int rhs_zero_code = 2*(rhs.upper()==int_as<0,T>())+(rhs.lower()==int_as<0,T>());
@@ -985,12 +985,12 @@ typename std::enable_if<ZAIMONI_INT_AS_DEFINED(U) , int>::type identity_product(
 template<class T, class U>
 typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, int>::type trivial_product(T& lhs, U& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
+	assert(!isNaN(lhs));
+	assert(!isNaN(rhs));
 	if (int ret = identity_product(lhs,rhs)) return (-2==ret ? -2 : 1==ret);
 	if (int ret = identity_product(rhs,lhs)) return (-2==ret ? -2 : -(1==ret));
 
-	const int inf_code = (bool)(isinf(rhs))-(bool)(isinf(lhs));
+	const int inf_code = (bool)(isINF(rhs))-(bool)(isINF(lhs));
 	const int zero_code = 2*(int_as<0,U>()==rhs)+(int_as<0,T>()==lhs);
 	switch(4*inf_code+zero_code)
 	{
@@ -999,10 +999,10 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::v
 	case -4+0:
 	case 0+1:
 	case 0+3:
-		return set_signbit(lhs,signbit(lhs)!=signbit(rhs));
+		return set_signbit(lhs,signBit(lhs)!=signBit(rhs));
 	case 4+0:	
 	case 0+2:
-		return -set_signbit(rhs,signbit(lhs)!=signbit(rhs));
+		return -set_signbit(rhs,signBit(lhs)!=signBit(rhs));
 //	case 0+0:	break;
 #ifndef NDEBUG
 	case 4+2:
@@ -1018,8 +1018,8 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::v
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, T& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
+	assert(!isNaN(lhs));
+	assert(!std::isnan(rhs));
 	if (lhs.lower()==lhs.upper())
 		{	// allow for negative zero fp weirdness: upper() rather than lower()
 		T tmp_lhs = lhs.upper();
@@ -1031,13 +1031,13 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_pr
 	if (int ret = identity_product(lhs,rhs)) return 1==ret;
 
 	// intervals are only bounded by infinity
-	if (isinf(rhs)) {
+	if (std::isinf(rhs)) {
 		if (0.0==lhs.lower() || 0.0==lhs.upper()) throw std::runtime_error("0*infinity NaN");
-		if (signbit(lhs.lower())!=signbit(lhs.upper())) throw std::runtime_error("interval (-infinity,infinity) NaN");
-		return -set_signbit(rhs,signbit(lhs.lower())!=signbit(rhs));
+		if (std::signbit(lhs.lower())!=std::signbit(lhs.upper())) throw std::runtime_error("interval (-infinity,infinity) NaN");
+		return -set_signbit(rhs,std::signbit(lhs.lower())!=std::signbit(rhs));
 	}
 
-	if (0.0 == rhs) return -set_signbit(rhs,signbit(lhs.upper())==signbit(rhs));
+	if (0.0 == rhs) return -set_signbit(rhs,std::signbit(lhs.upper())==std::signbit(rhs));
 
 	return 0;
 }
@@ -1045,8 +1045,8 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_pr
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
 {
-	assert(!isnan(lhs));
-	assert(!isnan(rhs));
+	assert(!isNaN(lhs));
+	assert(!isNaN(rhs));
 	if (rhs.lower()==rhs.upper())
 		{
 		T tmp_rhs = rhs.upper();
@@ -1076,7 +1076,7 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_pr
 #endif
 #endif
 #define ZAIMONI_POSITIVE_INFINITY(lhs,rhs,ret)	\
-	if (isinf(lhs.upper()))	\
+	if (std::isinf(lhs.upper()))	\
 		{	/* lhs positive infinity upper bound */	\
 		if (0.0>rhs.lower() && 0.0<rhs.upper()) throw std::runtime_error("interval (-infinity,infinity) NaN");	\
 		if (0.0 == lhs.lower())	\
@@ -1092,7 +1092,7 @@ ZAIMONI_POSITIVE_INFINITY(rhs,lhs,-1)
 #undef ZAIMONI_POSITIVE_INFINITY
 
 #define ZAIMONI_NEGATIVE_INFINITY(lhs,rhs,ret)	\
-	if (isinf(lhs.lower()))	\
+	if (std::isinf(lhs.lower()))	\
 		{	/* lhs negative infinity lower bound */	\
 		if (0.0>rhs.lower() && 0.0<rhs.upper()) throw std::runtime_error("interval (-infinity,infinity) NaN");	\
 		if (0.0 == lhs.upper())	\
@@ -1119,7 +1119,7 @@ typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange
 	// 0: lhs
 	// 1: rhs
 	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-	const bool is_negative[2] = {signbit(lhs) , signbit(rhs)};
+	const bool is_negative[2] = {std::signbit(lhs) , std::signbit(rhs)};
 
 	int exponent[2];
 	const T mantissa[2] = {frexp(lhs,exponent) , frexp(rhs,exponent+1)};
@@ -1317,7 +1317,7 @@ typename std::enable_if<
     && !is_series_product<base>::value,	// these should go to a quotient_of_series_products
 base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
 {
-	assert(!isnan(lhs));
+	assert(!isNaN(lhs));
 	if (divisor.empty()) return lhs;
 	if (1==divisor.lower() && 1==divisor.upper()) return lhs;
 	if (0>=divisor.lower()) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
@@ -1337,7 +1337,7 @@ base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
 	if (1>lhs_stats.exponent() && numerator_power_of_2.sub_capacity()>=1)
 		{	// underflow defense
 		int delta_exponent = 1-lhs_stats.exponent();
-		lhs = scalbn(lhs,delta_exponent);
+		lhs = scalBn(lhs,delta_exponent);
 		numerator_power_of_2.safe_sub(delta_exponent);
 		lhs_stats = lhs;
 		}
@@ -1353,7 +1353,7 @@ base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
 			if (numerator_power_of_2.sub_capacity() < delta) delta = numerator_power_of_2.sub_capacity();
 			if (0<delta)
 				{
-				lhs = scalbn(lhs,-delta);
+				lhs = scalBn(lhs,-delta);
 				numerator_power_of_2.safe_add(delta);
 				lhs_stats = lhs;
 				continue;
@@ -1388,12 +1388,12 @@ base>::type quotient_by_series_product(base lhs, int_range<uintmax_t> divisor)
 
 	lhs_stats.prepare_return_value(lhs,numerator_power_of_2);
 
-	if (!isfinite(lhs)) throw std::overflow_error("overflow: quotient by series product");
+	if (!isFinite(lhs)) throw std::overflow_error("overflow: quotient by series product");
 	if (0==lhs_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient by series product");
 	if (0==lhs_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
-		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(lhs,-std::numeric_limits<long double>::digits-1);
-		return scalbn(lhs,-((int)(numerator_power_of_2.negative())));
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalBn(lhs,-std::numeric_limits<long double>::digits-1);
+		return scalBn(lhs,-((int)(numerator_power_of_2.negative())));
 		}
 
 	return lhs;
@@ -1406,7 +1406,7 @@ typename std::enable_if<
 	&& std::is_same<base, typename interval_type<base>::type>::value,
 base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 {
-	assert(!isnan(numerator));
+	assert(!isNaN(numerator));
 	if (1==numerator.power()) return quotient(numerator.base(),rhs);
 	if (int_as<1,base>() == rhs) return eval(numerator);
 	if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
@@ -1424,7 +1424,7 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 		{	// underflow defense
 		int delta_exponent = 1-base_stats.exponent();
 		if (UINTMAX_MAX/numerator.power()<delta_exponent) delta_exponent = UINTMAX_MAX/numerator.power();
-		numerator.base() = scalbn(numerator.base(),delta_exponent);
+		numerator.base() = scalBn(numerator.base(),delta_exponent);
 		numerator_power_of_2.safe_sub(delta_exponent*numerator.power());
 		base_stats = numerator.base();
 		}
@@ -1439,7 +1439,7 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 			if (numerator_power_of_2.sub_capacity()/numerator.power() < delta) delta = numerator_power_of_2.sub_capacity()/numerator.power();
 			if (0<delta)
 				{
-				numerator.base() = scalbn(numerator.base(),-delta);
+				numerator.base() = scalBn(numerator.base(),-delta);
 				numerator_power_of_2.safe_add(delta*numerator.power());
 				base_stats = numerator.base();
 				continue;
@@ -1475,12 +1475,12 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 	quotient(accumulator,rhs);
 	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
 
-	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
+	if (!isFinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
 	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient of series products");
 	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
-		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
-		return scalbn(accumulator,-((int)(numerator_power_of_2.negative())));
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalBn(accumulator,-std::numeric_limits<long double>::digits-1);
+		return scalBn(accumulator,-((int)(numerator_power_of_2.negative())));
 		}
 
 	return accumulator;
@@ -1493,7 +1493,7 @@ typename std::enable_if<
 	&& std::is_same<base, typename interval_type<base>::type>::value,
 base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, int_range<uintmax_t> divisor)
 {
-	assert(!isnan(numerator));
+	assert(!isNaN(numerator));
 	if (divisor.empty()) return eval(numerator);
 	if (1==divisor.lower() && 1==divisor.upper()) return eval(numerator);
 	if (0>=divisor.lower()) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
@@ -1517,7 +1517,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 		{	// underflow defense
 		int delta_exponent = 1-base_stats.exponent();
 		if (UINTMAX_MAX/numerator.power()<delta_exponent) delta_exponent = UINTMAX_MAX/numerator.power();
-		numerator.base() = scalbn(numerator.base(),delta_exponent);
+		numerator.base() = scalBn(numerator.base(),delta_exponent);
 		numerator_power_of_2.safe_sub(delta_exponent*numerator.power());
 		base_stats = numerator.base();
 		}
@@ -1533,7 +1533,7 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 			if (numerator_power_of_2.sub_capacity()/numerator.power() < delta) delta = numerator_power_of_2.sub_capacity()/numerator.power();
 			if (0<delta)
 				{
-				numerator.base() = scalbn(numerator.base(),-delta);
+				numerator.base() = scalBn(numerator.base(),-delta);
 				numerator_power_of_2.safe_add(delta*numerator.power());
 				base_stats = numerator.base();
 				continue;
@@ -1611,12 +1611,12 @@ base>::type quotient_of_series_products(power_term<base,uintmax_t> numerator, in
 
 	accumulator_stats.prepare_return_value(accumulator,numerator_power_of_2);
 
-	if (!isfinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
+	if (!isFinite(accumulator)) throw std::overflow_error("overflow: quotient of series products");
 	if (0==accumulator_stats.safe_2_n_multiply() && numerator_power_of_2.positive()) throw std::overflow_error("quotient of series products");
 	if (0==accumulator_stats.safe_2_n_divide() && numerator_power_of_2.negative())
 		{	// underflow
-		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalbn(accumulator,-std::numeric_limits<long double>::digits-1);
-		return scalbn(accumulator,-((int)(numerator_power_of_2.negative())));
+		if (std::numeric_limits<long double>::digits<numerator_power_of_2.negative()) return scalBn(accumulator,-std::numeric_limits<long double>::digits-1);
+		return scalBn(accumulator,-((int)(numerator_power_of_2.negative())));
 		}
 	return accumulator;
 }
@@ -1627,7 +1627,7 @@ typename std::enable_if<
 	&& std::is_same<base, typename interval_type<base>::type>::value,
 base>::type quotient_of_series_products(const power_term<base,uintmax_t>& numerator, int_range<intmax_t> divisor)
 {
-	assert(!isnan(numerator));
+	assert(!isNaN(numerator));
 	if (divisor.empty()) return eval(numerator);
 	if (1==divisor.lower() && 1==divisor.upper()) return eval(numerator);
 	if (0>=divisor.lower() && 0<=divisor.upper()) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));

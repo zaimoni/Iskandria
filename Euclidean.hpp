@@ -43,8 +43,8 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		typename std::remove_cv<typename T1::value_type>::type lhs_term = *lhs_iter++;
 		typename std::remove_cv<typename T2::value_type>::type rhs_term = *rhs_iter++;
 		// reject isnan now
-		if (isnan(lhs_term)) throw std::runtime_error("incoming NaN");
-		if (isnan(rhs_term)) throw std::runtime_error("incoming NaN");
+		if (isNaN(lhs_term)) throw std::runtime_error("incoming NaN");
+		if (isNaN(rhs_term)) throw std::runtime_error("incoming NaN");
 		const int rearranged_product = trivial_product(lhs_term,rhs_term);
 		switch(rearranged_product)
 		{

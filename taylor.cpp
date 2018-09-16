@@ -86,8 +86,7 @@ const TaylorSeries<int>& sin()
 }	// namespace zaimoni
 
 #ifdef TEST_APP2
-// example build line (have to copy from *.hpp to *.cpp or else main not seen
-// g++ -olossy.exe -Llib/host -DTEST_APP lossy.cpp -lz_stdio_log
+// example build line
 // If doing INFORM-based debugging
 // g++ -std=c++11 -otaylor.exe -DTEST_APP2 -D__STDC_LIMIT_MACROS taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 

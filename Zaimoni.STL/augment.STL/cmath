@@ -12,25 +12,51 @@
 namespace zaimoni {
 
 	using std::fpclassify;
-	using std::isfinite;
-	using std::isinf;
-	using std::isnan;
-	using std::signbit;
-	using std::scalbn;
 
 namespace math {
 
 	using std::fpclassify;
-	using std::isfinite;
-	using std::isinf;
-	using std::isnan;
-	using std::signbit;
-	using std::scalbn;
 
 }	// namespace math
 
 }	// namespace zaimoni
 
 // intentionally close and re-open namespaces to visually separate intent (reference vs. new definitions)
+
+namespace zaimoni {
+
+// XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
+// when resolving overloads)
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type isINF(T x)
+{
+	return std::isinf(x);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type isFinite(T x)
+{
+	return std::isfinite(x);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type isNaN(T x)
+{
+	return std::isnan(x);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type signBit(T x)
+{
+	return std::signbit(x);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+{
+	return std::scalbn(x, scale);
+}
+
+}	// namespace zaimoni
 
 #endif

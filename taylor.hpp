@@ -68,7 +68,7 @@ public:
 
 	template<class DomainRange> DomainRange eval(const DomainRange& x) const
 	{
-		assert(isfinite(x));
+		assert(isFinite(x));
 		COEFF a_n = term_numerator(0);
 		if (int_as<0,DomainRange>()==x) return DomainRange(a_n);
 

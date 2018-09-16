@@ -119,35 +119,34 @@ constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_signed<
 	return false;
 }
 
-
-// extend some cmath functions to integers
-// This *will* hard-error if math.h is used rather than cmath on TDM GCC 5.1 (defines)
+// XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
+// when resolving overloads)
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isinf(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isINF(T x)
 {
 	return false;
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isfinite(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isFinite(T x)
 {
 	return true;
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isnan(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isNaN(T x)
 {
 	return false;
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type signbit(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type signBit(T x)
 {
 	return 0>x;
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type signbit(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type signBit(T x)
 {
 	return false;
 }

@@ -40,40 +40,28 @@ inline void INC_INFORM(const boost::numeric::interval<T>& x)
 
 namespace zaimoni {
 
+template<class T>
+constexpr bool isFinite(const boost::numeric::interval<T>& x)
+{
+	return isFinite(x.lower()) && isFinite(x.upper());
+}
+
+template<class T>
+constexpr bool isNaN(const boost::numeric::interval<T>& x)
+{
+	return isNaN(x.lower()) || isNaN(x.upper());
+}
+
+template<class T>
+constexpr boost::numeric::interval<T> scalBn(const boost::numeric::interval<T>& x,int scale)
+{
+	return boost::numeric::interval<T>(scalBn(x.lower(),scale),scalBn(x.upper(),scale));
+}
+
 namespace math {
 
-template<class T>
-constexpr bool isnan(const boost::numeric::interval<T>& x)
-{
-	return empty(x)	// null set isn't that useful
-        || isnan(x.lower()) || isnan(x.upper()) 	// intuitive
-		|| (isinf(x.lower()) && isinf(x.upper()) && x.lower()<x.upper());	// also disallow (-infinity,infinity) (total loss of information)
-}
-
-template<class T>
-constexpr bool isfinite(const boost::numeric::interval<T>& x)
-{
-	return std::isfinite(x.lower()) && std::isfinite(x.upper());
-}
-
-template<class T>
-constexpr bool isinf(const boost::numeric::interval<T>& x)
-{
-	return (isinf(x.lower()) && 0<x.lower()) || (isinf(x.upper()) && 0 > x.upper());
-}
-
-template<class T>
-constexpr boost::numeric::interval<T> scalbn(const boost::numeric::interval<T>& x, int n)
-{
-	return boost::numeric::interval<T>(scalbn(x.lower(),n),scalbn(x.upper(),n));
-}
-
-// several choices of how to define.
-template<class T>
-constexpr bool signbit(const boost::numeric::interval<T>& x)
-{
-	return std::signbit(x.upper());
-}
+using zaimoni::isNaN;
+using zaimoni::scalBn;
 
 // testing indicates Boost's numeric interval Does The Wrong Thing here (crashes sin by div-by-zero)
 template<>
@@ -212,112 +200,112 @@ struct lossy
 {
 	static typename interval_type<T>::type sum(typename const_param<T>::type lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		typename interval_type<T>::type ret(lhs);
 		ret += rhs;
-		if (incoming_finite && !isfinite(ret)) throw std::overflow_error("addition");
+		if (incoming_finite && !isFinite(ret)) throw std::overflow_error("addition");
 		return ret;
 	}
 	static typename interval_type<T>::type sum(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs += rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("addition");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("addition");
 		return lhs;
 	}
 	static typename interval_type<T>::type sum(typename const_param<T>::type lhs, typename interval_type<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		rhs += lhs;
-		if (incoming_finite && !isfinite(rhs)) throw std::overflow_error("addition");
+		if (incoming_finite && !isFinite(rhs)) throw std::overflow_error("addition");
 		return rhs;
 	}
 	static typename interval_type<T>::type sum(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs += rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("addition");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("addition");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type product(typename const_param<T>::type lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		typename interval_type<T>::type ret(lhs);
 		ret *= rhs;
-		if (incoming_finite && !isfinite(ret)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(ret)) throw std::overflow_error("product");
 		return ret;
 	}
 	static typename interval_type<T>::type product(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs *= rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 	static typename interval_type<T>::type product(typename const_param<T>::type lhs, typename interval_type<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		rhs *= lhs;
-		if (incoming_finite && !isfinite(rhs)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(rhs)) throw std::overflow_error("product");
 		return rhs;
 	}
 	static typename interval_type<T>::type product(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs *= rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 		lhs /= rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("quotient");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("quotient");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type quotient(typename interval_type<T>::type lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 		const bool infinite_out_ok = (0.0==rhs.lower() || 0.0==rhs.upper());
 		lhs /= rhs;
-		if (incoming_finite && !infinite_out_ok && !isfinite(lhs)) throw std::overflow_error("quotient");
+		if (incoming_finite && !infinite_out_ok && !isFinite(lhs)) throw std::overflow_error("quotient");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type self_product(typename interval_type<T>::type& lhs, typename const_param<T>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs *= rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type self_product(typename interval_type<T>::type& lhs, typename const_param<typename interval_type<T>::type>::type rhs) 
 	{
-		const bool incoming_finite = isfinite(lhs) && isfinite(rhs);
+		const bool incoming_finite = isFinite(lhs) && isFinite(rhs);
 		lhs *= rhs;
-		if (incoming_finite && !isfinite(lhs)) throw std::overflow_error("product");
+		if (incoming_finite && !isFinite(lhs)) throw std::overflow_error("product");
 		return lhs;
 	}
 
 	static typename interval_type<T>::type square(typename const_param<T>::type x) 
 	{
-		const bool incoming_finite = isfinite(x);
+		const bool incoming_finite = isFinite(x);
 		typename interval_type<T>::type ret(square(x));
-		if (incoming_finite && !isfinite(ret)) throw std::overflow_error("square");
+		if (incoming_finite && !isFinite(ret)) throw std::overflow_error("square");
 		return ret;
 	}
 
 	static typename interval_type<T>::type square(typename interval_type<T>::type x) 
 	{
-		const bool incoming_finite = isfinite(x);
+		const bool incoming_finite = isFinite(x);
 		x = square(x);;
-		if (incoming_finite && !isfinite(x)) throw std::overflow_error("square");
+		if (incoming_finite && !isFinite(x)) throw std::overflow_error("square");
 		return x;
 	}
 };
