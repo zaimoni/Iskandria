@@ -40,20 +40,7 @@ inline void INC_INFORM(const boost::numeric::interval<T>& x)
 
 namespace zaimoni {
 
-using std::fpclassify;
-using std::isfinite;
-using std::isinf;
-using std::isnan;
-using std::signbit;
-
 namespace math {
-
-using std::fpclassify;
-using std::isfinite;
-using std::isinf;
-using std::isnan;
-using std::signbit;
-using std::scalbn;
 
 template<class T>
 constexpr bool isnan(const boost::numeric::interval<T>& x)

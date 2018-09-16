@@ -6,5 +6,31 @@
 #include <cmath>
 #include "type_traits"
 
+// namespace setup.  Anything we would want for high-precision arithmetic should be imported into both of our namespaces.
+// Favor once-and-only-once over technical efficiency.
+
+namespace zaimoni {
+
+	using std::fpclassify;
+	using std::isfinite;
+	using std::isinf;
+	using std::isnan;
+	using std::signbit;
+	using std::scalbn;
+
+namespace math {
+
+	using std::fpclassify;
+	using std::isfinite;
+	using std::isinf;
+	using std::isnan;
+	using std::signbit;
+	using std::scalbn;
+
+}	// namespace math
+
+}	// namespace zaimoni
+
+// intentionally close and re-open namespaces to visually separate intent (reference vs. new definitions)
 
 #endif
