@@ -120,11 +120,11 @@ void zaimoni::circle::angle::sincos(boost::numeric::interval<double>& _sin, boos
 	_sincos(_theta,_sin,_cos);
 }
 
-#ifdef TEST_APP3
+#ifdef TEST_APP2
 // fast compile test
-// g++ -std=c++11 -oangle.exe -Os -DTEST_APP3 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp
+// g++ -std=c++11 -oangle.exe -Os -DTEST_APP2 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp
 // If doing INFORM-based debugging
-// g++ -std=c++11 -oangle.exe -Os -DTEST_APP3 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+// g++ -std=c++11 -oangle.exe -Os -DTEST_APP2 -D__STDC_LIMIT_MACROS angle.cpp taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
 // console-mode application
 #define STRING_LITERAL_TO_STDOUT(A) fwrite(A,sizeof(A)-1,1,stdout)

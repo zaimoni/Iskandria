@@ -85,10 +85,10 @@ const TaylorSeries<int>& sin()
 }	// namespace math
 }	// namespace zaimoni
 
-#ifdef TEST_APP2
+#ifdef TEST_APP
 // example build line
 // If doing INFORM-based debugging
-// g++ -std=c++11 -otaylor.exe -DTEST_APP2 -D__STDC_LIMIT_MACROS taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
+// g++ -std=c++11 -otaylor.exe -DTEST_APP -D__STDC_LIMIT_MACROS taylor.cpp -Llib/host.isk -lz_log_adapter -lz_stdio_log -lz_format_util
 
 #include <stdlib.h>
 #include <stdio.h>
