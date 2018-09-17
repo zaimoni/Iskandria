@@ -118,7 +118,7 @@ void craft::update_all()
 
 #ifdef TEST_APP2
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_APP2 craft.cpp world_manager.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
+// g++ -std=c++11 -otest.exe -Os -D__STDC_LIMIT_MACROS -DTEST_APP2 craft.cpp world_manager.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
 int main(int argc, char* argv[])
 {
 	iskandria::craft::world_setup();
