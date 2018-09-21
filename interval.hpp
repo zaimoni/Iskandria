@@ -23,6 +23,7 @@ public:
 template<class T>
 class trivial
 {
+public:
 	// 0: no action
 	// -1: keep LHS; 1: keep RHS
 	// 3: cancelled (replace with 0)
@@ -231,10 +232,10 @@ constexpr bool is_negative(const zaimoni::math::interval<T>& x)
 }
 
 template<class T>
-constexpr typename std::make_unsigned<T>::type norm(const zaimoni::math::interval<T>& x)
+constexpr auto norm(const zaimoni::math::interval<T>& x)
 { 
-	const typename std::make_unsigned<T>::type l_norm = norm(x.lower());
-	const typename std::make_unsigned<T>::type u_norm = norm(x.upper());
+	const auto l_norm = norm(x.lower());
+	const auto u_norm = norm(x.upper());
 	return l_norm < u_norm ? u_norm : l_norm;
 }
 

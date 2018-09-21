@@ -35,6 +35,30 @@ template<class T> struct op_works
 	};
 };
 
+// work around issues in type_traits
+template<class T> struct types
+{
+	typedef long double norm;
+};
+
+template<>
+struct types<long double>
+{
+	typedef long double norm;
+};
+
+template<>
+struct types<double>
+{
+	typedef double norm;
+};
+
+template<>
+struct types<float>
+{
+	typedef float norm;
+};
+
 // abs is taken by the standard library.
 // norm is meant to be the "typical" measure of absolute value; for real numbers should be abs
 template<class T>
@@ -53,7 +77,7 @@ constexpr  typename std::enable_if<
    std::is_integral<T>::value
 && std::is_signed<T>::value
 && std::numeric_limits<T>::min() >= -std::numeric_limits<T>::max(),
-typename std::make_unsigned<T>::type>::type norm(T x) {return 0<=x ? x : -x;}
+typename types<T>::norm>::type norm(T x) {return 0<=x ? x : -x;}
 
 // XXX operator > will close the template prematurely
 template<class T>
@@ -61,7 +85,7 @@ constexpr  typename std::enable_if<
    std::is_integral<T>::value
 && std::is_signed<T>::value
 && std::numeric_limits<T>::min() < -std::numeric_limits<T>::max(),
-typename std::make_unsigned<T>::type>::type norm(T x)
+typename types<T>::norm>::type norm(T x)
 {	// XXX 2's complement integer minimum is undefined behavior to negate
 	return 0<=x ? x
 	  : (-std::numeric_limits<T>::max()<=x) ? -x
@@ -171,6 +195,19 @@ template<class T>
 constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type signBit(T x)
 {
 	return false;
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+{
+	if (0 <= scale) return x << scale;
+	return x >> (-scale);
+}
+
+template<class T>
+constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+{
+	return x << scale;
 }
 
 namespace math {
