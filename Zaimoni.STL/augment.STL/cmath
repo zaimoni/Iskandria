@@ -57,6 +57,52 @@ constexpr typename std::enable_if<std::is_floating_point<T>::value, typename std
 	return std::scalbn(x, scale);
 }
 
+namespace math {
+
+namespace bits
+{
+	template<class T>
+	typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
+	{
+		if (0 == lhs) return false;
+		if (0 == rhs) return false;
+		if ((0 < lhs) != (0 < rhs)) return false;	// NaN is not overflow
+		if (std::isinf(lhs)) return false;
+		if (std::isinf(rhs)) return false;
+
+		int exponent[2] = { 0,0 };
+		long double mantissa[2] = { frexp(lhs, exponent + 0) , frexp(rhs, exponent + 1) };
+		if (std::numeric_limits<long double>::max_exponent - 2 <  exponent[0] && std::numeric_limits<long double>::max_exponent - 2 <  exponent[1]) return true;
+		if (std::numeric_limits<long double>::max_exponent - 2 >= exponent[0] && std::numeric_limits<long double>::max_exponent - 2 >= exponent[1]) return false;
+		// corner case
+		if (exponent[0] < exponent[1]) {
+			std::swap(exponent[0], exponent[1]);
+			std::swap(mantissa[0], mantissa[1]);
+		}
+
+		return 2 - mantissa[0] <= scalbn(mantissa[1], exponent[1] - exponent[0]);	// XXX \todo verify this
+	}
+}
+
+template<>
+struct would_overflow<long double>
+{
+	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+};
+
+template<>
+struct would_overflow<double>
+{
+	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+};
+
+template<>
+struct would_overflow<float>
+{
+	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+};
+
+}	// namespace math
 }	// namespace zaimoni
 
 #endif

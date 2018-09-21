@@ -452,44 +452,6 @@ fp_stats<typename std::remove_cv<T>::type> get_fp_stats(T& x)
 	return fp_stats<typename std::remove_cv<T>::type>(x);
 }
 
-template<class T> struct would_overflow;
-
-template<>
-struct would_overflow<uintmax_t>
-{
-	static constexpr bool sum(uintmax_t lhs, uintmax_t rhs)
-	{
-		return 0!=lhs && 0!=rhs && std::numeric_limits<uintmax_t>::max()-lhs<rhs;
-	}
-	static constexpr bool product(uintmax_t lhs, uintmax_t rhs)
-	{
-		return 1<lhs && 1<rhs && std::numeric_limits<uintmax_t>::max()/lhs<rhs;
-	}
-};
-
-template<>
-struct would_overflow<intmax_t>
-{
-	static constexpr bool sum(intmax_t lhs, intmax_t rhs)
-	{
-		// constraints:
-		// std::numeric_limits<int_t>::max() >= lhs+rhs
-		// std::numeric_limits<int_t>::min() <= lhs+rhs
-		return 0<lhs ? (0<rhs && std::numeric_limits<intmax_t>::max()-lhs<rhs)
-            : (0>lhs ? (0>rhs && (std::numeric_limits<intmax_t>::min()-lhs)<rhs)
-            : false);
-	}
-	static constexpr bool product(intmax_t lhs, intmax_t rhs)
-	{
-//		if (0==lhs || 1==lhs) return false;
-//		if (0==rhs || 1==rhs) return false;
-		return 1<lhs ? (   (1<rhs && std::numeric_limits<intmax_t>::max()/lhs<rhs)
-                        || (0>rhs && std::numeric_limits<intmax_t>::min()/lhs>rhs))
-			: (0>lhs ? (   (1<rhs && std::numeric_limits<intmax_t>::min()/rhs>lhs)
-                        || (0>rhs && std::numeric_limits<intmax_t>::max()/lhs>rhs))
-			: false);
-	}
-};
 
 template<class T>
 struct is_series_product 

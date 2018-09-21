@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	const auto unit = zaimoni::math::interval<long double>::hull(0, 1);
 	INFORM(unit);
 	INFORM(unit.width());
-//	INFORM(unit.median());	// sum_overflows
+	INFORM(unit.median());
 	INFORM(zaimoni::norm(unit));
 	}
 
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	const auto unit = zaimoni::math::interval<long long>::hull(0, 1);
 	INFORM(unit);
 	INFORM(unit.width());
-//	INFORM(unit.median());	// sum_overflows
+	INFORM(unit.median());
 	INFORM(zaimoni::norm(unit));
 	}
 

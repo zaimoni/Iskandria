@@ -108,23 +108,24 @@ public:
 	static interval whole() { return _whole; };	// intentionally value-copy
 	static interval hull(const T& x, const T& y);
 
+	// these two should fail for unsigned integers
 	void self_negate() { assign(-_ub, -_lb); };
-	interval& operator-() { assign(-_ub, -_lb); return *this;  };
+	interval operator-() { return interval(-_ub,-_lb);  };
 
 	// operator==(interval,interval) doesn't work as expected
 	bool contains(typename const_param<T>::type s) { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
 
+	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
 	interval& operator+= (const interval& rhs);
 	interval& operator-= (const interval& rhs);
 	interval& operator*= (const interval& rhs);
 	interval& operator/= (const interval& rhs);
 
-	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
-
-	interval& operator+= (T const &r);
-	interval& operator-= (T const &r);
-	interval& operator*= (T const &r);
-	interval& operator/= (T const &r);
+//	catch these once the interval forms are stable
+//	interval& operator+= (T const &r);
+//	interval& operator-= (T const &r);
+//	interval& operator*= (T const &r);
+//	interval& operator/= (T const &r);
 };
 
 // we don't want to mess with operator== for intervals because it's counterintuitive
@@ -285,54 +286,6 @@ namespace bits {
 	round_set(int mode) {}
 
 	template<class T>
-	constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type
-	sum_overflows(typename const_param<T>::type lhs, typename const_param<T>::type rhs)
-	{
-		if (0 == lhs) return false;
-		if (0 == rhs) return false;
-		if ((0 < lhs) != (0 < rhs)) return false;	// NaN is not overflow
-		if (isinf(lhs)) return false;
-		if (isinf(rhs)) return false;
-
-		int exponent[2];
-		T mantissa[2] = { frexp(lhs, exponent + 0) , frexp(rhs, exponent + 1) };
-		if (std::numeric_limits<T>::max_exponent - 2 <  exponent[0] && std::numeric_limits<T>::max_exponent - 2 <  exponent[1]) return true;
-		if (std::numeric_limits<T>::max_exponent - 2 >= exponent[0] && std::numeric_limits<T>::max_exponent - 2 >= exponent[1]) return false;
-		// corner case
-		if (exponent[0] < exponent[1]) {
-			std::swap(exponent[0], exponent[1]);
-			swap(mantissa[0], mantissa[1]);
-		}
-
-		fesetround(FE_UPWARD);
-		return 2 <= mantissa[0] + scalbn(mantissa[1], exponent[1] - exponent[0]);
-	}
-
-	template<class T>
-	constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_unsigned<T>::value, bool>::type
-	sum_overflows(typename const_param<T>::type lhs, typename const_param<T>::type rhs)
-	{
-		if (0 == rhs) return false;
-		if (0 == lhs) return false;
-		if (0 < lhs) {
-			if (0 > rhs) return false;
-			return T((typename std::make_unsigned<T>::type)(-1) / 2) - rhs < lhs;
-		} else {
-			if (0 < rhs) return false;
-			return std::numeric_limits<T>::min() - rhs > lhs;
-		}
-		if ((0 < lhs) != (0 < rhs)) return false;
-		return false;
-	}
-
-	template<class T>
-	constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type
-	sum_overflows(typename const_param<T>::type lhs, typename const_param<T>::type rhs)
-	{
-		return T(-1) - rhs < lhs;
-	}
-
-	template<class T>
 	void op_add_assign(T& lhs, const T& rhs, int mode) {
 		switch (int code = trivial<T>::sum(lhs, rhs))
 		{
@@ -342,7 +295,7 @@ namespace bits {
 			lhs = 0;
 			return;
 		};
-		if (sum_overflows(lhs, rhs)) throw numeric_error("+: overflow");
+		if (would_overflow<T>::sum(lhs, rhs)) throw numeric_error("+: overflow");
 
 		fesetround(mode);
 		lhs += rhs;
