@@ -16,6 +16,10 @@ int main(int argc, char* argv[])
 	INFORM(unit.width());
 	INFORM(unit.median());
 	INFORM(zaimoni::norm(unit));
+	assert(!zaimoni::is_zero(unit));
+	assert(zaimoni::contains_zero(unit));
+	assert(!zaimoni::is_positive(unit));
+	assert(!zaimoni::is_negative(unit));
 	}
 
 	INFORM("\nlong long intervals");
@@ -27,6 +31,10 @@ int main(int argc, char* argv[])
 	INFORM(unit.width());
 	INFORM(unit.median());
 	INFORM(zaimoni::norm(unit));
+	assert(!zaimoni::is_zero(unit));
+	assert(zaimoni::contains_zero(unit));
+	assert(!zaimoni::is_positive(unit));
+	assert(!zaimoni::is_negative(unit));
 	}
 
 	zaimoni::isINF(1);
