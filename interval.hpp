@@ -20,6 +20,7 @@ public:
 	explicit numeric_error(const char* const e) : std::runtime_error(e) {}
 };
 
+// two uses of trivial: read-only and destructive
 template<class T>
 class trivial
 {

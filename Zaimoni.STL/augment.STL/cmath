@@ -62,7 +62,7 @@ namespace math {
 namespace bits
 {
 	template<class T>
-	typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
+	constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
 	{
 		if (0 == lhs) return false;
 		if (0 == rhs) return false;
@@ -75,31 +75,28 @@ namespace bits
 		if (std::numeric_limits<long double>::max_exponent - 2 <  exponent[0] && std::numeric_limits<long double>::max_exponent - 2 <  exponent[1]) return true;
 		if (std::numeric_limits<long double>::max_exponent - 2 >= exponent[0] && std::numeric_limits<long double>::max_exponent - 2 >= exponent[1]) return false;
 		// corner case
-		if (exponent[0] < exponent[1]) {
-			std::swap(exponent[0], exponent[1]);
-			std::swap(mantissa[0], mantissa[1]);
-		}
-
-		return 2 - mantissa[0] <= scalbn(mantissa[1], exponent[1] - exponent[0]);	// XXX \todo verify this
+		const int gt_index = (exponent[0] < exponent[1]);
+		const int lt_index = 1 - gt_index;
+		return 2 - mantissa[gt_index] <= scalbn(mantissa[lt_index], exponent[lt_index] - exponent[gt_index]);	// XXX \todo verify this
 	}
 }
 
 template<>
 struct would_overflow<long double>
 {
-	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+	static constexpr bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 template<>
 struct would_overflow<double>
 {
-	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+	static constexpr bool sum(double lhs, double rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 template<>
 struct would_overflow<float>
 {
-	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+	static constexpr bool sum(float lhs, float rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 }	// namespace math
