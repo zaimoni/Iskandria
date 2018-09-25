@@ -20,23 +20,43 @@ public:
 	explicit numeric_error(const char* const e) : std::runtime_error(e) {}
 };
 
+template<class T>
+class rearrange
+{
+public:
+	// 0: no action
+	// -1: keep LHS; 1: keep RHS
+	static int sum(T& lhs, T& rhs) {
+		if (isINF(lhs)) {
+			if (isINF(rhs) && signBit(lhs) != signBit(rhs)) throw numeric_error("+: NaN");
+			return -1;
+		}
+		else if (isINF(rhs) || is_zero(lhs)) {
+			return 1;
+		}
+		else if (is_zero(rhs)) return -1;
+		// further handling is type-specific
+		return 0;
+	}
+};
+
 // two uses of trivial: read-only and destructive
 template<class T>
 class trivial
 {
 public:
-	// 0: no action
-	// -1: keep LHS; 1: keep RHS
-	// 3: cancelled (replace with 0)
-	static int sum(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
-		if (isINF(lhs)) {
-			if (isINF(rhs) && signBit(lhs) != signBit(rhs)) throw numeric_error("+: NaN");
-			return -1;
-		} else if (isINF(rhs) || is_zero(lhs)) {
-			return 1;
-		} else if (is_zero(rhs)) return -1;
-//		else if (are_add_inverses(lhs, rhs)) return 3;	// not defined yet
-		return 0;
+	static bool sum(T& lhs, T rhs)
+	{
+		T revert(lhs);
+		switch(rearrange<T>::sum(lhs, rhs))
+		{
+		case 1: lhs = std::move(rhs);	// intentional fall-through
+		case -1: return true;
+		case 0:
+			lhs = revert;
+			return false;
+		default: _fatal_code("trivial::sum: rearrange<T>::sum code out of range", 3);
+		}
 	}
 
 	// 0: no action
@@ -69,7 +89,7 @@ public:
 };
 
 template<class T>
-typename std::enable_if<op_works<T>::negate,int>::type
+typename std::enable_if<op_works<T>::negate,bool>::type
 trivial_diff(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
 	return trivial<T>::sum(lhs, -rhs);
 }
@@ -336,14 +356,7 @@ namespace bits {
 
 	template<class T>
 	void op_add_assign(T& lhs, const T& rhs, int mode) {
-		switch (int code = trivial<T>::sum(lhs, rhs))
-		{
-		case 1:	lhs = rhs;	// intentional fall-through
-		case -1: return;
-		case 3:	// cancellation
-			lhs = 0;
-			return;
-		};
+		if (trivial<T>::sum(lhs, rhs)) return;
 		if (would_overflow<T>::sum(lhs, rhs)) throw numeric_error("+: overflow");
 
 		fesetround(mode);

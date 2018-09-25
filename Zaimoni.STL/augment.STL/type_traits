@@ -38,7 +38,7 @@ template<class T> struct op_works
 // work around issues in type_traits
 template<class T> struct types
 {
-	typedef long double norm;
+	typedef typename std::make_unsigned<T>::type norm;
 };
 
 template<>
