@@ -20,6 +20,8 @@ public:
 	explicit numeric_error(const char* const e) : std::runtime_error(e) {}
 };
 
+template<class T> class trivial;
+
 template<class T>
 class rearrange
 {
@@ -27,14 +29,29 @@ public:
 	// 0: no action
 	// -1: keep LHS; 1: keep RHS
 	static int sum(T& lhs, T& rhs) {
-		if (isINF(lhs)) {
-			if (isINF(rhs) && signBit(lhs) != signBit(rhs)) throw numeric_error("+: NaN");
+		switch(const int code = trivial<T>::sum_c(lhs, rhs))
+		{
+		case 1:
+			lhs = std::move(rhs);
+			rhs = 0;
+		case -1:
 			return -1;
 		}
-		else if (isINF(rhs) || is_zero(lhs)) {
-			return 1;
+		// further handling is type-specific
+		return 0;
+	}
+
+	static int product(T& lhs, T& rhs) {
+		int code = trivial<T>::product_c(lhs, rhs);
+		if (0 < code) {
+			lhs = std::move(rhs);
+			rhs = 1;
+			code = -code;
 		}
-		else if (is_zero(rhs)) return -1;
+		if (0 > code) {
+			if (-2 == code) lhs = -lhs;	// \todo want self-negate forwarder
+			return -1;
+		}
 		// further handling is type-specific
 		return 0;
 	}
@@ -45,6 +62,20 @@ template<class T>
 class trivial
 {
 public:
+	// 0: no action
+	// -1: keep LHS; 1: keep RHS
+	static int sum_c(typename const_param<T>::type lhs, typename const_param<T>::type rhs)
+	{
+		if (isINF(lhs)) {
+			if (isINF(rhs) && signBit(lhs) != signBit(rhs)) throw numeric_error("+: NaN");
+			return -1;
+		} else if (isINF(rhs) || is_zero(lhs)) {
+			return 1;
+		} else if (is_zero(rhs)) return -1;
+		// further handling is type-specific -- do not attempt here
+		return 0;
+	}
+
 	static bool sum(T& lhs, T rhs)
 	{
 		T revert(lhs);
@@ -62,30 +93,26 @@ public:
 	// 0: no action
 	// -1: keep LHS; 1: keep RHS
 	// -2: keep LHS,negated; 2: keep RHS, negated
-	static int product(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
-		const bool is_negative = (signbit(lhs)!=signbit(rhs));
-		if (isinf(lhs)) {
+	static int product_c(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
+		const bool is_negative = (signBit(lhs) != signBit(rhs));
+		if (isINF(lhs)) {
 			if (contains_zero(rhs)) throw numeric_error("*: NaN");
-			return (signbit(lhs) == is_negative) ? -1 : -2;
-		} else if (isinf(rhs)) {
+			return (signBit(lhs) == is_negative) ? -1 : -2;
+		} else if (isINF(rhs)) {
 			if (contains_zero(lhs)) throw numeric_error("*: NaN");
-			return (signbit(rhs) == is_negative) ? 1 : 2;
+			return (signBit(rhs) == is_negative) ? 1 : 2;
 		} else if (is_zero(lhs)) {
-			return (!op_works<T>::has_negative_zero || signbit(lhs) == is_negative) ? -1 : -2;
+			return (!op_works<T>::has_negative_zero || signBit(lhs) == is_negative) ? -1 : -2;
 		} else if (is_zero(rhs)) {
-			return (!op_works<T>::has_negative_zero || signbit(rhs) == is_negative) ? 1 : 2;
-		} else if (is_one(lhs)) {
-			return 1;
-		} else if (is_one(rhs)) {
-			return -1;
-		} else if (is_negative_one(lhs)) {
-			return 2;
-		} else if (is_negative_one(rhs)) {
-			return -2;
-		} // else if (are_mult_inverses(lhs, rhs)) return 3;	// requires <cmath> for floating point
-
+			return (!op_works<T>::has_negative_zero || signBit(rhs) == is_negative) ? 1 : 2;
+		} else if (is_one(lhs)) return 1;
+		else if (is_one(rhs)) return -1;
+		else if (is_negative_one(lhs)) return 2;
+		else if (is_negative_one(rhs)) return -2;
+		// else if (are_mult_inverses(lhs, rhs)) return 3;	// requires <cmath> for floating point; example of further type-sensitive processing
 		return 0;
 	}
+
 };
 
 template<class T>
