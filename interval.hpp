@@ -22,6 +22,50 @@ public:
 
 template<class T> class trivial;
 
+namespace bits {
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value ,int>::type
+rearrange_sum(T& lhs, T& rhs)
+{
+	if (std::numeric_limits<T>::max() <= lhs) return 0;
+	const T ub = std::numeric_limits<T>::max() - lhs;
+	if (ub >= rhs) {
+		lhs += rhs;
+		rhs = 0;
+		return -1;
+	}
+	lhs = std::numeric_limits<T>::max();
+	rhs -= ub;
+	return 0;
+}
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, int>::type
+rearrange_sum(T& lhs, T& rhs)
+{
+	if (((0 <= lhs) ? (0 >= rhs) : (0 <= rhs)) || 0==lhs) {
+		lhs += rhs;
+		rhs = 0;
+		return -1;
+	}
+	const bool lhs_positive = (0 < lhs);
+	if (lhs_positive ? (std::numeric_limits<T>::max() <= lhs) : (std::numeric_limits<T>::min() >= lhs)) return 0;
+	const T extreme = lhs_positive ? std::numeric_limits<T>::max() - lhs : std::numeric_limits<T>::min() - lhs;
+	if (lhs_positive ? (extreme >= rhs) : (extreme <= rhs)) {
+		lhs += rhs;
+		rhs = 0;
+		return -1;
+	}
+	lhs = lhs_positive ? std::numeric_limits<T>::max() : std::numeric_limits<T>::min();
+	rhs -= extreme;
+	return 0;
+}
+
+// base version for floating point is over in overprecise.hpp
+
+}	// namespace bits
+
 template<class T>
 class rearrange
 {
@@ -37,6 +81,7 @@ public:
 		case -1:
 			return -1;
 		}
+//		return bits::rearrange_sum(lhs, rhs);
 		// further handling is type-specific
 		return 0;
 	}
