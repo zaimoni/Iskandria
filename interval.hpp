@@ -25,8 +25,7 @@ template<class T> class trivial;
 namespace bits {
 
 template<class T>
-typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value ,int>::type
-rearrange_sum(T& lhs, T& rhs)
+typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value ,int>::type rearrange_sum(T& lhs, T& rhs)
 {
 	if (std::numeric_limits<T>::max() <= lhs) return 0;
 	const T ub = std::numeric_limits<T>::max() - lhs;
@@ -41,8 +40,7 @@ rearrange_sum(T& lhs, T& rhs)
 }
 
 template<class T>
-typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, int>::type
-rearrange_sum(T& lhs, T& rhs)
+typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, int>::type rearrange_sum(T& lhs, T& rhs)
 {
 	if (((0 <= lhs) ? (0 >= rhs) : (0 <= rhs)) || 0==lhs) {
 		lhs += rhs;
@@ -62,7 +60,87 @@ rearrange_sum(T& lhs, T& rhs)
 	return 0;
 }
 
-// base version for floating point is over in overprecise.hpp
+// original was in overprecise.hpp
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, int>::type rearrange_sum(T& lhs, T& rhs)
+{
+	bool any_change = false;
+
+	// 0: lhs
+	// 1: rhs
+hard_restart:
+	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs) };
+	const bool is_negative[2] = { std::signbit(lhs) , std::signbit(rhs) };
+
+	// epsilon exponent is simply -std::numeric_limits<T>::digits+1 (+1 from bias)
+	// remember: 1.0 maps to exponent 1, mantissa 0.5
+restart:
+	fp_stats<T> lhs_stats(lhs);
+	fp_stats<T> rhs_stats(rhs);
+	if (rhs_stats.exponent()>lhs_stats.exponent()) {
+		// force lhs larger than rhs
+		lhs_stats.swap(rhs_stats);
+		std::swap(lhs, rhs);
+	}
+	const int exponent_delta = rhs_stats.exponent() - lhs_stats.exponent();
+
+	if (is_negative[0] == is_negative[1]) {
+		// same sign
+		if (lhs == rhs && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {
+			lhs = scalbn(lhs, 1);
+			rhs = 0.0;
+			return -1;
+		}
+		// a denormal acts like it has exponent std::numeric_limits<T>::min_exponent - 1
+		if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
+			T tmp = copysign(std::numeric_limits<T>::min(), lhs);
+			// lhs+rhs = (lhs+tmp)+(rhs-tmp)
+			rhs -= tmp;	// now opp-sign denormal
+			rhs += lhs;
+			lhs = tmp;
+			if (0.0 == rhs) return -1;
+			any_change = true;
+			goto hard_restart;	// could be more clever here if breaking const
+		}
+		if (0 == exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
+			T tmp = copysign(scalbn(1.0, lhs_stats.exponent() + 1), (is_negative[0] ? -1.0 : 1.0));
+			rhs -= tmp;
+			rhs += lhs;
+			lhs = tmp;
+			any_change = true;
+			goto restart;
+		}
+		const std::pair<int, int> lhs_safe(lhs_stats.safe_add_exponents());
+		const std::pair<int, int> rhs_safe(rhs_stats.safe_subtract_exponents());
+		if (lhs_safe.first>rhs_safe.second) return -2 * any_change;
+
+		if (delta_cancel(lhs, rhs, rhs_stats.delta(rhs_safe.second))) return -1;
+		any_change = true;
+		if (std::numeric_limits<T>::min_exponent + std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
+		goto restart;
+	} else {
+		// opposite sign: cancellation
+		if (0 == exponent_delta) {
+			lhs += rhs;
+			rhs = 0.0;
+			return -1;
+		}
+		if ((FP_SUBNORMAL == fp_type[0] || lhs_stats.exponent() == std::numeric_limits<T>::min_exponent)
+			&& (FP_SUBNORMAL == fp_type[1] || lhs_stats.exponent() == std::numeric_limits<T>::min_exponent)) {
+			lhs += rhs;
+			rhs = 0.0;
+			return -1;
+		}
+		const std::pair<int, int> lhs_safe(lhs_stats.safe_subtract_exponents());
+		const std::pair<int, int> rhs_safe(rhs_stats.safe_subtract_exponents());
+		// lhs larger
+		if (lhs_safe.first>rhs_safe.second) return -2 * any_change;
+		if (delta_cancel(lhs, rhs, rhs_stats.delta(rhs_safe.second))) return -1;
+		any_change = true;
+		if (std::numeric_limits<T>::min_exponent + std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
+		goto restart;
+	}
+}
 
 }	// namespace bits
 
@@ -71,7 +149,8 @@ class rearrange
 {
 public:
 	// 0: no action
-	// -1: keep LHS; 1: keep RHS
+	// -1: keep LHS; 1: keep RHS (never happens with default implementation)
+	// -2: incomplete rearrangement
 	static int sum(T& lhs, T& rhs) {
 		switch(const int code = trivial<T>::sum_c(lhs, rhs))
 		{
@@ -81,9 +160,7 @@ public:
 		case -1:
 			return -1;
 		}
-//		return bits::rearrange_sum(lhs, rhs);
-		// further handling is type-specific
-		return 0;
+		return bits::rearrange_sum(lhs, rhs);	// type-specific handling
 	}
 
 	static int product(T& lhs, T& rhs) {
@@ -97,6 +174,7 @@ public:
 			if (-2 == code) lhs = -lhs;	// \todo want self-negate forwarder
 			return -1;
 		}
+//		return bits::rearrange_product(lhs, rhs);	// type-specific handling
 		// further handling is type-specific
 		return 0;
 	}

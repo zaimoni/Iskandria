@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include "type_traits"
+#include "../Logging.h"
 
 // namespace setup.  Anything we would want for high-precision arithmetic should be imported into both of our namespaces.
 // Favor once-and-only-once over technical efficiency.
@@ -56,6 +57,87 @@ constexpr typename std::enable_if<std::is_floating_point<T>::value, typename std
 {
 	return std::scalbn(x, scale);
 }
+
+// not guaranteed effective for long double
+// it is possible to optimize this with reinterpret_cast goo
+// probably should fix the constants to cope with non-binary floating point
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = 0;
+	while (0.0<mantissa)
+	{
+		ret <<= 1;
+		if (0.5 <= mantissa) ret += 1;
+		mantissa = scalbn(mantissa, 1);
+		mantissa -= 1.0;
+	}
+	return ret;
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_cancel(T& lhs, T& rhs, T delta)
+{
+	lhs += delta;
+	rhs -= delta;
+	return 0.0 == rhs;
+}
+
+template<class T>
+class fp_stats
+{
+	ZAIMONI_STATIC_ASSERT(std::is_floating_point<T>::value);
+private:
+	int _exponent;
+	double _mantissa;
+public:
+	fp_stats() = delete;
+	explicit fp_stats(T src) { assert(0.0 != src); assert(isFinite(src)); _mantissa = frexp(src, &_exponent); }
+	fp_stats(const fp_stats& src) = delete;
+	fp_stats(fp_stats&& src) = default;
+	~fp_stats() = default;
+	void operator=(const fp_stats& src) = delete;
+	fp_stats& operator=(fp_stats&& src) = default;
+	void operator=(T src) { assert(0.0 != src); assert(isFinite(src)); _mantissa = frexp(src, &_exponent); }
+
+	// while we don't want to copy, we do want to swap
+	void swap(fp_stats& rhs) { std::swap(_exponent, rhs._exponent); std::swap(_mantissa, rhs._mantissa); }
+
+	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
+	int exponent() const { return _exponent; };
+	double mantissa() const { return _mantissa; };
+	uintmax_t int_mantissa() const { return _mantissa_as_int(_mantissa); }
+	uintmax_t divisibilty_test() const { return _mantissa_as_int(_mantissa); }
+	int safe_2_n_multiply() const { return std::numeric_limits<T>::min_exponent - _exponent; };
+	int safe_2_n_divide() const { return _exponent - std::numeric_limits<T>::min_exponent; };
+
+	T delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); };	// usually prepared for subtractive cancellation
+
+	// these are in terms of absolute value
+	std::pair<int, int> safe_subtract_exponents()
+	{
+		std::pair<int, int> ret(_exponent - std::numeric_limits<double>::digits, _exponent);
+		if (0.5 == _mantissa || -0.5 == _mantissa) ret.first--;
+		if (std::numeric_limits<T>::min_exponent > ret.second) ret.second = std::numeric_limits<T>::min_exponent;
+		if (std::numeric_limits<T>::min_exponent > ret.first) ret.first = std::numeric_limits<T>::min_exponent;
+		return ret;
+	}
+
+	std::pair<int, int> safe_add_exponents()	// not for denormals
+	{
+		std::pair<int, int> ret(_exponent - std::numeric_limits<T>::digits, _exponent);
+		const double abs_mantissa = (signBit(_mantissa) ? -_mantissa : _mantissa);
+		double mantissa_delta = 0.5;
+		while (1.0 - mantissa_delta < abs_mantissa)
+		{
+			assert(ret.first<ret.second);
+			ret.second--;
+			mantissa_delta = scalbn(mantissa_delta, -1);
+		}
+		return ret;
+	}
+};
+
 
 namespace math {
 
