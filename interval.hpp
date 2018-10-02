@@ -36,7 +36,7 @@ typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value
 	}
 	lhs = std::numeric_limits<T>::max();
 	rhs -= ub;
-	return 0;
+	return -2;
 }
 
 template<class T>
@@ -57,7 +57,7 @@ typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, 
 	}
 	lhs = lhs_positive ? std::numeric_limits<T>::max() : std::numeric_limits<T>::min();
 	rhs -= extreme;
-	return 0;
+	return -2;
 }
 
 // original was in overprecise.hpp
@@ -142,6 +142,19 @@ restart:
 	}
 }
 
+template<class T>
+typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, int>::type rearrange_product(T& lhs, T& rhs)
+{
+	if (std::numeric_limits<T>::max() <= lhs) return 0;
+	const T ub = std::numeric_limits<T>::max()/lhs;
+	if (ub >= rhs) {
+		lhs *= rhs;
+		rhs = 1;
+		return -1;
+	}
+	return 0;
+}
+
 }	// namespace bits
 
 template<class T>
@@ -174,9 +187,7 @@ public:
 			if (-2 == code) lhs = -lhs;	// \todo want self-negate forwarder
 			return -1;
 		}
-//		return bits::rearrange_product(lhs, rhs);	// type-specific handling
-		// further handling is type-specific
-		return 0;
+		return bits::rearrange_product(lhs, rhs);	// type-specific handling
 	}
 };
 
@@ -206,8 +217,9 @@ public:
 		{
 		case 1: lhs = std::move(rhs);	// intentional fall-through
 		case -1: return true;
-		case 0:
+		case -2:	// not using partial rearrangement here
 			lhs = revert;
+		case 0:
 			return false;
 		default: _fatal_code("trivial::sum: rearrange<T>::sum code out of range", 3);
 		}
