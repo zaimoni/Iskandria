@@ -4,8 +4,8 @@
 
 // interval entries down at +/1 standard deviation [sic]
 
-const boost::numeric::interval<double> fundamental_constants::inv_alpha(137.035999108, 137.035999170);
-const boost::numeric::interval<double> fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);
+const fundamental_constants::interval fundamental_constants::inv_alpha(137.035999108, 137.035999170);
+const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -121,25 +121,25 @@ void fundamental_constants::geometrize()
     G*h_bar/c^3: dist^2
     h_bar*c/G: mass^2   
  */
-	const boost::numeric::interval<double> geo_dist_squared_1 = (G/pow(c,3))*h_bar;
-	const boost::numeric::interval<double> geo_dist_squared_2 = (h_bar/pow(c,3))*G;
-	const boost::numeric::interval<double> geo_dist_squared_3 = (G*h_bar)/pow(c,3);
-	const boost::numeric::interval<double> geo_dist_squared = intersect(intersect(geo_dist_squared_1,geo_dist_squared_2),geo_dist_squared_3);
+	const interval geo_dist_squared_1 = (G/pow(c,3))*h_bar;
+	const interval geo_dist_squared_2 = (h_bar/pow(c,3))*G;
+	const interval geo_dist_squared_3 = (G*h_bar)/pow(c,3);
+	const interval geo_dist_squared = intersect(intersect(geo_dist_squared_1,geo_dist_squared_2),geo_dist_squared_3);
 
-	const boost::numeric::interval<double> geo_time_squared_1 = (G/pow(c,5))*h_bar;
-	const boost::numeric::interval<double> geo_time_squared_2 = (h_bar/pow(c,5))*G;
-	const boost::numeric::interval<double> geo_time_squared_3 = (G*h_bar)/pow(c,5);
-	const boost::numeric::interval<double> geo_time_squared = intersect(intersect(geo_time_squared_1,geo_time_squared_2),geo_time_squared_3);
+	const interval geo_time_squared_1 = (G/pow(c,5))*h_bar;
+	const interval geo_time_squared_2 = (h_bar/pow(c,5))*G;
+	const interval geo_time_squared_3 = (G*h_bar)/pow(c,5);
+	const interval geo_time_squared = intersect(intersect(geo_time_squared_1,geo_time_squared_2),geo_time_squared_3);
 
-	const boost::numeric::interval<double> geo_mass_squared_1 = (h_bar/G)*c;
-	const boost::numeric::interval<double> geo_mass_squared_2 = (c/G)*h_bar;
-	const boost::numeric::interval<double> geo_mass_squared_3 = (h_bar*c)/G;
-	const boost::numeric::interval<double> geo_mass_squared = intersect(intersect(geo_mass_squared_1,geo_mass_squared_2),geo_mass_squared_3);
+	const interval geo_mass_squared_1 = (h_bar/G)*c;
+	const interval geo_mass_squared_2 = (c/G)*h_bar;
+	const interval geo_mass_squared_3 = (h_bar*c)/G;
+	const interval geo_mass_squared = intersect(intersect(geo_mass_squared_1,geo_mass_squared_2),geo_mass_squared_3);
 
-	const boost::numeric::interval<double> geo_temperature_1 = (square(c)/k)*sqrt(geo_mass_squared);
-	const boost::numeric::interval<double> geo_temperature_2 = (sqrt(geo_mass_squared)/k)*square(c);
-	const boost::numeric::interval<double> geo_temperature_3 = (square(c)*sqrt(geo_mass_squared))/k;
-	const boost::numeric::interval<double> geo_temperature = intersect(intersect(geo_temperature_1,geo_temperature_2),geo_temperature_3);
+	const interval geo_temperature_1 = (square(c)/k)*sqrt(geo_mass_squared);
+	const interval geo_temperature_2 = (sqrt(geo_mass_squared)/k)*square(c);
+	const interval geo_temperature_3 = (square(c)*sqrt(geo_mass_squared))/k;
+	const interval geo_temperature = intersect(intersect(geo_temperature_1,geo_temperature_2),geo_temperature_3);
 
 	div_scale_distance(sqrt(geo_dist_squared));
 	div_scale_time(sqrt(geo_time_squared));
