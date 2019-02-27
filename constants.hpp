@@ -4,12 +4,22 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+// #define CONSTANTS_ISK_INTERVAL 1
+
+#ifdef CONSTANTS_ISK_INTERVAL 
 #include <boost/numeric/interval.hpp>
+#else
+#include <boost/numeric/interval.hpp>
+#endif
 
 // SI values are to be imported from CODATA
 class fundamental_constants {
 public:
+#ifdef CONSTANTS_ISK_INTERVAL 
 	typedef boost::numeric::interval<double> interval;
+#else
+	typedef boost::numeric::interval<double> interval;
+#endif
 
 	// dimensionless constants
 	static const interval inv_alpha;	// inverse fine structure constant
