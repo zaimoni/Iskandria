@@ -185,7 +185,7 @@ const fundamental_constants& solar_system_units()
 	static fundamental_constants* x = NULL;
 	if (x) return *x;
 	x = new fundamental_constants();
-	const boost::numeric::interval<double> SI_G(x->G);
+	const fundamental_constants::interval SI_G(x->G);
 
 	// time unit: 1 Earth year
 	// distance unit: 1 AU (semimajor axis of Earth's orbit)
@@ -199,7 +199,7 @@ const fundamental_constants& solar_system_units()
 	
 	x->div_scale_distance(1.495978707e11);	// AU definition
 	x->div_scale_time(86400*365.25636);	// sidereal year, quasar reference frame
-	x->div_scale_mass(boost::numeric::interval<double>(1.32712440010e20,1.32712440026e20)/SI_G);
+	x->div_scale_mass(fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G);
 	return *x;
 }
 

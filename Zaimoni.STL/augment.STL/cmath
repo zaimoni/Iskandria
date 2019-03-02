@@ -141,8 +141,8 @@ public:
 
 namespace math {
 
-namespace bits
-{
+namespace bits {
+
 	template<class T>
 	constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
 	{
