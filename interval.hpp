@@ -9,6 +9,8 @@
 #include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Logging.h"
 
+#pragma STD FENV_ACCESS ON
+
 namespace zaimoni {
 
 namespace math {
@@ -331,6 +333,7 @@ template<class T> interval<T> operator+(interval<T> lhs, const interval<T>& rhs)
 template<class T> interval<T> operator-(interval<T> lhs, const interval<T>& rhs) { return lhs -= rhs; }
 template<class T> interval<T> operator*(interval<T> lhs, const interval<T>& rhs) { return lhs *= rhs; }
 template<class T> interval<T> operator/(interval<T> lhs, const interval<T>& rhs) { return lhs /= rhs; }
+template<class T> interval<T> operator/(typename const_param<T>::type lhs, const interval<T>& rhs) { return interval<T>(lhs) /= rhs; }
 
 // we don't want to mess with operator== for intervals because it's counterintuitive
 template<class T>
@@ -410,33 +413,46 @@ bool operator<=(const interval<T>& i, typename const_param<T>::type s)
 template<class T> interval<T>  const interval<T>::_empty(std::numeric_limits<T>::has_quiet_NaN ? -std::numeric_limits<T>::quiet_NaN() : T(1), std::numeric_limits<T>::has_quiet_NaN ? std::numeric_limits<T>::quiet_NaN() : T(0));
 template<class T> interval<T>  const interval<T>::_whole(std::numeric_limits<T>::has_infinity ? -std::numeric_limits<T>::infinity() : std::numeric_limits<T>::min(), std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max());
 
+} // namespace math
+
+// type_traits
 template<class T>
-interval<T> interval<T>::hull(const T& x, const T& y)
+constexpr bool is_zero(const zaimoni::math::interval<T>& x)
 {
-	if (isNaN(x)) {
-		if (isNaN(y)) throw numeric_error("interval::hull cannot recover from double-NaN");
-		return interval<T>(y);
-	}
-	else if (isNaN(y)) return interval<T>(x);
-	return x <= y ? interval<T>(x, y) : interval<T>(y, x);
+	return 0 == x;
 }
 
-// template<class T> bool is_zero(const interval<T>& x) { return is_zero(x.lower() && is_zero(x.upper()); }
+template<class T>
+constexpr bool contains_zero(const zaimoni::math::interval<T>& x)
+{
+	return !is_positive(x.lower()) && !is_negative(x.upper());
+}
 
-template<class T> int sgn(const interval<T>& x) { 
-	if (zaimoni::is_positive(x.lower())) return 1;
-	if (zaimoni::is_negative(x.upper())) return -1;
+template<class T>
+constexpr bool is_positive(const zaimoni::math::interval<T>& x)
+{
+	return 0 < x;
+}
+
+template<class T>
+constexpr bool is_negative(const zaimoni::math::interval<T>& x)
+{
+	return 0 > x;
+}
+
+template<class T>
+constexpr auto norm(const zaimoni::math::interval<T>& x)
+{
+	const auto l_norm = norm(x.lower());
+	const auto u_norm = norm(x.upper());
+	return l_norm < u_norm ? u_norm : l_norm;
+}
+
+template<class T> int sgn(const math::interval<T>& x) {
+	if (is_positive(x.lower())) return 1;
+	if (is_negative(x.upper())) return -1;
 	return 0;
 }
-
-template<class T> interval<T> square(const interval<T>& x) {
-	if (0 != sgn(x) || zaimoni::is_zero(x.lower()) || zaimoni::is_zero(x.upper())) return x * x;
-	const bool favor_ub = x.upper() >= x.lower();
-	interval<T> tmp(favor_ub ? T(0) : x.lower(), favor_ub ? x.upper() : -T(0));
-	return tmp * tmp;
-}
-
-} // namespace math
 
 // cmath
 template<class T> bool isNaN(const math::interval<T>& x)
@@ -464,6 +480,24 @@ constexpr zaimoni::math::interval<T> scalBn(const zaimoni::math::interval<T>& x,
 
 namespace math {
 
+template<class T>
+interval<T> interval<T>::hull(const T& x, const T& y)
+{
+	if (isNaN(x)) {
+		if (isNaN(y)) throw numeric_error("interval::hull cannot recover from double-NaN");
+		return interval<T>(y);
+	}
+	else if (isNaN(y)) return interval<T>(x);
+	return x <= y ? interval<T>(x, y) : interval<T>(y, x);
+}
+
+template<class T> interval<T> square(const interval<T>& x) {
+	if (0 != sgn(x) || is_zero(x.lower()) || is_zero(x.upper())) return x * x;
+	const bool favor_ub = x.upper() >= x.lower();
+	interval<T> tmp(favor_ub ? T(0) : x.lower(), favor_ub ? x.upper() : -T(0));
+	return tmp * tmp;
+}
+
 template<class T> interval<T> sqrt(const interval<T>& x) {
 	if (isNaN(x)) return x;
 	if (T(0) > x.lower()) throw numeric_error("interval sqrt domain error");
@@ -480,6 +514,21 @@ template<class T> interval<T> sqrt(const interval<T>& x) {
 		ub = sqrt(x.upper());
 	}
 	return interval<T>(lb, ub);
+}
+
+// build out floating point, etc. powers when needed
+// this is a "final evaluate", handle algebraic reduction elsewhere
+template<class T> interval<T> pow(const interval<T>& x, int e) {
+	if (isNaN(x)) return x;
+	if (0 == e) {
+		if (is_zero(x)) throw numeric_error("0^0 undefined without further guidance");
+		return 1.0;	// but if we have some sort of spread then we likely want the limit behavior which is 1
+	}
+	if (1 == e) return x;
+	if (-1 == e) return 1.0 / x;
+	if (0 == e % 2) return pow(square(x), e / 2);	// this catches 2's complement MIN_INT
+	if (0 > e) return pow(1.0 / x, -e);
+	return x * pow(square(x), e / 2);
 }
 
 } // namespace math
@@ -531,39 +580,6 @@ void INC_INFORM(const zaimoni::math::interval<T>& x)
 namespace zaimoni {
 // cmath and type_traits extensions go here so they are seen before they are used.  They exist in namespace zaimoni rather than namespace zaimoni::math
 // signBit is not here because it's hard to get right
-
-// type_traits
-template<class T>
-constexpr bool is_zero(const zaimoni::math::interval<T>& x)
-{
-	return 0==x;
-}
-
-template<class T>
-constexpr bool contains_zero(const zaimoni::math::interval<T>& x)
-{
-	return !is_positive(x.lower()) && !is_negative(x.upper());
-}
-
-template<class T>
-constexpr bool is_positive(const zaimoni::math::interval<T>& x)
-{
-	return 0<x;
-}
-
-template<class T>
-constexpr bool is_negative(const zaimoni::math::interval<T>& x)
-{
-	return 0>x;
-}
-
-template<class T>
-constexpr auto norm(const zaimoni::math::interval<T>& x)
-{ 
-	const auto l_norm = norm(x.lower());
-	const auto u_norm = norm(x.upper());
-	return l_norm < u_norm ? u_norm : l_norm;
-}
 
 namespace math {
 

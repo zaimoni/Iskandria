@@ -205,7 +205,7 @@ const fundamental_constants& solar_system_units()
 
 #ifdef TEST_APP
 // example build line
-// g++ -std=c++14 -oconstants.exe -D__STDC_LIMIT_MACROS -DTEST_APP constants.cpp
+// g++ -std=c++14 -oconstants.exe -D__STDC_LIMIT_MACROS -DTEST_APP constants.cpp -Llib\host.isk -lz_stdio_c -lz_log_adapter -lz_stdio_log -lz_format_util
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -217,19 +217,22 @@ const fundamental_constants& solar_system_units()
 #define STL_PTR_STRING_TO_STDOUT(A) fwrite((A)->data(),(A)->size(),1,stdout)
 
 #define INTERVAL_TO_STDOUT(A,UNIT)	\
-	if (A.lower()==A.upper()) {	\
-		sprintf(buf,"%.16g",A.lower());	\
+	{	\
+	const auto test = A;	\
+	if (test.lower()== test.upper()) {	\
+		sprintf(buf,"%.16g", test.lower());	\
 		C_STRING_TO_STDOUT(buf);	\
 		STRING_LITERAL_TO_STDOUT(UNIT);	\
 	} else {	\
 		STRING_LITERAL_TO_STDOUT("[");	\
-		sprintf(buf,"%.16g",A.lower());	\
+		sprintf(buf,"%.16g", test.lower());	\
 		C_STRING_TO_STDOUT(buf);	\
 		STRING_LITERAL_TO_STDOUT(", ");	\
-		sprintf(buf,"%.16g",A.upper());	\
+		sprintf(buf,"%.16g", test.upper());	\
 		C_STRING_TO_STDOUT(buf);	\
 		STRING_LITERAL_TO_STDOUT("]");	\
 		STRING_LITERAL_TO_STDOUT(UNIT);	\
+	}	\
 	}
 
 int main(int argc, char* argv[])
