@@ -7,7 +7,7 @@
 // #define CONSTANTS_ISK_INTERVAL 1
 
 #ifdef CONSTANTS_ISK_INTERVAL 
-#include <boost/numeric/interval.hpp>
+#include "interval.hpp"
 #else
 #include <boost/numeric/interval.hpp>
 #endif
@@ -16,7 +16,7 @@
 class fundamental_constants {
 public:
 #ifdef CONSTANTS_ISK_INTERVAL 
-	typedef boost::numeric::interval<double> interval;
+	typedef zaimoni::math::interval<double> interval;
 #else
 	typedef boost::numeric::interval<double> interval;
 #endif

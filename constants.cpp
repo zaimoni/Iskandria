@@ -28,9 +28,9 @@ fundamental_constants::fundamental_constants()
 {
 }
 
-void fundamental_constants::mult_scale_distance(boost::numeric::interval<double> x)
+void fundamental_constants::mult_scale_distance(interval x)
 {
-	const boost::numeric::interval<double> x2(square(x));
+	const interval x2(square(x));
 	distance_unit /= x;
 	c *= x;
 	G *= x;
@@ -39,9 +39,9 @@ void fundamental_constants::mult_scale_distance(boost::numeric::interval<double>
 	h_bar *= x2;
 }
 
-void fundamental_constants::div_scale_distance(boost::numeric::interval<double> x)
+void fundamental_constants::div_scale_distance(interval x)
 {
-	const boost::numeric::interval<double> x2(square(x));
+	const interval x2(square(x));
 	distance_unit *= x;
 	c /= x;
 	G /= x;
@@ -50,9 +50,9 @@ void fundamental_constants::div_scale_distance(boost::numeric::interval<double> 
 	h_bar /= x2;
 }
 
-void fundamental_constants::mult_scale_time(boost::numeric::interval<double> x)
+void fundamental_constants::mult_scale_time(interval x)
 {
-	const boost::numeric::interval<double> x2(square(x));
+	const interval x2(square(x));
 	time_unit /= x;
 	c /= x;
 	G /= x2;
@@ -60,9 +60,9 @@ void fundamental_constants::mult_scale_time(boost::numeric::interval<double> x)
 	h_bar /= x;
 }
 
-void fundamental_constants::div_scale_time(boost::numeric::interval<double> x)
+void fundamental_constants::div_scale_time(interval x)
 {
-	const boost::numeric::interval<double> x2(square(x));
+	const interval x2(square(x));
 	time_unit *= x;
 	c *= x;
 	G *= x2;
@@ -70,7 +70,7 @@ void fundamental_constants::div_scale_time(boost::numeric::interval<double> x)
 	h_bar *= x;
 }
 
-void fundamental_constants::mult_scale_mass(boost::numeric::interval<double> x)
+void fundamental_constants::mult_scale_mass(interval x)
 {
 	mass_unit /= x;
 	G /= x;
@@ -78,7 +78,7 @@ void fundamental_constants::mult_scale_mass(boost::numeric::interval<double> x)
 	h_bar *= x;
 }
 
-void fundamental_constants::div_scale_mass(boost::numeric::interval<double> x)
+void fundamental_constants::div_scale_mass(interval x)
 {
 	mass_unit *= x;
 	G *= x;
@@ -86,13 +86,13 @@ void fundamental_constants::div_scale_mass(boost::numeric::interval<double> x)
 	h_bar /= x;
 }
 
-void fundamental_constants::mult_scale_temperature(boost::numeric::interval<double> x)
+void fundamental_constants::mult_scale_temperature(interval x)
 {
 	temperature_unit /= x;
 	k /= x;
 }
 
-void fundamental_constants::div_scale_temperature(boost::numeric::interval<double> x)
+void fundamental_constants::div_scale_temperature(interval x)
 {
 	temperature_unit *= x;
 	k *= x;
@@ -282,19 +282,19 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(geometrized_units().mass_unit," kg\n");
 	INTERVAL_TO_STDOUT(geometrized_units().temperature_unit," K\n");
 
-	const boost::numeric::interval<double> geo_dist_squared = SI_units().G*SI_units().h_bar/(SI_units().c*square(SI_units().c));
+	const fundamental_constants::interval geo_dist_squared = SI_units().G*SI_units().h_bar/(SI_units().c*square(SI_units().c));
 	STRING_LITERAL_TO_STDOUT("\nGeometrized distance unit squared\n");
 	INTERVAL_TO_STDOUT(geo_dist_squared," m^2\n");
 
-	const boost::numeric::interval<double> geo_time_squared = geo_dist_squared/square(SI_units().c);
+	const fundamental_constants::interval geo_time_squared = geo_dist_squared/square(SI_units().c);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized time unit squared\n");
 	INTERVAL_TO_STDOUT(geo_time_squared," s^2\n");
 
-	const boost::numeric::interval<double> geo_mass_squared = SI_units().h_bar*SI_units().c/SI_units().G;
+	const fundamental_constants::interval geo_mass_squared = SI_units().h_bar*SI_units().c/SI_units().G;
 	STRING_LITERAL_TO_STDOUT("\nGeometrized mass unit squared\n");
 	INTERVAL_TO_STDOUT(geo_mass_squared," kg^2\n");
 
-	const boost::numeric::interval<double> geo_temperature = square(SI_units().c)/SI_units().k*sqrt(geo_mass_squared);
+	const fundamental_constants::interval geo_temperature = square(SI_units().c)/SI_units().k*sqrt(geo_mass_squared);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized temperature unit squared\n");
 	INTERVAL_TO_STDOUT(geo_temperature," K\n");
 

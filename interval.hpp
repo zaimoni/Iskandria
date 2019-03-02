@@ -670,11 +670,11 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 			} else if (is_positive(rhs._ub)) {
 				bits::round_set<T>(FE_DOWNWARD);
 				_lb *= rhs._ub;
-				return this;
+				return *this;
 			} else {
 				bits::round_set<T>(FE_UPWARD);
 				assign(-_ub, _lb*rhs._lb);
-				return this;
+				return *this;
 			}
 		} else if (isINF(rhs._ub)) {
 			if (isINF(rhs._lb)) return (*this = rhs);	// entire real number line
@@ -695,11 +695,11 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 			} else if (is_positive(_ub)) {
 				bits::round_set<T>(FE_DOWNWARD);
 				assign(rhs._lb*_ub, rhs._ub);
-				return this;
+				return *this;
 			} else {
 				bits::round_set<T>(FE_UPWARD);
 				assign(-rhs._ub, rhs._lb*_lb);
-				return this;
+				return *this;
 			}
 		} else if (isINF(_lb)) {
 			if (is_negative(rhs._lb) && is_positive(rhs._ub)) {
@@ -725,11 +725,11 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 			} else if (is_negative(rhs._lb)) {
 				bits::round_set<T>(FE_UPWARD);
 				_ub *= rhs._lb;
-				return this;
+				return *this;
 			} else {
 				bits::round_set<T>(FE_DOWNWARD);
 				assign(_ub*rhs._ub, -_lb);
-				return this;
+				return *this;
 			}
 		} else if (isINF(rhs._lb)) {
 			if (is_negative(_lb) && is_positive(_ub)) {
@@ -748,11 +748,11 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 			} else if (is_negative(_lb)) {
 				bits::round_set<T>(FE_UPWARD);
 				assign(rhs._lb, rhs._ub*_lb);
-				return this;
+				return *this;
 			} else {
 				bits::round_set<T>(FE_DOWNWARD);
 				assign(rhs._ub*_ub, -rhs._lb);
-				return this;
+				return *this;
 			}
 		}
 		// everything finite now
