@@ -11,7 +11,7 @@ namespace zaimoni {
 // replicate efficient function declaration types from Boost
 template<class T> struct const_param
 {
-	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , const T , const T& >::type type;
+	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , const T , typename std::add_lvalue_reference<const T>::type >::type type;
 };
 
 template<class T> struct return_copy

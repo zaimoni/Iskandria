@@ -205,7 +205,7 @@ const fundamental_constants& solar_system_units()
 
 #ifdef TEST_APP
 // example build line
-// g++ -oconstants.exe -DTEST_APP constants.cpp
+// g++ -std=c++14 -oconstants.exe -D__STDC_LIMIT_MACROS -DTEST_APP constants.cpp
 
 #include <stdlib.h>
 #include <stdio.h>

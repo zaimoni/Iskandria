@@ -25,6 +25,22 @@ template<class T> class trivial;
 namespace bits {
 
 template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, int>::type
+round_get() { return fegetround(); }
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value, int>::type
+round_get() {return FE_TONEAREST;}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, void>::type
+round_set(int mode) { fesetround(mode); }
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value, void>::type
+round_set(int mode) {}
+
+template<class T>
 typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value ,int>::type rearrange_sum(T& lhs, T& rhs)
 {
 	if (std::numeric_limits<T>::max() <= lhs) return 0;
@@ -272,8 +288,8 @@ private:
 public:
 	constexpr interval() = default;
 	constexpr interval(const interval& src) = default;
-	constexpr interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
-	constexpr interval(const T& l, const T& u) : _lb(l), _ub(u) {}
+	interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
+	interval(const T& l, const T& u) : _lb(l), _ub(u) {}
 	template<class T1> constexpr interval(const interval<T1> &src) : _lb(src._lb), _ub(src._ub) {}
 
 	interval& operator=(const interval& src) = default;
@@ -296,7 +312,7 @@ public:
 	interval operator-() { return interval(-_ub,-_lb);  };
 
 	// operator==(interval,interval) doesn't work as expected
-	bool contains(typename const_param<T>::type s) { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
+	bool contains(const T& s) { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
 
 	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
 	interval& operator+= (const interval& rhs);
@@ -405,7 +421,7 @@ interval<T> interval<T>::hull(const T& x, const T& y)
 	return x <= y ? interval<T>(x, y) : interval<T>(y, x);
 }
 
-template<class T> bool is_zero(const interval<T>& x) { return is_zero(x.lower() && is_zero(x.upper()); }
+// template<class T> bool is_zero(const interval<T>& x) { return is_zero(x.lower() && is_zero(x.upper()); }
 
 template<class T> int sgn(const interval<T>& x) { 
 	if (zaimoni::is_positive(x.lower())) return 1;
@@ -415,13 +431,72 @@ template<class T> int sgn(const interval<T>& x) {
 
 template<class T> interval<T> square(const interval<T>& x) {
 	if (0 != sgn(x) || zaimoni::is_zero(x.lower()) || zaimoni::is_zero(x.upper())) return x * x;
-	const bool favor_ub = x.upper() >= x.lower()
+	const bool favor_ub = x.upper() >= x.lower();
 	interval<T> tmp(favor_ub ? T(0) : x.lower(), favor_ub ? x.upper() : -T(0));
 	return tmp * tmp;
 }
 
 } // namespace math
+
+// cmath
+template<class T> bool isNaN(const math::interval<T>& x)
+{
+	return isNaN(x.lower()) || isNaN(x.upper());
+}
+
+template<class T>
+constexpr bool isINF(const zaimoni::math::interval<T>& x)
+{
+	return isINF(x.lower()) && isINF(x.upper()) && signBit(x.lower()) == signBit(x.upper());	// we do want numeric intervals of numeric intervals to be a compiler error
+}
+
+template<class T>
+constexpr bool isFinite(const zaimoni::math::interval<T>& x)
+{
+	return isFinite(x.lower()) && isFinite(x.upper());
+}
+
+template<class T>
+constexpr zaimoni::math::interval<T> scalBn(const zaimoni::math::interval<T>& x, int scale)
+{
+	return zaimoni::math::interval<T>(scalBn(x.lower(), scale), scalBn(x.upper(), scale));
+}
+
+namespace math {
+
+template<class T> interval<T> sqrt(const interval<T>& x) {
+	if (isNaN(x)) return x;
+	if (T(0) > x.lower()) throw numeric_error("interval sqrt domain error");
+	if (is_zero(x.upper())) return 0.0;
+	if (isINF(x.lower())) return std::numeric_limits<T>::infinity();
+	T lb(0);
+	T ub(std::numeric_limits<T>::infinity());
+	if (!is_zero(x.lower())) {
+		bits::round_set<T>(FE_DOWNWARD);
+		lb = sqrt(x.lower());
+	}
+	if (!isINF(x.upper())) {
+		bits::round_set<T>(FE_UPWARD);
+		ub = sqrt(x.upper());
+	}
+	return interval<T>(lb, ub);
+}
+
+} // namespace math
+
 } // namespace zaimoni
+
+template<class T>
+zaimoni::math::interval<T> intersect(const zaimoni::math::interval<T>& x, const zaimoni::math::interval<T>& y)
+{
+	if (zaimoni::isNaN(x)) {
+		if (zaimoni::isNaN(y)) throw zaimoni::math::numeric_error("interval::intersect cannot recover from double-NaN");
+		return y;
+	}
+	else if (zaimoni::isNaN(y)) return x;
+	if (x.lower() > y.upper() || y.lower() > x.upper()) return zaimoni::math::interval<T>::empty();
+	return zaimoni::math::interval<T>(x.lower() < y.lower() ? y.lower() : x.lower(), x.upper() < y.upper() ? x.upper() : y.upper());
+}
 
 // Logging.h support -- outside of namespace to match Logging.h
 
@@ -490,50 +565,10 @@ constexpr auto norm(const zaimoni::math::interval<T>& x)
 	return l_norm < u_norm ? u_norm : l_norm;
 }
 
-// cmath
-template<class T>
-constexpr bool isINF(const zaimoni::math::interval<T>& x)
-{
-	return isINF(x.lower()) && isINF(x.upper()) && signBit(x.lower())== signBit(x.upper());	// we do want numeric intervals of numeric intervals to be a compiler error
-}
-
-template<class T>
-constexpr bool isFinite(const zaimoni::math::interval<T>& x)
-{
-	return isFinite(x.lower()) && isFinite(x.upper());
-}
-
-template<class T>
-constexpr bool isNaN(const zaimoni::math::interval<T>& x)
-{
-	return isNaN(x.lower()) || isNaN(x.upper()) || x.lower()>x.upper();	// we count empty as NaN for arithmetic purposes.  It would be ok for set-theoretic purposes.
-}
-
-template<class T>
-constexpr zaimoni::math::interval<T> scalBn(const zaimoni::math::interval<T>& x, int scale)
-{
-	return zaimoni::math::interval<T>(scalBn(x.lower(),scale),scalBn(x.upper(),scale));
-}
-
 namespace math {
 
 // fe rounding mode adjustments are not thread-safe; will need a static lock for that
 namespace bits {
-	template<class T>
-	typename std::enable_if<std::is_floating_point<T>::value, int>::type
-	round_get() { return fegetround(); }
-
-	template<class T>
-	typename std::enable_if<std::is_integral<T>::value, int>::type
-	round_get() {return FE_TONEAREST;}
-
-	template<class T>
-	typename std::enable_if<std::is_floating_point<T>::value, void>::type
-	round_set(int mode) { fesetround(mode); }
-
-	template<class T>
-	typename std::enable_if<std::is_integral<T>::value, void>::type
-	round_set(int mode) {}
 
 	template<class T>
 	void op_add_assign(T& lhs, const T& rhs, int mode) {
@@ -626,7 +661,7 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 		_ub *= rhs._lb;
 		return *this;
 	case 3:		// + * contains 0
-		if (zaimoni::isINF(lower())) throw numeric_error("*: NaN");
+		if (isINF(lower())) throw numeric_error("*: NaN");
 		if (is_zero(rhs)) return (*this = T(0));	// XXX \todo not quite right as sign of zero would matter for floating-point
 		bits::round_set<T>(FE_DOWNWARD);
 		_lb = _ub * rhs._lb;
@@ -634,7 +669,7 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 		_ub *= rhs._ub;
 		return *this;
 	case -3:	// - * contains 0
-		if (zaimoni::isINF(upper())) throw numeric_error("*: NaN");
+		if (isINF(upper())) throw numeric_error("*: NaN");
 		if (is_zero(rhs)) return (*this = T(0));	// XXX \todo not quite right as sign of zero would matter for floating-point
 		bits::round_set<T>(FE_UPWARD);
 		_ub = rhs._lb*_lb;
@@ -642,7 +677,7 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 		_lb *= rhs._ub;
 		return *this;
 	case 1:		// contains 0 * +
-		if (zaimoni::isINF(rhs.lower())) throw numeric_error("*: NaN");
+		if (isINF(rhs.lower())) throw numeric_error("*: NaN");
 		if (is_zero(*this)) return *this;
 		bits::round_set<T>(FE_DOWNWARD);
 		_lb *= rhs._ub;
@@ -650,7 +685,7 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 		_ub *= rhs._ub;
 		return *this;
 	case -1:	// contains 0 * -
-		if (zaimoni::isINF(rhs.upper())) throw numeric_error("*: NaN");
+		if (isINF(rhs.upper())) throw numeric_error("*: NaN");
 		if (is_zero(*this)) return *this;	// XXX \todo not quite right as sign of zero would matter for floating-point
 		bits::round_set<T>(FE_DOWNWARD);
 		{
@@ -663,30 +698,30 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 		if (is_zero(*this)) return *this;	// XXX \todo not quite right as sign of zero would matter for floating-point
 		if (is_zero(rhs)) return (*this = T(0));	// XXX \todo not quite right as sign of zero would matter for floating-point
 		// unfortunately, we have to account for topological rays containing zero: these can generate naive 0*infinity which is disallowed
-		if (zaimoni::isINF(_ub)) {
-			if (zaimoni::isINF(_lb)) return *this;	// entire real number line
-			if (zaimoni::is_negative(rhs._lb) && zaimoni::is_positive(rhs._ub)) {
+		if (isINF(_ub)) {
+			if (isINF(_lb)) return *this;	// entire real number line
+			if (is_negative(rhs._lb) && is_positive(rhs._ub)) {
 				_lb = -_ub;
 				return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 			}
-			if (zaimoni::isINF(rhs._ub)) {
-				if (zaimoni::isINF(rhs._lb)) return (*this = rhs);	// entire real number line
-				if (zaimoni::is_negative(_lb)) {
+			if (isINF(rhs._ub)) {
+				if (isINF(rhs._lb)) return (*this = rhs);	// entire real number line
+				if (is_negative(_lb)) {
 					_lb = -_ub;
 					return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 				}
 				return *this;	// [0,infinity)*[0,infinity) is ok
 			}
 			// [..., infinity]*[0,finite] or [finite,0]
-			if (!zaimoni::is_negative(_lb)) {	// non-negative lower bound just gets mapped to 0, infinity
-				if (zaimoni::is_positive(rhs._ub)) {
+			if (!is_negative(_lb)) {	// non-negative lower bound just gets mapped to 0, infinity
+				if (is_positive(rhs._ub)) {
 					_lb = 0;
 					return *this;
 				} else {
 					assign(-_ub, 0);
 					return *this;
 				}
-			} else if (zaimoni::is_positive(rhs._ub)) {
+			} else if (is_positive(rhs._ub)) {
 				bits::round_set<T>(FE_DOWNWARD);
 				_lb *= rhs._ub;
 				return *this;
@@ -695,23 +730,23 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 				assign(-_ub, _lb*rhs._lb);
 				return *this;
 			}
-		} else if (zaimoni::isINF(rhs._ub)) {
-			if (zaimoni::isINF(rhs._lb)) return (*this = rhs);	// entire real number line
-			if (zaimoni::is_negative(_lb) && zaimoni::is_positive(_ub)) {
+		} else if (isINF(rhs._ub)) {
+			if (isINF(rhs._lb)) return (*this = rhs);	// entire real number line
+			if (is_negative(_lb) && is_positive(_ub)) {
 				assign(-rhs._ub, rhs._ub);
 				return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 			}
 
 			// [..., infinity]*[0,finite] or [finite,0]
-			if (!zaimoni::is_negative(rhs._lb)) {	// non-negative lower bound just gets mapped to 0, infinity
-				if (zaimoni::is_positive(_ub)) {
+			if (!is_negative(rhs._lb)) {	// non-negative lower bound just gets mapped to 0, infinity
+				if (is_positive(_ub)) {
 					assign(0, rhs._ub);
 					return *this;
 				} else {
 					assign(-rhs._ub, 0);
 					return *this;
 				}
-			} else if (zaimoni::is_positive(_ub)) {
+			} else if (is_positive(_ub)) {
 				bits::round_set<T>(FE_DOWNWARD);
 				assign(rhs._lb*_ub, rhs._ub);
 				return *this;
@@ -720,28 +755,28 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 				assign(-rhs._ub, rhs._lb*_lb);
 				return *this;
 			}
-		} else if (zaimoni::isINF(_lb)) {
-			if (zaimoni::is_negative(rhs._lb) && zaimoni::is_positive(rhs._ub)) {
+		} else if (isINF(_lb)) {
+			if (is_negative(rhs._lb) && is_positive(rhs._ub)) {
 				_ub = -_lb;
 				return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 			}
-			if (zaimoni::isINF(rhs._lb)) {
-				if (zaimoni::is_positive(_ub)) {
+			if (isINF(rhs._lb)) {
+				if (is_positive(_ub)) {
 					_ub = -_lb;
 					return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 				}
 				return *this;	// [0,infinity)*[0,infinity) is ok
 			}
 			// [-infinity,...]*[0,finite] or [finite,0]
-			if (!zaimoni::is_positive(_ub)) {	// non-negative lower bound just gets mapped to 0, infinity
-				if (zaimoni::is_negative(rhs._lb)) {
+			if (!is_positive(_ub)) {	// non-negative lower bound just gets mapped to 0, infinity
+				if (is_negative(rhs._lb)) {
 					_ub = 0;
 					return *this;
 				} else {
 					assign(0, -_lb);
 					return *this;
 				}
-			} else if (zaimoni::is_negative(rhs._lb)) {
+			} else if (is_negative(rhs._lb)) {
 				bits::round_set<T>(FE_UPWARD);
 				_ub *= rhs._lb;
 				return *this;
@@ -750,14 +785,14 @@ interval<T>& interval<T>::operator*=(const interval<T>& rhs)
 				assign(_ub*rhs._ub, -_lb);
 				return *this;
 			}
-		} else if (zaimoni::isINF(rhs._lb)) {
-			if (zaimoni::is_negative(_lb) && zaimoni::is_positive(_ub)) {
+		} else if (isINF(rhs._lb)) {
+			if (is_negative(_lb) && is_positive(_ub)) {
 				assign(rhs._lb, -rhs._lb);
 				return *this;	// again, entire real number line.  This is not a throw since we are in R rather than R#: a multiply by exactly zero will restore precision.
 			}
 			// [0,finite] or [finite,0]*[-infinity,...]
-			if (!zaimoni::is_positive(rhs._ub)) {	// non-negative lower bound just gets mapped to 0, infinity
-				if (zaimoni::is_negative(_lb)) {
+			if (!is_positive(rhs._ub)) {	// non-negative lower bound just gets mapped to 0, infinity
+				if (is_negative(_lb)) {
 					assign(rhs._lb, 0);
 					return *this;
 				} else {
@@ -799,7 +834,7 @@ interval<T>& interval<T>::operator/=(const interval<T>& rhs)
 	case -3:
 	case 0:
 	case 3:	// division by zero risk.
-		if (!zaimoni::is_positive(rhs._lb) && !zaimoni::is_negative(rhs._ub)) throw numeric_error("/: division by zero");	// a zero-endpoint is handled by mapping to infinity.
+		if (!is_positive(rhs._lb) && !is_negative(rhs._ub)) throw numeric_error("/: division by zero");	// a zero-endpoint is handled by mapping to infinity.
 		if (!std::numeric_limits<T>::has_infinity) _fatal_code("/= : type needs infinity but doesn't have it", 3);
 	}
 	switch (sign_code)
@@ -848,7 +883,7 @@ interval<T>& interval<T>::operator/=(const interval<T>& rhs)
 		return *this;
 	}
 	// sign_code is one of -3, 0, or 3 at this point; rhs contains zero but survived the divide-by-zero trap
-	const int rhs_zero_code = zaimoni::is_zero(rhs._ub) - zaimoni::is_zero(rhs._lb);	// -1 for zero lower bound, 1 for zero upper bound; otherwise ideally would hard-error
+	const int rhs_zero_code = is_zero(rhs._ub) - is_zero(rhs._lb);	// -1 for zero lower bound, 1 for zero upper bound; otherwise ideally would hard-error
 	switch (sign_code + rhs_zero_code)
 	{
 	case 4:	// +/[0,...]
@@ -860,7 +895,7 @@ interval<T>& interval<T>::operator/=(const interval<T>& rhs)
 		bits::round_set<T>(FE_UPWARD);
 		assign(-std::numeric_limits<T>::infinity(), _lb/rhs._lb);
 		return *this;
-	case 2:	// -/[0,...]
+	case -2:	// -/[0,...]
 		_lb = -std::numeric_limits<T>::infinity();
 		bits::round_set<T>(FE_UPWARD);
 		_ub /= rhs._ub;
@@ -871,7 +906,7 @@ interval<T>& interval<T>::operator/=(const interval<T>& rhs)
 		return *this;
 	}
 	if (is_zero(*this)) return *this;	// not quite correct (doesn't handle negative zero); could be much earlier except this is a special case
-	const int lhs_zero_code = 3*(zaimoni::is_zero(_ub) - zaimoni::is_zero(_lb));	// -3 for zero lower bound, 3 for zero upper bound; 0 is "contains zero"
+	const int lhs_zero_code = 3*(is_zero(_ub) - is_zero(_lb));	// -3 for zero lower bound, 3 for zero upper bound; 0 is "contains zero"
 	switch (lhs_zero_code + rhs_zero_code)
 	{
 	case -1:
