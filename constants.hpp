@@ -21,6 +21,9 @@ public:
 	typedef boost::numeric::interval<double> interval;
 #endif
 
+	// conversion factors
+	static const interval N_A;	// Avogadro constant
+
 	// dimensionless constants
 	static const interval inv_alpha;	// inverse fine structure constant
 	static const interval alpha;	// fine structure constant
@@ -38,6 +41,15 @@ public:
 	interval k;	// Boltzmann constant
 	// No source for this; equates General Relatvity momentum and Quantum Mechanics momentum.
 	interval h_bar;	// Planck constant/2pi
+
+	// following are from atomic units
+//	interval m_e;	// electron rest mass
+//	interval Q_e;	// electron charge
+//	interval k_e;	// colouub force constant
+
+//	vacuum permeability := (2*fine_structure_constant/electron_charge^2) * (planck_constant/c) i.e. magnetic constant
+//	we have by construction (Maxwell equations) vacuum permititivity*vacuum permeability = 1/c^2
+//  so vacuum permittivity := electron_charge^2/(2 fine structure constant planck_constant c) i.e. electric constant
 
 	fundamental_constants();	// default-constructs to SI units.
 

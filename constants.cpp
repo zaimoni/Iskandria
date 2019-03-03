@@ -4,11 +4,16 @@
 
 // interval entries down at +/1 standard deviation [sic]
 
-const fundamental_constants::interval fundamental_constants::inv_alpha(137.035999108, 137.035999170);
+const fundamental_constants::interval fundamental_constants::N_A(6.022140787e23, 6.022140931e23);	// CODATA 2014; mol^-1
+// const fundamental_constants::interval fundamental_constants::N_A(6.02214076e23);	// CODATA 2019
+
+const fundamental_constants::interval fundamental_constants::inv_alpha(137.035999108, 137.035999170);	// CODATA 2014
 const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
+
+#define SI_CODATA_CS133_HYPERFINE_HZ 9192631770.0
 
 #define SI_TO_CGS_DISTANCE_SCALE 100.0
 
@@ -23,8 +28,10 @@ fundamental_constants::fundamental_constants()
 	G(6.67377e-11,6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
 //	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
 	k(1.38064773e-23,1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
+//	k(1.380649e-23);	//	CODATA 2019
 //	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
 	h_bar(1.054571787e-34,1.054571813e-34)	// CODATA 2014; J s i.e. m^2 kg s^-1
+//	h_bar(interval(6.62607015e-34)/interval(2*M_PI))	// CODATA 2019
 {
 }
 
