@@ -42,14 +42,18 @@ public:
 	// No source for this; equates General Relatvity momentum and Quantum Mechanics momentum.
 	interval h_bar;	// Planck constant/2pi
 
+#if 0
 	// following are from atomic units
-//	interval m_e;	// electron rest mass
-//	interval Q_e;	// electron charge
-//	interval k_e;	// colouub force constant
+	interval m_e;	// electron rest mass
+	interval Q_e;	// electron charge
+//	interval k_e;	// coloumb force constant; 1/(4pi permittivity of free space)
 
 //	vacuum permeability := (2*fine_structure_constant/electron_charge^2) * (planck_constant/c) i.e. magnetic constant
 //	we have by construction (Maxwell equations) vacuum permititivity*vacuum permeability = 1/c^2
 //  so vacuum permittivity := electron_charge^2/(2 fine structure constant planck_constant c) i.e. electric constant
+	interval mu_0;	// permeability of free space; magnetic constant
+	interval epsilon_0;	// permittivity of free space; electric constant
+#endif
 
 	fundamental_constants();	// default-constructs to SI units.
 

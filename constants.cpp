@@ -29,9 +29,20 @@ fundamental_constants::fundamental_constants()
 //	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
 	k(1.38064773e-23,1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
 //	k(1.380649e-23);	//	CODATA 2019
+#if 0
+//	h_bar(1.054571679e-34,1.054571773e-34),	// CODATA 2010; J s i.e. m^2 kg s^-1
+	h_bar(1.054571787e-34,1.054571813e-34),	// CODATA 2014; J s i.e. m^2 kg s^-1
+//	h_bar(interval(6.62607015e-34)/interval(2*M_PI)),	// CODATA 2019 (h definition)
+	m_e(9.10938345e-31, 9.10938367e-31),	// CODATA 2014; kg
+	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C
+//	Q_e(1.602176634e-19)	// CODATA 2019 (definition); C
+	mu_0(4e-7*M_PI),	// CODATA 2014; Ampere definition implies 4pi*10^-7 H/m i.e. N A^-2
+	epsilon_0(1.0/(mu_0*square(c)))			// mu_0*epsilon_0 = c^-2 from Maxwell equations; F/m
+#else
 //	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
 	h_bar(1.054571787e-34,1.054571813e-34)	// CODATA 2014; J s i.e. m^2 kg s^-1
-//	h_bar(interval(6.62607015e-34)/interval(2*M_PI))	// CODATA 2019
+//	h_bar(interval(6.62607015e-34)/interval(2*M_PI))	// CODATA 2019 (h definition)
+#endif
 {
 }
 
