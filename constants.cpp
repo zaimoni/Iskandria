@@ -23,6 +23,7 @@ fundamental_constants::fundamental_constants()
 	time_unit(1.0),
 	mass_unit(1.0),
 	temperature_unit(1.0),
+	charge_unit(1.0),
  	c(299792458.0),	// CODATA 2010/2014; m/s
 //	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
 	G(6.67377e-11,6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
@@ -116,6 +117,17 @@ void fundamental_constants::div_scale_temperature(interval x)
 	k *= x;
 }
 
+void fundamental_constants::mult_scale_charge(interval x)
+{
+	charge_unit /= x;
+}
+
+void fundamental_constants::div_scale_charge(interval x)
+{
+	charge_unit *= x;
+}
+
+
 void fundamental_constants::geometrize()
 {
 /*
@@ -169,6 +181,12 @@ void fundamental_constants::geometrize()
 	G = 1.0;
 	k = 1.0;
 	h_bar = 1.0;
+
+	// we do not include electric charge in geometrization because there is no valid consensus: 
+	// lore is that one must choose between a clean force law, and the electron having unit electric charge.
+	// this policy can be changed once some test cases are available.
+	// note that a clean force law equates elecrostatic and electromagnetic charge units (cf CGS vs MKS issues)
+	// so maybe the problem can be shoved into epsilon_0?
 }
 
 const fundamental_constants& SI_units()
@@ -186,6 +204,10 @@ const fundamental_constants& CGS_units()
 	x = new fundamental_constants();
 	x->mult_scale_distance(100.0);	// 100 cm to 1 m
 	x->mult_scale_mass(1000.0);	// 1000 g to 1 kg
+	// CGS unit of charge does not have same dimensionality as MKS and geometrized systems.  Following is the electrostatic conversion to statcoulombs
+	x->mult_scale_charge(10*SI_CODATA_C);	// mass^1/2 length^3/2 time^-1 (!) due force law F = q1q2/r^2 rather than F = q1q1/[4pi epsilon_0 r^2]
+	// electromagnetic version has an extra factor of 4pi; same dimensionality, however
+	// The electrostatic conversion is exact only when epsilon_0 is an exact constant by construction (CODATA 2014-).
 	return *x;
 }
 

@@ -33,6 +33,7 @@ public:
 	interval time_unit;	// in seconds
 	interval mass_unit;	// in kilograms
 	interval temperature_unit;	// in kelvin
+	interval charge_unit;	// in coulomb
 
 	// these four are the geometrizable constants: set all four to 1 to uniquely solve the above units.
 	// These three are from Misner/Thorne/Wheeler
@@ -65,6 +66,8 @@ public:
 	void div_scale_mass(interval x);
 	void mult_scale_temperature(interval x);
 	void div_scale_temperature(interval x);
+	void mult_scale_charge(interval x);
+	void div_scale_charge(interval x);
 	void geometrize();
 };
 
