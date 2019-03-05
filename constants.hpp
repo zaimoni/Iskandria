@@ -12,6 +12,8 @@
 #include <boost/numeric/interval.hpp>
 #endif
 
+// This class does not directly reach the savefile.
+
 // SI values are to be imported from CODATA
 class fundamental_constants {
 public:
@@ -20,6 +22,15 @@ public:
 #else
 	typedef boost::numeric::interval<double> interval;
 #endif
+
+	enum units : unsigned char {	// solar system would be reconstructed from savefile as a postprocessing stage to MKS
+		MKS = 0,
+		CGS,
+		PLANCK
+	};
+	enum { SYSTEMS_COUNT = PLANCK+1 };
+
+	static const fundamental_constants& get(units src);
 
 	// conversion factors
 	static const interval N_A;	// Avogadro constant
@@ -31,7 +42,7 @@ public:
 	// tracking representative units
 	interval distance_unit;	// in meters
 	interval time_unit;	// in seconds
-	interval mass_unit;	// in kilograms
+	interval mass_unit;	// in kilograms; problematic for solar system units due to overprecision of the Sun's GM
 	interval temperature_unit;	// in kelvin
 	interval charge_unit;	// in coulomb
 

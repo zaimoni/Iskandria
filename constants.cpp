@@ -1,6 +1,7 @@
 // constants.cpp
 
 #include "constants.hpp"
+#include "Zaimoni.STL/Logging.h"
 
 // interval entries down at +/1 standard deviation [sic]
 
@@ -241,6 +242,17 @@ const fundamental_constants& solar_system_units()
 	x->div_scale_time(86400*365.25636);	// sidereal year, quasar reference frame
 	x->div_scale_mass(fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G);
 	return *x;
+}
+
+const fundamental_constants& fundamental_constants::get(units src)
+{
+	switch (src)
+	{
+	case MKS: return SI_units();
+	case CGS: return CGS_units();
+	case PLANCK: return geometrized_units();
+	default: _fatal_code("unhandled unit system code", 3);
+	}
 }
 
 #ifdef TEST_APP
