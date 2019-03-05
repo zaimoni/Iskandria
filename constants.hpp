@@ -36,6 +36,8 @@ public:
 	static const interval N_A;	// Avogadro constant
 
 	// dimensionless constants
+	static const interval pi;	// pi is not really a physical constant, but it shows up a lot and the math.h define is a point estimate
+
 	static const interval inv_alpha;	// inverse fine structure constant
 	static const interval alpha;	// fine structure constant
 

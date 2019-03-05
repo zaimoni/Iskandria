@@ -3,13 +3,22 @@
 #include "constants.hpp"
 #include "Zaimoni.STL/Logging.h"
 
+#include <cmath>	// do not need augmentations here
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // interval entries down at +/1 standard deviation [sic]
 
 const fundamental_constants::interval fundamental_constants::N_A(6.022140787e23, 6.022140931e23);	// CODATA 2014; mol^-1
 // const fundamental_constants::interval fundamental_constants::N_A(6.02214076e23);	// CODATA 2019
 
+// pi is not really a physical constant, but it is pervasive and the math.h define is a point estimate
+const fundamental_constants::interval fundamental_constants::pi(M_PI, nextafter(M_PI,4));	// CRC Handbook says floating point representation of M_PI is "low"; this brackets
+
 const fundamental_constants::interval fundamental_constants::inv_alpha(137.035999108, 137.035999170);	// CODATA 2014
-const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);
+const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);	// electron-charge^2/[(4pi epsilon_0 h-bar c]
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -39,7 +48,7 @@ fundamental_constants::fundamental_constants()
 	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C
 //	Q_e(1.602176634e-19)	// CODATA 2019 (definition); C
 	mu_0(4e-7*M_PI),	// CODATA 2014; Ampere definition implies 4pi*10^-7 H/m i.e. N A^-2
-	epsilon_0(1.0/(mu_0*square(c)))			// mu_0*epsilon_0 = c^-2 from Maxwell equations; F/m
+	epsilon_0(1.0/(mu_0*square(c)))			// mu_0*epsilon_0 = c^-2 from Maxwell equations; F/m; F := s^4 A^2 m^-2 kg^-1; alternately s^2/H
 #else
 //	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
 	h_bar(1.054571787e-34,1.054571813e-34)	// CODATA 2014; J s i.e. m^2 kg s^-1
@@ -301,7 +310,10 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(1.0/fundamental_constants::inv_alpha, "\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::alpha, "\n");
 
-	STRING_LITERAL_TO_STDOUT("speed of light\n");
+	STRING_LITERAL_TO_STDOUT("\npi\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::pi, " \n");
+
+	STRING_LITERAL_TO_STDOUT("\nspeed of light\n");
 	INTERVAL_TO_STDOUT(SI_units().c," m/s\n");
 	INTERVAL_TO_STDOUT(CGS_units().c," cm/s\n");
 	INTERVAL_TO_STDOUT(geometrized_units().c," geometrized distance/time\n");
