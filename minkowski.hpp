@@ -16,6 +16,8 @@ public:
 	typedef fundamental_constants::interval interval;
 	typedef zaimoni::math::Cartesian_vector<interval,4> coord_type;
 private:
+	fundamental_constants::units _system;
+
 	minkowski(FILE* src);
 public:
 	minkowski() = default;

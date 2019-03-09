@@ -4,16 +4,21 @@
 
 #include "world_manager.hpp"
 
+#include <stdexcept>
+
 namespace iskandria {
 
 minkowski::minkowski(FILE* src)
-{	// XXX
+{
+	static_assert(sizeof(_system) == sizeof(unsigned char), "save/load broken");
+	if (1!=fread(&_system, sizeof(_system), 1, src)) throw std::runtime_error("savefile truncated");
 }
 
 void minkowski::save(FILE* dest)
-{	// XXX
+{
+	static_assert(sizeof(_system) == sizeof(unsigned char), "save/load broken");
+	if (1 != fwrite(&_system, sizeof(_system), 1, dest)) throw std::runtime_error("savefile truncated");
 }
-
 
 std::vector<std::shared_ptr<minkowski> >& minkowski::cache()
 {
