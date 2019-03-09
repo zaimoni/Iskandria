@@ -19,7 +19,7 @@ make_Zaimoni_STL:
 	cd Zaimoni.STL; make host_install
 
 Iskandria.exe : make_Zaimoni_STL $(OBJECTS_ISKANDRIA_LINK_PRIORITY)
-	g++ $(LINK_FLAGS) -oIskandria.exe $(OBJECTS_ISKANDRIA) -lz_logging -lz_format_util -lz_stdio_c -lz_stdio_log -lz_clock  -lsfml-graphics -lsfml-window -lsfml-system -lwinmm
+	g++ -oIskandria.exe $(LINK_FLAGS) $(ARCH_FLAGS) $(OBJECTS_ISKANDRIA) -lz_logging -lz_format_util -lz_stdio_c -lz_stdio_log -lz_clock  -lsfml-graphics -lsfml-window -lsfml-system -lwinmm
 	strip --preserve-dates --strip-unneeded Iskandria.exe
 
 # inference rules

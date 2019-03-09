@@ -85,6 +85,8 @@ typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_canc
 	return 0.0 == rhs;
 }
 
+namespace math {
+
 template<class T>
 class fp_stats
 {
@@ -139,9 +141,6 @@ public:
 		return ret;
 	}
 };
-
-
-namespace math {
 
 namespace bits {
 
