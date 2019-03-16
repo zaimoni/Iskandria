@@ -3,7 +3,6 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
-#include "Zaimoni.STL/Logging.h"
 #include "Zaimoni.STL/rw.hpp"
 #include "slice.hpp"
 #include "Euclidean.hpp"

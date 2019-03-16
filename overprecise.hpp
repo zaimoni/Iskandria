@@ -9,6 +9,7 @@
 #include "dicounter.hpp"
 #include "lossy.hpp"
 #include "int_range.hpp"
+#include "Zaimoni.STL/Augment.STL/cmath"
 #include "Zaimoni.STL/Pure.C/auto_int.h"
 
 // interval division of floating point can legitimately create intervals with an infinite endpoint.
@@ -17,6 +18,25 @@
 namespace zaimoni {
 
 using std::swap;
+
+// for integer types, this just discards factors of two.  Definitions are to play nice with floating-point arithmetic
+template<class T>
+typename std::enable_if<std::is_integral<T>::value &&  std::is_unsigned<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = mantissa;
+	if (0 == ret) return;
+	while (0 == (ret & 1)) ret >>= 1;
+	return ret;
+}
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+{
+	uintmax_t ret = (0 <= mantissa ? mantissa : (-std::numeric_limits<T>::max() <= mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<T>::max()) + 1ULL));
+	if (0 == ret) return 0;
+	while (0 == (ret & 1)) ret >>= 1;
+	return ret;
+}
 
 namespace math {
 
@@ -113,25 +133,6 @@ inline constexpr uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
 		}
 	while(true);
 #endif
-}
-
-// for integer types, this just discards factors of two.  Definitions are to play nice with floating-point arithmetic
-template<class T>
-typename std::enable_if<std::is_integral<T>::value &&  std::is_unsigned<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
-{
-	uintmax_t ret = mantissa;
-	if (0==ret) return;
-	while(0 == (ret & 1)) ret >>= 1; 
-	return ret;
-}
-
-template<class T>
-typename std::enable_if<std::is_integral<T>::value &&  std::is_signed<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
-{
-	uintmax_t ret = (0<=mantissa ? mantissa : (-std::numeric_limits<T>::max()<=mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<T>::max())+1ULL));
-	if (0==ret) return 0;
-	while(0 == (ret & 1)) ret >>= 1; 
-	return ret;
 }
 
 template<>
