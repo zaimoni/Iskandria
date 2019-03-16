@@ -268,33 +268,7 @@ const fundamental_constants& fundamental_constants::get(units src)
 // example build line
 // g++ -std=c++14 -oconstants.exe -D__STDC_LIMIT_MACROS -DTEST_APP constants.cpp -Llib\host.isk -lz_stdio_c -lz_log_adapter -lz_stdio_log -lz_format_util
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-// console-mode application
-#define STRING_LITERAL_TO_STDOUT(A) fwrite(A,sizeof(A)-1,1,stdout)
-#define C_STRING_TO_STDOUT(A) fwrite(A,strlen(A),1,stdout)
-#define STL_PTR_STRING_TO_STDOUT(A) fwrite((A)->data(),(A)->size(),1,stdout)
-
-#define INTERVAL_TO_STDOUT(A,UNIT)	\
-	{	\
-	const auto test = A;	\
-	if (test.lower()== test.upper()) {	\
-		sprintf(buf,"%.16g", test.lower());	\
-		C_STRING_TO_STDOUT(buf);	\
-		STRING_LITERAL_TO_STDOUT(UNIT);	\
-	} else {	\
-		STRING_LITERAL_TO_STDOUT("[");	\
-		sprintf(buf,"%.16g", test.lower());	\
-		C_STRING_TO_STDOUT(buf);	\
-		STRING_LITERAL_TO_STDOUT(", ");	\
-		sprintf(buf,"%.16g", test.upper());	\
-		C_STRING_TO_STDOUT(buf);	\
-		STRING_LITERAL_TO_STDOUT("]");	\
-		STRING_LITERAL_TO_STDOUT(UNIT);	\
-	}	\
-	}
+#include "test_driver.h"
 
 int main(int argc, char* argv[])
 {	// parse options
@@ -302,8 +276,6 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
-	// XXX boost::numeric::interval<double> clearly broken, returned interval is not in normal form
-	// XXX CODATA 2014 does not look consistent even after taking that into account
 	STRING_LITERAL_TO_STDOUT("dimensionless: inv-alpha and alpha\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::inv_alpha, "\n");
 	INTERVAL_TO_STDOUT(1.0/fundamental_constants::alpha, "\n");

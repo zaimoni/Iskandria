@@ -145,7 +145,7 @@ public:
 namespace bits {
 
 	template<class T>
-	constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
+	typename std::enable_if<std::is_floating_point<T>::value, bool>::type sum_overflows(T lhs, T rhs)
 	{
 		if (0 == lhs) return false;
 		if (0 == rhs) return false;
@@ -167,19 +167,19 @@ namespace bits {
 template<>
 struct would_overflow<long double>
 {
-	static constexpr bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
+	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 template<>
 struct would_overflow<double>
 {
-	static constexpr bool sum(double lhs, double rhs) { return bits::sum_overflows(lhs, rhs); }
+	static bool sum(double lhs, double rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 template<>
 struct would_overflow<float>
 {
-	static constexpr bool sum(float lhs, float rhs) { return bits::sum_overflows(lhs, rhs); }
+	static bool sum(float lhs, float rhs) { return bits::sum_overflows(lhs, rhs); }
 };
 
 }	// namespace math
