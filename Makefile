@@ -28,3 +28,5 @@ Iskandria.exe : make_Zaimoni_STL $(OBJECTS_ISKANDRIA_LINK_PRIORITY)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) $(ARCH_FLAGS) $(OTHER_INCLUDEDIR) $(C_MACROS) $(CXX_MACROS) \
 	 -o $*.o -c -xc++ -pipe $<
 	strip --preserve-dates --strip-unneeded $*.o
+
+include POSIX2.inc

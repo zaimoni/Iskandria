@@ -3,8 +3,6 @@
 #ifndef TAYLOR_HPP
 #define TAYLOR_HPP 1
 
-#include "int_range.hpp"
-#include "overprecise.hpp"
 #include "Zaimoni.STL/augment.STL/functional"
 #include "series_sum.hpp"
 
