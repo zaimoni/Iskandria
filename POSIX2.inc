@@ -44,7 +44,12 @@ int_range.test.exe: int_range.cpp $(INT_RANGE_HPP)
 	strip --strip-unneeded $@
 	$@
 
-lossy.test.exe: lossy.cpp lossy.hpp
+interval.test.exe: interval.cpp $(INTERVAL_HPP)
+	$(CXX) -ointerval.test.exe $(TESTDRIVER_FLAGS) interval.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
+	strip --strip-unneeded $@
+	$@
+
+lossy.test.exe: lossy.cpp $(LOSSY_HPPH)
 	$(CXX) -olossy.test.exe $(TESTDRIVER_FLAGS) lossy.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
@@ -64,4 +69,4 @@ taylor.test.exe: taylor.cpp $(TAYLOR_HPP) $(CYCLIC_FN_HPP)
 	strip --strip-unneeded $@
 	$@
 
-check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe lossy.test.exe mass.test.exe matrix.test.exe taylor.test.exe
+check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe taylor.test.exe

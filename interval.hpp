@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <fenv.h>
 #include "Zaimoni.STL/augment.STL/cmath"
-#include "Zaimoni.STL/Logging.h"
 
 #pragma STD FENV_ACCESS ON
 
@@ -330,9 +329,19 @@ public:
 };
 
 template<class T> interval<T> operator+(interval<T> lhs, const interval<T>& rhs) { return lhs += rhs; }
+template<class T> interval<T> operator+(interval<T> lhs, typename const_param<T>::type rhs) { return lhs += rhs; }
+template<class T> interval<T> operator+(typename const_param<T>::type lhs, interval<T> rhs) { return rhs += lhs; }
+
 template<class T> interval<T> operator-(interval<T> lhs, const interval<T>& rhs) { return lhs -= rhs; }
+template<class T> interval<T> operator-(interval<T> lhs, typename const_param<T>::type rhs) { return lhs -= rhs; }
+template<class T> interval<T> operator-(typename const_param<T>::type lhs, interval<T> rhs) { rhs.self_negate();  return rhs += lhs; }
+
 template<class T> interval<T> operator*(interval<T> lhs, const interval<T>& rhs) { return lhs *= rhs; }
+template<class T> interval<T> operator*(interval<T> lhs, typename const_param<T>::type rhs) { return lhs *= rhs; }
+template<class T> interval<T> operator*(typename const_param<T>::type lhs, interval<T> rhs) { return rhs *= lhs; }	// assumes commutative multiplication (true for R)
+
 template<class T> interval<T> operator/(interval<T> lhs, const interval<T>& rhs) { return lhs /= rhs; }
+template<class T> interval<T> operator/(interval<T> lhs, typename const_param<T>::type rhs) { return lhs /= rhs; }
 template<class T> interval<T> operator/(typename const_param<T>::type lhs, const interval<T>& rhs) { return interval<T>(lhs) /= rhs; }
 
 // we don't want to mess with operator== for intervals because it's counterintuitive
