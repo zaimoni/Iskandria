@@ -1,4 +1,5 @@
 LOGGING_H = Zaimoni.STL/Logging.h Zaimoni.STL/Compiler.h
+OBJECT_HPP = object.hpp Zaimoni.STL/Pure.C/stdio_c.h $(LOGGING_H)
 DICOUNTER_HPP = dicounter.hpp $(LOGGING_H)
 ANGLE_HPP = angle.hpp $(LOGGING_H) 
 AUGMENT_CMATH = Zaimoni.STL/augment.STL/cmath Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
@@ -7,14 +8,15 @@ LOSSY_HPP = lossy.hpp $(AUGMENT_CMATH)
 CONSTANTS_HPP = constants.hpp $(INTERVAL_HPP)
 MASS_HPP = mass.hpp $(CONSTANTS_HPP)
 Z_N_HPP = z_n.hpp Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
-INT_RANGE_HPP = int_range.hpp Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
 CYCLIC_FN_HPP = cyclic_fn.hpp $(Z_N_HPP)
+INT_RANGE_HPP = int_range.hpp Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
 OVERPRECISE_HPP = overprecise.hpp $(DICOUNTER_HPP) $(INT_RANGE_HPP) $(LOSSY_HPP) Zaimoni.STL/Pure.C/auto_int.h
 SERIES_SUM_HPP = series_sum.hpp $(OVERPRECISE_HPP)
 TAYLOR_HPP = taylor.hpp Zaimoni.STL/augment.STL/functional $(SERIES_SUM_HPP)
 EUCLIDEAN_HPP = Euclidean.hpp $(SERIES_SUM_HPP)
 SLICE_HPP = slice.hpp Zaimoni.STL/iterator_array_size.hpp
 MATRIX_HPP = matrix.hpp $(LOGGING_HPP) Zaimoni.STL/rw.hpp $(SLICE_HPP) $(EUCLIDEAN_HPP)
+COORD_CHART_HPP = coord_chart.hpp $(EUCLIDEAN_HPP) $(MATRIX_HPP) $(ANGLE_HPP)
 
 TESTDRIVER_LIBS = -lz_log_adapter -lz_stdio_log -lz_format_util
 TESTDRIVER_FLAGS =  -Os -D__STDC_LIMIT_MACROS
@@ -64,9 +66,14 @@ matrix.test.exe: matrix.cpp $(MATRIX_HPP)
 	strip --strip-unneeded $@
 	$@
 
+minkowski.test.exe: minkowski.cpp minkowski.hpp $(OBJECT_HPP) $(CONSTANTS_HPP) $(COORD_CHART_HPP) world_manager.cpp world_manager.hpp
+	$(CXX) -ominkowski.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 minkowski.cpp world_manager.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+	strip --strip-unneeded $@
+	$@
+
 taylor.test.exe: taylor.cpp $(TAYLOR_HPP) $(CYCLIC_FN_HPP)
 	$(CXX) -otaylor.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP taylor.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
-check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe taylor.test.exe
+check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe

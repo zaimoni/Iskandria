@@ -5,7 +5,6 @@
 
 #include <limits.h>
 
-#include "Euclidean.hpp"
 #include "matrix.hpp"
 #include "angle.hpp"
 
