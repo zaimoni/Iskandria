@@ -45,6 +45,7 @@ public:
 	void gc_this(bool gc) { if (gc) _bitmap &= 1U; else _bitmap &= ~(1U); };
 	bool gc_this() const { return _bitmap & 1U;};
 
+protected:
 	template<class Derived>
 	static typename std::enable_if<std::is_base_of<Object,Derived>::value, void>::type init_synthetic_ids(std::vector<std::shared_ptr<Derived> >& _cache)
 	{
@@ -86,6 +87,30 @@ public:
 	}
 };
 
+}	// namnespace isk
+
+namespace zaimoni {
+
+template<class Derived>
+typename std::enable_if<std::is_base_of<isk::Object, Derived>::value, std::weak_ptr<Derived> >::type  read(FILE* src)
+{
+	return Derived::read_synthetic_id(src);
 }
+
+template<class Derived>
+typename std::enable_if<std::is_base_of<isk::Object, Derived>::value, void >::type
+write(const std::weak_ptr<Derived>& src, FILE* dest)
+{
+	Derived::write_synthetic_id(src.lock(), dest);
+}
+
+template<class Derived>
+typename std::enable_if<std::is_base_of<isk::Object, Derived>::value, void >::type
+write(const std::shared_ptr<Derived>& src, FILE* dest)
+{
+	Derived::write_synthetic_id(src, dest);
+}
+
+}	// namespace zaimoni
 
 #endif
