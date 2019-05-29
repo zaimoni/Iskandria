@@ -34,26 +34,27 @@ fundamental_constants::fundamental_constants()
 	mass_unit(1.0),
 	temperature_unit(1.0),
 	charge_unit(1.0),
- 	c(299792458.0),	// CODATA 2010/2014; m/s
+ 	c(SI_CODATA_C),	// CODATA 2010/2014/2018; m/s
 //	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
 	G(6.67377e-11,6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
+//	G(6.67400e-11, 6.67460e-11),	// CODATA 2018; m^3 kg^-1 s^-2
 //	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
 	k(1.38064773e-23,1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
-//	k(1.380649e-23);	//	CODATA 2019
+//	k(1.380649e-23);	//	CODATA 2018 (actually 2019)
+//	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
+	h_bar(1.054571787e-34, 1.054571813e-34),	// CODATA 2014; J s i.e. m^2 kg s^-1
+//	h_bar(interval(6.62607015e-34)/interval(2*pi))	// CODATA 2019 (h definition)
 #if 0
-//	h_bar(1.054571679e-34,1.054571773e-34),	// CODATA 2010; J s i.e. m^2 kg s^-1
-	h_bar(1.054571787e-34,1.054571813e-34),	// CODATA 2014; J s i.e. m^2 kg s^-1
-//	h_bar(interval(6.62607015e-34)/interval(2*M_PI)),	// CODATA 2019 (h definition)
 	m_e(9.10938345e-31, 9.10938367e-31),	// CODATA 2014; kg
 	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C
 //	Q_e(1.602176634e-19)	// CODATA 2019 (definition); C
 	mu_0(4e-7*M_PI),	// CODATA 2014; Ampere definition implies 4pi*10^-7 H/m i.e. N A^-2
 	epsilon_0(1.0/(mu_0*square(c)))			// mu_0*epsilon_0 = c^-2 from Maxwell equations; F/m; F := s^4 A^2 m^-2 kg^-1; alternately s^2/H
-#else
-//	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
-	h_bar(1.054571787e-34,1.054571813e-34)	// CODATA 2014; J s i.e. m^2 kg s^-1
-//	h_bar(interval(6.62607015e-34)/interval(2*M_PI))	// CODATA 2019 (h definition)
 #endif
+	// atomic units
+//	amu_mass(1.660538775e-27, 1.660539018e-27)	// 2010 CODATA: 1.660 538 921 e-27       0.000 000 073 e-27
+//	amu_mass(1.660539000e-27, 1.660539080e-27)	// 2014 CODATA: 1.660 539 040 e - 27       0.000 000 020 e - 27
+	amu_mass(1.66053906560e-27, 1.66053906760e-27)	// CODATA 2018; kg 1.660 539 066 60 e-27    0.000 000 000 50 e-27
 {
 }
 
@@ -102,6 +103,7 @@ void fundamental_constants::div_scale_time(interval x)
 void fundamental_constants::mult_scale_mass(interval x)
 {
 	mass_unit /= x;
+	amu_mass /= x;
 	G /= x;
 	k *= x;
 	h_bar *= x;
@@ -110,6 +112,7 @@ void fundamental_constants::mult_scale_mass(interval x)
 void fundamental_constants::div_scale_mass(interval x)
 {
 	mass_unit *= x;
+	amu_mass *= x;
 	G *= x;
 	k /= x;
 	h_bar /= x;

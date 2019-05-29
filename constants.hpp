@@ -68,6 +68,8 @@ public:
 	interval mu_0;	// permeability of free space; magnetic constant
 	interval epsilon_0;	// permittivity of free space; electric constant
 #endif
+	// atomic units
+	interval amu_mass;
 
 	fundamental_constants();	// default-constructs to SI units.
 
