@@ -59,7 +59,6 @@ public:
 #if 0
 	// following are from atomic units
 	interval m_e;	// electron rest mass
-	interval Q_e;	// electron charge
 //	interval k_e;	// coloumb force constant; 1/(4pi permittivity of free space)
 
 //	vacuum permeability := (2*fine_structure_constant/electron_charge^2) * (planck_constant/c) i.e. magnetic constant
@@ -70,6 +69,8 @@ public:
 #endif
 	// atomic units
 	interval amu_mass;
+	interval Q_e;	// electron charge; while this is numerically the same as the electron-volt energy unit in MKS, 
+					// the dimensions are different so they scale differently.
 
 	fundamental_constants();	// default-constructs to SI units.
 
