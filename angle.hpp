@@ -24,6 +24,7 @@ class angle {
 private:
 	boost::numeric::interval<double> _theta;
 public:
+	angle() = default;
 	explicit angle(boost::numeric::interval<double> degrees) : _theta(degrees) {_to_standard_form();};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(angle);
 
@@ -33,7 +34,7 @@ public:
 //	boost::numeric::interval<double> radians() const {return (((_theta*8)/225)/180)*M_PI;}
 	boost::numeric::interval<double> radians() const {return ((_theta*2.0)*M_PI)/1125.0;}
 
-	void sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos);
+	void sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos) const;
 private:
 	void _standard_form();
 	bool _deg_to_whole_circle();

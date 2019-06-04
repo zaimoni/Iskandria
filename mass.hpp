@@ -38,6 +38,10 @@ public:
 	interval E() const;	// energy
 	interval Schwarzschild_r() const;	// Schwarzschild radius
 	interval GM() const;	// standard gravitational parameter
+
+	friend bool operator==(const mass& lhs, const mass& rhs);
 };
+
+inline bool operator!=(const mass& lhs, const mass& rhs) { return !(lhs == rhs); }
 
 #endif

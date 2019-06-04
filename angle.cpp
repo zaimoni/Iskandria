@@ -109,7 +109,7 @@ void zaimoni::circle::angle::_sincos(boost::numeric::interval<double> x, boost::
 	_radian_sincos(((x*2.0)*M_PI)/1125.0, _sin, _cos);
 }
 
-void zaimoni::circle::angle::sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
+void zaimoni::circle::angle::sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos) const
 {
 	if (is_whole_circle())
 		{

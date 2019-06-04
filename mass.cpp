@@ -70,6 +70,15 @@ mass::interval mass::GM() const
 	}
 }
 
+bool operator==(const mass& lhs, const mass& rhs)
+{
+	if (lhs._x == rhs._x && lhs._mode == rhs._mode) return true;
+#ifdef CONSTANTS_ISK_INTERVAL
+	if (zaimoni::is_zero(lhs._x) && zaimoni::is_zero(rhs._x)) return true;
+#endif
+	return false;	// we don't try to do unit conversions
+}
+
 #ifdef TEST_APP2
 // example build line
 // g++ -std=c++14 -otest.exe -D__STDC_LIMIT_MACROS -DTEST_APP2 mass.cpp constants.cpp -Llib\host.isk -lz_stdio_c -lz_log_adapter -lz_stdio_log -lz_format_util
