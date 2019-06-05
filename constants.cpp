@@ -149,11 +149,13 @@ void fundamental_constants::div_scale_temperature(interval x)
 void fundamental_constants::mult_scale_charge(interval x)
 {
 	charge_unit /= x;
+	Q_e /= x;
 }
 
 void fundamental_constants::div_scale_charge(interval x)
 {
 	charge_unit *= x;
+	Q_e *= x;
 }
 
 

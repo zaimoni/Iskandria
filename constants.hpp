@@ -46,7 +46,7 @@ public:
 	interval time_unit;	// in seconds
 	interval mass_unit;	// in kilograms; problematic for solar system units due to overprecision of the Sun's GM
 	interval temperature_unit;	// in kelvin
-	interval charge_unit;	// in coulomb
+	interval charge_unit;	// in coulomb; not geometrizable, have to choose between clean force law and charge of electron=1
 
 	// these four are the geometrizable constants: set all four to 1 to uniquely solve the above units.
 	// These three are from Misner/Thorne/Wheeler
