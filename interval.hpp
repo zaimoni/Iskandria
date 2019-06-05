@@ -310,10 +310,10 @@ public:
 
 	// these two should fail for unsigned integers
 	void self_negate() { assign(-_ub, -_lb); };
-	interval operator-() { return interval(-_ub,-_lb);  };
+	interval operator-() const { return interval(-_ub,-_lb);  };
 
 	// operator==(interval,interval) doesn't work as expected
-	bool contains(const T& s) { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
+	bool contains(const T& s) const { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
 
 	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
 	interval& operator+= (const interval& rhs);
