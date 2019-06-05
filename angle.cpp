@@ -55,9 +55,9 @@ void zaimoni::circle::angle::_to_standard_form()
 	(_theta*=225)/=8;
 }
 
-void static enforce_circle(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
+void static enforce_circle(interval_shim::interval& _sin, interval_shim::interval& _cos)
 {
-	boost::numeric::interval<double> test(1.0);
+	interval_shim::interval test(1.0);
 	test -= square(_sin);
 	test = sqrt(test);
 	if (0.0>_cos.upper()) test = -test;
@@ -68,7 +68,7 @@ void static enforce_circle(boost::numeric::interval<double>& _sin, boost::numeri
 	if (_cos.lower()<test.lower() || _cos.upper()>test.upper()) _cos.assign((_cos.lower()<test.lower() ? test.lower() : _cos.lower()),(_cos.upper()>test.upper() ? test.upper() : _cos.upper()));
 }
 
-void zaimoni::circle::angle::_radian_sincos(boost::numeric::interval<double> radians, boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
+void zaimoni::circle::angle::_radian_sincos(interval radians, interval& _sin, interval& _cos)
 {
 	_sin = zaimoni::math::sin().template eval(radians);	// using Taylor series as Boost compile-errors here
 	_cos = zaimoni::math::cos().template eval(radians);
@@ -88,7 +88,7 @@ void zaimoni::circle::angle::_radian_sincos(boost::numeric::interval<double> rad
 }
 
 // x is in the internal representation
-void zaimoni::circle::angle::_sincos(boost::numeric::interval<double> x, boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos)
+void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)
 {
 //	\todo preprocessing
 	if (5062.5 >= x.upper() && 2531.25<=x.lower())
@@ -106,10 +106,10 @@ void zaimoni::circle::angle::_sincos(boost::numeric::interval<double> x, boost::
 		return;
 		}
 //	go to radians
-	_radian_sincos(((x*2.0)*M_PI)/1125.0, _sin, _cos);
+	_radian_sincos(((x*2.0)*interval_shim::pi)/1125.0, _sin, _cos);
 }
 
-void zaimoni::circle::angle::sincos(boost::numeric::interval<double>& _sin, boost::numeric::interval<double>& _cos) const
+void zaimoni::circle::angle::sincos(interval& _sin, interval& _cos) const
 {
 	if (is_whole_circle())
 		{

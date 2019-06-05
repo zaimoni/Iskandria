@@ -4,24 +4,14 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
-// #define CONSTANTS_ISK_INTERVAL 1
-
-#ifdef CONSTANTS_ISK_INTERVAL 
-#include "interval.hpp"
-#else
-#include <boost/numeric/interval.hpp>
-#endif
+#include "interval_shim.hpp"
 
 // This class does not directly reach the savefile.
 
 // SI values are to be imported from CODATA
 class fundamental_constants {
 public:
-#ifdef CONSTANTS_ISK_INTERVAL 
-	typedef zaimoni::math::interval<double> interval;
-#else
-	typedef boost::numeric::interval<double> interval;
-#endif
+	typedef interval_shim::interval interval;
 
 	enum units : unsigned char {	// solar system would be reconstructed from savefile as a postprocessing stage to MKS
 		MKS = 0,
@@ -36,8 +26,6 @@ public:
 	static const interval N_A;	// Avogadro constant
 
 	// dimensionless constants
-	static const interval pi;	// pi is not really a physical constant, but it shows up a lot and the math.h define is a point estimate
-
 	static const interval inv_alpha;	// inverse fine structure constant
 	static const interval alpha;	// fine structure constant
 

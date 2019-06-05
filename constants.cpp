@@ -15,9 +15,6 @@
 #define CODATA_VERSION 2018
 #endif
 
-// pi is not really a physical constant, but it is pervasive and the math.h define is a point estimate
-const fundamental_constants::interval fundamental_constants::pi(M_PI, nextafter(M_PI, 4));	// CRC Handbook says floating point representation of M_PI is "low"; this brackets
-
 // interval entries done at +/1 standard deviation [sic]
 
 #if CODATA_VERSION==2018
@@ -46,7 +43,7 @@ fundamental_constants::fundamental_constants()
 #if CODATA_VERSION==2018
 	G(6.67400e-11, 6.67460e-11),	// CODATA 2018; m^3 kg^-1 s^-2
 	k(1.380649e-23),	//	CODATA 2018 (actually 2019)
-	h_bar(interval(6.62607015e-34)/interval(2.0*pi)),	// CODATA 2019 (h definition)
+	h_bar(interval(6.62607015e-34)/interval(2.0*interval_shim::pi)),	// CODATA 2019 (h definition)
 #else
 //	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
 G(6.67377e-11, 6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
@@ -304,7 +301,7 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(fundamental_constants::alpha, "\n");
 
 	STRING_LITERAL_TO_STDOUT("\npi\n");
-	INTERVAL_TO_STDOUT(fundamental_constants::pi, " \n");
+	INTERVAL_TO_STDOUT(interval_shim::pi, " \n");
 
 	STRING_LITERAL_TO_STDOUT("\nspeed of light\n");
 	INTERVAL_TO_STDOUT(SI_units().c," m/s\n");

@@ -1,11 +1,11 @@
 LOGGING_H = Zaimoni.STL/Logging.h Zaimoni.STL/Compiler.h
 OBJECT_HPP = object.hpp Zaimoni.STL/Pure.C/stdio_c.h $(LOGGING_H)
 DICOUNTER_HPP = dicounter.hpp $(LOGGING_H)
-ANGLE_HPP = angle.hpp $(LOGGING_H) 
+ANGLE_HPP = angle.hpp interval_shim.hpp $(LOGGING_H) 
 AUGMENT_CMATH = Zaimoni.STL/augment.STL/cmath Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
 INTERVAL_HPP = interval.hpp $(AUGMENT_CMATH)
 LOSSY_HPP = lossy.hpp $(AUGMENT_CMATH)
-CONSTANTS_HPP = constants.hpp $(INTERVAL_HPP)
+CONSTANTS_HPP = constants.hpp interval_shim.hpp $(INTERVAL_HPP)
 MASS_HPP = mass.hpp $(CONSTANTS_HPP)
 Z_N_HPP = z_n.hpp Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
 CYCLIC_FN_HPP = cyclic_fn.hpp $(Z_N_HPP)
@@ -22,12 +22,12 @@ TESTDRIVER_LIBS = -lz_log_adapter -lz_stdio_log -lz_format_util
 TESTDRIVER_FLAGS =  -Os -D__STDC_LIMIT_MACROS
 
 angle.test.exe: angle.cpp $(ANGLE_HPP) $(TAYLOR_HPP)
-	$(CXX) -oangle.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 angle.cpp taylor.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
+	$(CXX) -oangle.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 angle.cpp taylor.cpp interval_shim.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	strip --strip-unneeded @$
 	@$
 
-constants.exe: constants.cpp $(CONSTANTS_HPP)
-	$(CXX) -oconstants.exe $(TESTDRIVER_FLAGS) -DTEST_APP constants.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+constants.exe: constants.cpp interval_shim.cpp $(CONSTANTS_HPP)
+	$(CXX) -oconstants.exe $(TESTDRIVER_FLAGS) -DTEST_APP constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
@@ -56,8 +56,8 @@ lossy.test.exe: lossy.cpp $(LOSSY_HPPH)
 	strip --strip-unneeded $@
 	$@
 
-mass.test.exe: mass.cpp $(MASS_HPP)
-	$(CXX) -omass.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 mass.cpp constants.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+mass.test.exe: mass.cpp interval_shim.cpp $(MASS_HPP)
+	$(CXX) -omass.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
