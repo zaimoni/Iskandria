@@ -93,14 +93,14 @@ void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)
 //	\todo preprocessing
 	if (5062.5 >= x.upper() && 2531.25<=x.lower())
 		{	// quadrant II -> quadrant IV
-		_sincos(boost::numeric::interval<double>(x.lower()-5062.5,x.upper()-5062.5),_sin,_cos);
+		_sincos(interval(x.lower()-5062.5,x.upper()-5062.5),_sin,_cos);
 		_sin.assign(-_sin.upper(),-_sin.lower());
 		_cos.assign(-_cos.upper(),-_cos.lower());
 		return;
 		}
 	if (-5062.5 <= x.lower() && -2531.25>=x.upper())
 		{	// quadrant III -> quadrant I
-		_sincos(boost::numeric::interval<double>(x.lower()+5062.5,x.upper()+5062.5),_sin,_cos);
+		_sincos(interval(x.lower()+5062.5,x.upper()+5062.5),_sin,_cos);
 		_sin.assign(-_sin.upper(),-_sin.lower());
 		_cos.assign(-_cos.upper(),-_cos.lower());
 		return;

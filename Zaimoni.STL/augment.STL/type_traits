@@ -92,6 +92,20 @@ typename types<T>::norm>::type norm(T x)
 			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
 }
 
+// interval arithmetic doesn't play nice with operator== (it is definitely possible for neither == and != to be positively true)
+template<class T>
+struct definitely
+{
+	static bool equal(typename const_param<T>::type lhs, typename const_param<T>::type rhs) { return lhs == rhs; }
+	static bool unequal(typename const_param<T>::type lhs, typename const_param<T>::type rhs) { return lhs != rhs; }
+};
+
+template<class T>
+bool definitely_equal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs,rhs); }
+
+template<class T>
+bool definitely_unequal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
+
 // correct-size type estimation
 template<uintmax_t n>
 struct min_unsigned

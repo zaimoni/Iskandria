@@ -23,8 +23,13 @@ TESTDRIVER_FLAGS =  -Os -D__STDC_LIMIT_MACROS
 
 angle.test.exe: angle.cpp $(ANGLE_HPP) $(TAYLOR_HPP)
 	$(CXX) -oangle.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 angle.cpp taylor.cpp interval_shim.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
-	strip --strip-unneeded @$
-	@$
+	strip --strip-unneeded $@
+	$@
+
+conic.test.exe:
+	$(CXX) -oconic.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 conic.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+	strip --strip-unneeded $@
+	$@
 
 constants.exe: constants.cpp interval_shim.cpp $(CONSTANTS_HPP)
 	$(CXX) -oconstants.exe $(TESTDRIVER_FLAGS) -DTEST_APP constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
