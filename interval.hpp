@@ -464,27 +464,11 @@ template<class T> int sgn(const math::interval<T>& x) {
 }
 
 // cmath
-template<class T> bool isNaN(const math::interval<T>& x)
-{
-	return isNaN(x.lower()) || isNaN(x.upper());
-}
 
 template<class T>
 constexpr bool isINF(const zaimoni::math::interval<T>& x)
 {
 	return isINF(x.lower()) && isINF(x.upper()) && signBit(x.lower()) == signBit(x.upper());	// we do want numeric intervals of numeric intervals to be a compiler error
-}
-
-template<class T>
-constexpr bool isFinite(const zaimoni::math::interval<T>& x)
-{
-	return isFinite(x.lower()) && isFinite(x.upper());
-}
-
-template<class T>
-constexpr zaimoni::math::interval<T> scalBn(const zaimoni::math::interval<T>& x, int scale)
-{
-	return zaimoni::math::interval<T>(scalBn(x.lower(), scale), scalBn(x.upper(), scale));
 }
 
 namespace math {
@@ -554,36 +538,6 @@ zaimoni::math::interval<T> intersect(const zaimoni::math::interval<T>& x, const 
 	else if (zaimoni::isNaN(y)) return x;
 	if (x.lower() > y.upper() || y.lower() > x.upper()) return zaimoni::math::interval<T>::empty();
 	return zaimoni::math::interval<T>(x.lower() < y.lower() ? y.lower() : x.lower(), x.upper() < y.upper() ? x.upper() : y.upper());
-}
-
-// Logging.h support -- outside of namespace to match Logging.h
-
-template<class T>
-void INFORM(const zaimoni::math::interval<T>& x)
-{
-	if (x.lower() == x.upper()) {
-		INFORM(x.upper());
-		return;
-	}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INFORM("]");
-}
-
-template<class T>
-void INC_INFORM(const zaimoni::math::interval<T>& x)
-{
-	if (x.lower() == x.upper()) {
-		INC_INFORM(x.upper());
-		return;
-	}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INC_INFORM("]");
 }
 
 namespace zaimoni {

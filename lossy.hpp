@@ -3,96 +3,37 @@
 #ifndef LOSSY_HPP
 #define LOSSY_HPP 1
 
-#include <boost/numeric/interval.hpp>
+#include "interval_shim.hpp"
 
 #include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Logging.h"
 
-template<class T>
-inline void INFORM(const boost::numeric::interval<T>& x)
-{
-	if (x.lower()==x.upper())
-		{
-		INFORM(x.upper());
-		return;
-		}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INFORM("]");
-}
-
-template<class T>
-inline void INC_INFORM(const boost::numeric::interval<T>& x)
-{
-	if (x.lower()==x.upper())
-		{
-		INC_INFORM(x.upper());
-		return;
-		}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INC_INFORM("]");
-}
-
 namespace zaimoni {
-
-template<class T>
-constexpr bool isFinite(const boost::numeric::interval<T>& x)
-{
-	return isFinite(x.lower()) && isFinite(x.upper());
-}
-
-template<class T>
-constexpr bool isNaN(const boost::numeric::interval<T>& x)
-{
-	return isNaN(x.lower()) || isNaN(x.upper());
-}
-
-template<class T>
-constexpr boost::numeric::interval<T> scalBn(const boost::numeric::interval<T>& x,int scale)
-{
-	return boost::numeric::interval<T>(scalBn(x.lower(),scale),scalBn(x.upper(),scale));
-}
-
 namespace math {
-
-using zaimoni::isNaN;
-using zaimoni::scalBn;
 
 // testing indicates Boost's numeric interval Does The Wrong Thing here (crashes sin by div-by-zero)
 template<>
 template<class T>
-struct static_cache<boost::numeric::interval<T> >
+struct static_cache<ISK_INTERVAL<T> >
 {
 	template<intmax_t n> 
-	static const boost::numeric::interval<T>& as()
+	static const ISK_INTERVAL<T>& as()
 	{
-		static const boost::numeric::interval<T> ret((T)n);
+		static const ISK_INTERVAL<T> ret((T)n);
 		return ret;
 	}
 
 	template<uintmax_t n> 
 	static typename std::enable_if<
 			std::numeric_limits<intmax_t>::max()<n,
-		const boost::numeric::interval<T>& >::type as2()
+		const ISK_INTERVAL<T>& >::type as2()
 	{
-		static const boost::numeric::interval<T> ret((T)n);
+		static const ISK_INTERVAL<T> ret((T)n);
 		return ret;
 	}
 
-	static boost::numeric::interval<T> as3(intmax_t n)
-	{
-		return boost::numeric::interval<T>(T(n));
-	}
-
-	static boost::numeric::interval<T> as4(uintmax_t n)
-	{
-		return boost::numeric::interval<T>(T(n));
-	}
+	static ISK_INTERVAL<T> as3(intmax_t n) { return ISK_INTERVAL<T>(T(n)); }
+	static ISK_INTERVAL<T> as4(uintmax_t n) { return ISK_INTERVAL<T>(T(n)); }
 };
 
 
@@ -128,9 +69,9 @@ struct TYPE<const volatile SRC>	\
 	typedef DEST type;	\
 }
 
-ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,float,boost::numeric::interval<float>);
-ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,double,boost::numeric::interval<double>);
-ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<long double>);
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,float, ISK_INTERVAL<float>);
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,double, ISK_INTERVAL<double>);
+ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double, ISK_INTERVAL<long double>);
 
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
@@ -138,7 +79,7 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double,boost::numeric::interval<
 // extend numerical error support to boost::numeric::interval
 template<>
 template<class T>
-struct numerical<boost::numeric::interval<T> >
+struct numerical<ISK_INTERVAL<T> >
 {
 	enum {
 		error_tracking = 1
@@ -146,18 +87,18 @@ struct numerical<boost::numeric::interval<T> >
 	typedef typename std::remove_cv<T>::type exact_type;
 	typedef typename std::remove_cv<T>::type exact_arithmetic_type;
 
-	static long double error(const boost::numeric::interval<T>& src) {
-		boost::numeric::interval<long double> err(src.upper());
+	static long double error(const ISK_INTERVAL<T>& src) {
+		ISK_INTERVAL<long double> err(src.upper());
 		err -= src.lower();
 		return err.upper();
 	}
-	static bool causes_division_by_zero(const boost::numeric::interval<T>& src)
+	static bool causes_division_by_zero(const ISK_INTERVAL<T>& src)
 	{
 		if (int_as<0,T>() > src.lower() && int_as<0,T>() < src.upper()) return true;
 		if (int_as<0,T>() == src.lower() && int_as<0,T>() == src.upper()) return true;
 		return false;	
 	}
-	static constexpr bool equals(const boost::numeric::interval<T>& lhs, exact_type rhs) {return lhs.lower()==rhs && lhs.upper()==rhs;};
+	static constexpr bool equals(const ISK_INTERVAL<T>& lhs, exact_type rhs) {return lhs.lower()==rhs && lhs.upper()==rhs;};	// \todo obsolete, == operator generally ok here
 };
 
 // XXX anything using this class could be micro-optimized

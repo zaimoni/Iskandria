@@ -1,4 +1,6 @@
 #include "interval.hpp"
+#define CONSTANTS_ISK_INTERVAL 1
+#include "interval_shim.hpp"
 
 // purely a test driver.
 
