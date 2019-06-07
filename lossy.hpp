@@ -117,9 +117,9 @@ struct fp_compare
 
 template<>
 template<class T>
-struct fp_compare<boost::numeric::interval<T> >
+struct fp_compare<ISK_INTERVAL<T> >
 {
-	static bool good_sum_lt(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+	static bool good_sum_lt(const ISK_INTERVAL<T>& lhs, const ISK_INTERVAL<T>& rhs)
 	{
 		int exponent[5];
 		// only has to work reasonably after preprocessing by rearrange sum
@@ -252,7 +252,7 @@ struct lossy
 };
 
 template<class T>
-boost::numeric::interval<T> quotient(const boost::numeric::interval<T>& lhs, const boost::numeric::interval<T>& rhs)
+ISK_INTERVAL<T> quotient(const ISK_INTERVAL<T>& lhs, const ISK_INTERVAL<T>& rhs)
 {
 	return lossy<typename std::remove_cv<T>::type>::quotient(lhs,rhs);
 }

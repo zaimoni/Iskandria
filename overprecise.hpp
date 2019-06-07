@@ -96,7 +96,7 @@ self_negate(const T x)
 
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type
-self_negate(boost::numeric::interval<T>& x)
+self_negate(ISK_INTERVAL<T>& x)
 {
 	x = -x;
 	return true;
@@ -174,9 +174,9 @@ public:
 
 template<>
 template<class T>
-class fp_stats<boost::numeric::interval<T> >
+class fp_stats<ISK_INTERVAL<T> >
 {
-	typedef boost::numeric::interval<T> value_type;
+	typedef ISK_INTERVAL<T> value_type;
 private:
 	fp_stats<double> _lb;
 	fp_stats<double> _ub;
@@ -538,7 +538,7 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::v
 }
 
 template<class T>
-int trivial_sum(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+int trivial_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!isNaN(lhs));
 	assert(!isNaN(rhs));
@@ -704,7 +704,7 @@ restart:
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!trivial_sum(lhs,rhs));
 	// all four coordinates are finite
@@ -899,7 +899,7 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::v
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, T& rhs)
+typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(ISK_INTERVAL<T>& lhs, T& rhs)
 {
 	assert(!isNaN(lhs));
 	assert(!std::isnan(rhs));
@@ -926,7 +926,7 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_pr
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+typename std::enable_if<std::is_floating_point<T>::value , int>::type trivial_product(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!isNaN(lhs));
 	assert(!isNaN(rhs));
@@ -1028,7 +1028,7 @@ exact_product:
 		return false;
 		}
 
-	boost::numeric::interval<double> predicted_mantissa(mantissa[0]);
+	ISK_INTERVAL<double> predicted_mantissa(mantissa[0]);
 	predicted_mantissa *= mantissa[1];
 	if (predicted_mantissa.lower()==predicted_mantissa.upper())
 		{
@@ -1047,7 +1047,7 @@ exact_product:
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	return false;	// no-op to allow compiling
 }
@@ -1094,7 +1094,7 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_arithmetic<U>::v
 }
 
 template<class T, class U>
-typename std::enable_if<std::is_arithmetic<T>::value && std::is_floating_point<U>::value, int>::type trivial_quotient(T& lhs, boost::numeric::interval<U>& rhs)
+typename std::enable_if<std::is_arithmetic<T>::value && std::is_floating_point<U>::value, int>::type trivial_quotient(T& lhs, ISK_INTERVAL<U>& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
@@ -1116,7 +1116,7 @@ typename std::enable_if<std::is_arithmetic<T>::value && std::is_floating_point<U
 }
 
 template<class T, class U>
-typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<U>::value, int>::type trivial_quotient(boost::numeric::interval<T>& lhs, U& rhs)
+typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<U>::value, int>::type trivial_quotient(ISK_INTERVAL<T>& lhs, U& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));
@@ -1152,7 +1152,7 @@ typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<U
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quotient(boost::numeric::interval<T>& lhs, boost::numeric::interval<T>& rhs)
+typename std::enable_if<std::is_floating_point<T>::value, int>::type trivial_quotient(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!isnan(lhs));
 	assert(!isnan(rhs));

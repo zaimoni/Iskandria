@@ -4,6 +4,8 @@
 #define SERIES_SUM_HPP 1
 
 #include "overprecise.hpp"
+#include <vector>
+#include <algorithm>
 
 namespace zaimoni {
 namespace math {

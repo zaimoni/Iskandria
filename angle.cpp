@@ -20,7 +20,7 @@ void zaimoni::circle::angle::_standard_form()
 // check for whole-circle in degrees
 bool zaimoni::circle::angle::_deg_to_whole_circle()
 {
-	boost::numeric::interval<double> tmp(_theta.upper());
+	ISK_INTERVAL<double> tmp(_theta.upper());
 	tmp -= _theta.lower();
 	if (360<=tmp.lower())
 		{
