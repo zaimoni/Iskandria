@@ -46,7 +46,7 @@ class spherical_vector
 {
 	ZAIMONI_STATIC_ASSERT(2<=N);
 public:
-	typedef std::pair<boost::numeric::interval<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
+	typedef std::pair<ISK_INTERVAL<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(T[])> , void>	// doesn't work
 	template<class T> static void to_cartesian(const coord_type& src, T*  dest)	// just do array destinations for now
@@ -57,9 +57,9 @@ public:
 		// above convention (in the source code below) is that in a calculus textbook i.e. phi 0...180 degrees.
 		// Alternate convention: -90 degrees to 90 degrees (south pole to north pole); transform is geocentric phi = 90 degrees - calculus phi.
 		// neither of these are a canonical geodetic coordinate system: https://en.wikipedia.org/wiki/Reference_ellipsoid
-		boost::numeric::interval<double> _sin;
-		boost::numeric::interval<double> _cos;
-		boost::numeric::interval<double> tmp(src.first);
+		ISK_INTERVAL<double> _sin;
+		ISK_INTERVAL<double> _cos;
+		ISK_INTERVAL<double> tmp(src.first);
 
 		size_t i = N-1;
 		while(1< --i)
@@ -86,7 +86,7 @@ class geocentric_vector
 {
 	ZAIMONI_STATIC_ASSERT(2<=N);
 public:
-	typedef std::pair<boost::numeric::interval<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
+	typedef std::pair<ISK_INTERVAL<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(T[])> , void>	// doesn't work
 	template<class T> static void to_cartesian(const coord_type& src, T*  dest)	// just do array destinations for now
@@ -94,9 +94,9 @@ public:
 		// x: rcos(theta)cos(phi1)...cos(phin)
 		// y: rsin(theta)cos(phi1)...cos(phin)
 		// z: rsin(phi1)sin(phi2)...sin(phin)
-		boost::numeric::interval<double> _sin;
-		boost::numeric::interval<double> _cos;
-		boost::numeric::interval<double> tmp(src.first);
+		ISK_INTERVAL<double> _sin;
+		ISK_INTERVAL<double> _cos;
+		ISK_INTERVAL<double> tmp(src.first);
 
 		size_t i = N-1;
 		while(1< --i)
