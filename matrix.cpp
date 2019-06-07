@@ -1,7 +1,7 @@
 // matrix.cpp
 // pure test driver
 
-#include <boost/numeric/interval.hpp>
+#include "interval_shim.hpp"
 #include "matrix.hpp"
 
 // example build line (have to copy from *.hpp to *.cpp or else main not seen
@@ -20,17 +20,17 @@ int main(int argc, char* argv[])
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
 	// some basic compile tests
-	zaimoni::math::vector<boost::numeric::interval<double>,4> tmp_vec;
-	zaimoni::math::covector<boost::numeric::interval<double>,4> tmp_covec;
-	zaimoni::math::matrix_square<boost::numeric::interval<double>,4> tmp_sq_mat;
-	zaimoni::math::matrix<boost::numeric::interval<double>,4,4> tmp_mat;
-	const zaimoni::math::vector<boost::numeric::interval<double>,4> c_tmp_vec;
-	const zaimoni::math::covector<boost::numeric::interval<double>,4> c_tmp_covec;
-	const zaimoni::math::matrix_square<boost::numeric::interval<double>,4> c_tmp_sq_mat;
-	const zaimoni::math::matrix<boost::numeric::interval<double>,4,4> c_tmp_mat;
+	zaimoni::math::vector<ISK_INTERVAL<double>,4> tmp_vec;
+	zaimoni::math::covector<ISK_INTERVAL<double>,4> tmp_covec;
+	zaimoni::math::matrix_square<ISK_INTERVAL<double>,4> tmp_sq_mat;
+	zaimoni::math::matrix<ISK_INTERVAL<double>,4,4> tmp_mat;
+	const zaimoni::math::vector<ISK_INTERVAL<double>,4> c_tmp_vec;
+	const zaimoni::math::covector<ISK_INTERVAL<double>,4> c_tmp_covec;
+	const zaimoni::math::matrix_square<ISK_INTERVAL<double>,4> c_tmp_sq_mat;
+	const zaimoni::math::matrix<ISK_INTERVAL<double>,4,4> c_tmp_mat;
 
-	zaimoni::math::static_cache<boost::numeric::interval<double> >::as<0>();
-	zaimoni::math::int_as<0, boost::numeric::interval<double> >();
+	zaimoni::math::static_cache<ISK_INTERVAL<double> >::as<0>();
+	zaimoni::math::int_as<0, ISK_INTERVAL<double> >();
 
 	// element accessors
 	INTERVAL_TO_STDOUT(tmp_vec[0],"\n");
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 		}
 	INFORM("zaimoni::math::trivial_sum negative tests ok");
 
-	zaimoni::math::power_term<boost::numeric::interval<long double>, uintmax_t > x_n(3.0,3);
+	zaimoni::math::power_term<ISK_INTERVAL<long double>, uintmax_t > x_n(3.0,3);
 	zaimoni::math::int_range<uintmax_t> factorial_3(2,3);
 //	INFORM(eval(x_n),"\n");
 	auto ret(zaimoni::math::quotient_of_series_products(x_n,factorial_3));

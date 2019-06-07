@@ -528,6 +528,9 @@ template<class T> interval<T> pow(const interval<T>& x, int e) {
 
 } // namespace zaimoni
 
+#define ISK_INTERVAL zaimoni::math::interval
+#include "_interval.hpp"
+
 template<class T>
 zaimoni::math::interval<T> intersect(const zaimoni::math::interval<T>& x, const zaimoni::math::interval<T>& y)
 {

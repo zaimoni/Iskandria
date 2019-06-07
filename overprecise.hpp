@@ -454,24 +454,24 @@ private:
 	void _standard_form() {
 		if (0 == this->second) {
 			// interval could use "contains" here, but we have decent limit behavior with integer exponents
-			if (int_as<0,T>() == this->first) return;	// 0^0 is degenerate ... interpretation depends on context
+			if (definitely_equal(int_as<0,T>(),this->first)) return;	// 0^0 is degenerate ... interpretation depends on context
 			// n^0 is a zero-ary product: 1.
 			this->first = int_as<1,T>();
 			this->second = 1;
 			return;
 		}
 		if (1 == this->second) return;	// normal-form
-		if (int_as<0,T>() == this->first) {
+		if (definitely_equal(int_as<0,T>(),this->first)) {
 			// 0^n is 0.
 			this->second = 1;
 			return;
 		}
-		if (int_as<1,T>() == this->first) {
+		if (definitely_equal(int_as<1,T>(),this->first)) {
 			// 1^n is 1.
 			this->second = 1;
 			return;
 		}
-		if (int_as<-1,T>() == this->first) {
+		if (definitely_equal(int_as<-1,T>(),this->first)) {
 			// XXX \todo any element that is period 2 would work here.  Issue is a problem with matrices.
 			if (0 == this->second%2) this->first = int_as<1,T>();
 			this->second = 1;
@@ -492,7 +492,7 @@ template<class T,class U>
 constexpr bool isNaN(const power_term<T,U>& x)
 {
 	return isNaN(x.base())
-        || (0==x.power() && int_as<0,T>()==x.base());
+        || (0==x.power() && definitely_equal(int_as<0,T>(),x.base()));
 }
 
 template<class T>
@@ -1291,7 +1291,7 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 {
 	assert(!isNaN(numerator));
 	if (1==numerator.power()) return quotient(numerator.base(),rhs);
-	if (int_as<1,base>() == rhs) return eval(numerator);
+	if (definitely_equal(int_as<1,base>(),rhs)) return eval(numerator);
 	if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 
 	// intermediate data structures

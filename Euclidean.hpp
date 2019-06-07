@@ -53,14 +53,14 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		case -1:	swap(lhs_term,rhs_term);
 		// intentional fall-through
 		case 1:
-			if (lhs_term==int_as<0,typename std::remove_cv<typename T1::value_type>::type>()) continue;		// ignore additive identity 0
+			if (definitely_equal(lhs_term,int_as<0,typename std::remove_cv<typename T1::value_type>::type>())) continue;		// ignore additive identity 0
 
 		}
 		if (rearranged_product || rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
 			{	// evaluated
-			if (typename std::remove_cv<typename T1::value_type>::type(0)==lhs_term) continue;		// ignore additive identity 0
+			if (definitely_equal(typename std::remove_cv<typename T1::value_type>::type(0),lhs_term)) continue;		// ignore additive identity 0
 //			if (lhs_term.lower()==lhs_term.upper())
-//				{	// esact
+//				{	// exact
 //				accumulator_exact.push_back(lhs_term);
 //				}
 //			else{

@@ -104,7 +104,19 @@ template<class T>
 bool definitely_equal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs,rhs); }
 
 template<class T>
+bool definitely_equal(const T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs, rhs); }
+
+template<class T>
+bool definitely_equal(T& lhs, const T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs, rhs); }
+
+template<class T>
 bool definitely_unequal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
+
+template<class T>
+bool definitely_unequal(const T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
+
+template<class T>
+bool definitely_unequal(T& lhs, const T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
 
 // correct-size type estimation
 template<uintmax_t n>
