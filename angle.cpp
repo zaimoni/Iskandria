@@ -68,6 +68,27 @@ void static enforce_circle(interval_shim::interval& _sin, interval_shim::interva
 	if (_cos.lower()<test.lower() || _cos.upper()>test.upper()) _cos.assign((_cos.lower()<test.lower() ? test.lower() : _cos.lower()),(_cos.upper()>test.upper() ? test.upper() : _cos.upper()));
 }
 
+zaimoni::circle::angle& zaimoni::circle::angle::operator*=(const interval& rhs)
+{
+	interval lb(_theta.lower());
+	interval ub(_theta.upper());
+	lb *= rhs;
+	ub *= rhs;
+	_theta.assign(lb.lower(), ub.upper());
+	_standard_form();
+}
+
+zaimoni::circle::angle& zaimoni::circle::angle::operator*=(typename const_param<interval::base_type>::type rhs)
+{
+	interval lb(_theta.lower());
+	interval ub(_theta.upper());
+	lb *= rhs;
+	ub *= rhs;
+	_theta.assign(lb.lower(), ub.upper());
+	_standard_form();
+	return *this;
+}
+
 void zaimoni::circle::angle::_radian_sincos(interval radians, interval& _sin, interval& _cos)
 {
 	_sin = zaimoni::math::sin().template eval(radians);	// using Taylor series as Boost compile-errors here

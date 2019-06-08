@@ -31,6 +31,9 @@ public:
 //	interval radians() const {return (((_theta*8)/225)/180)*M_PI;}
 	interval radians() const {return ((_theta*2.0)*interval_shim::pi)/1125.0;}
 
+	angle& operator*=(const interval& rhs);
+	angle& operator*=(typename const_param<interval::base_type>::type rhs);
+
 	void sincos(interval& _sin, interval& _cos) const;
 private:
 	void _standard_form();
@@ -40,6 +43,11 @@ private:
 	static void _sincos(interval x, interval& _sin, interval& _cos);
 	static void _radian_sincos(interval radians, interval& _sin, interval& _cos);
 };
+
+inline angle operator*(const angle& lhs, const angle::interval& rhs) { return angle(lhs) *= rhs; }
+inline angle operator*(const angle& lhs, typename const_param<angle::interval::base_type>::type rhs) { return angle(lhs) *= rhs; }
+inline angle operator*(const angle::interval& lhs, const angle& rhs) { return angle(rhs) *= lhs; }	// assumes commutative multiplication (true when base type is in real numbers R)
+inline angle operator*(typename const_param<angle::interval::base_type>::type lhs, const angle& rhs) { return angle(rhs) *= lhs; }
 
 }	// namespace circle
 }	// namespace zaimoni

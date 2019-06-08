@@ -3,7 +3,7 @@ OBJECT_HPP = object.hpp Zaimoni.STL/Pure.C/stdio_c.h $(LOGGING_H)
 DICOUNTER_HPP = dicounter.hpp $(LOGGING_H)
 ANGLE_HPP = angle.hpp interval_shim.hpp $(LOGGING_H) 
 AUGMENT_CMATH = Zaimoni.STL/augment.STL/cmath Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
-INTERVAL_HPP = interval.hpp $(AUGMENT_CMATH)
+INTERVAL_HPP = interval.hpp _interval.hpp $(AUGMENT_CMATH)
 LOSSY_HPP = lossy.hpp $(AUGMENT_CMATH)
 CONSTANTS_HPP = constants.hpp interval_shim.hpp $(INTERVAL_HPP)
 MASS_HPP = mass.hpp $(CONSTANTS_HPP)
@@ -26,7 +26,7 @@ angle.test.exe: angle.cpp $(ANGLE_HPP) $(TAYLOR_HPP)
 	strip --strip-unneeded $@
 	$@
 
-conic.test.exe:
+conic.test.exe: conic.cpp conic.hpp interval_shim.hpp $(INTERVAL_HPP)
 	$(CXX) -oconic.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 conic.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
@@ -56,6 +56,11 @@ interval.test.exe: interval.cpp $(INTERVAL_HPP)
 	strip --strip-unneeded $@
 	$@
 
+kepler_orbit.test.exe: kepler_orbit.cpp $(MASS_HPP) conic.hpp $(COORD_CHART_HPP)
+	$(CXX) -okepler_orbit.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 kepler_orbit.cpp conic.cpp mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+	strip --strip-unneeded $@
+	$@
+
 lossy.test.exe: lossy.cpp $(LOSSY_HPPH)
 	$(CXX) -olossy.test.exe $(TESTDRIVER_FLAGS) lossy.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
@@ -72,7 +77,7 @@ matrix.test.exe: matrix.cpp $(MATRIX_HPP)
 	$@
 
 minkowski.test.exe: minkowski.cpp minkowski.hpp $(OBJECT_HPP) $(CONSTANTS_HPP) $(COORD_CHART_HPP) world_manager.cpp world_manager.hpp
-	$(CXX) -ominkowski.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 minkowski.cpp world_manager.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+	$(CXX) -ominkowski.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 minkowski.cpp angle.cpp taylor.cpp interval_shim.cpp world_manager.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
@@ -81,4 +86,4 @@ taylor.test.exe: taylor.cpp $(TAYLOR_HPP) $(CYCLIC_FN_HPP)
 	strip --strip-unneeded $@
 	$@
 
-check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe
+check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe kepler_orbit.test.exe
