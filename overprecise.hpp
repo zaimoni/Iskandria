@@ -1291,7 +1291,7 @@ base>::type quotient(power_term<base,uintmax_t> numerator, base rhs)
 {
 	assert(!isNaN(numerator));
 	if (1==numerator.power()) return quotient(numerator.base(),rhs);
-	if (definitely_equal(int_as<1,base>(),rhs)) return eval(numerator);
+	if (rhs == 1.0) return eval(numerator);
 	if (causes_division_by_zero(rhs)) throw std::runtime_error("division by zero NaN " __FILE__ ":" DEEP_STRINGIZE(__LINE__));
 
 	// intermediate data structures
