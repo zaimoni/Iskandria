@@ -54,6 +54,8 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 			return true;
 		};	// power-of-two
+
+		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	};
 
 	template<>
@@ -91,6 +93,8 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 			return true;
 		};	// power-of-two
+
+		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	};
 
 	template<>
@@ -128,6 +132,8 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 			return true;
 		};	// power-of-two
+
+		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	};
 
 	template<>
