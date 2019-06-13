@@ -32,6 +32,8 @@ namespace zaimoni {
 		// we do not propagate NaN so no test here for it
 		virtual bool is_inf() const = 0;
 		virtual bool is_finite() const = 0;
+		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
+		virtual bool is_scal_bn_identity() const = 0;
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const = 0;
 		virtual bool scal_bn(intmax_t scale) = 0;	// power-of-two
 		// technical infrastructure

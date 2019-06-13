@@ -17,9 +17,13 @@ int main(int argc, char* argv[])
 	mass saturn(mass::ASTRODYNAMIC, fundamental_constants::MKS, mass::interval(3.7931178e16, 3.7931196e16));
 
 	// \todo reduced mass of the above three (yes, testing infrastructure for a wargame scenario)
-	std::shared_ptr<zaimoni::var<double> > one(new zaimoni::var<double>(1));
+	std::shared_ptr<zaimoni::var<double> > one(new zaimoni::var<double>(1));		// will need this later on; others are code coverage
 	std::shared_ptr<zaimoni::var<float> > one_f(new zaimoni::var<float>(1));
 	std::shared_ptr<zaimoni::var<long double> > one_l(new zaimoni::var<long double>(1));
+
+	std::shared_ptr<zaimoni::var<ISK_INTERVAL<double> > > one_i(new zaimoni::var<ISK_INTERVAL<double> >(1));
+	std::shared_ptr<zaimoni::var<ISK_INTERVAL<float> > > one_if(new zaimoni::var< ISK_INTERVAL<float> >(1));
+	std::shared_ptr<zaimoni::var<ISK_INTERVAL<long double> > > one_il(new zaimoni::var< ISK_INTERVAL<long double> >(1));
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 
