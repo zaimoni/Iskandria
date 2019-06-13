@@ -20,9 +20,22 @@ namespace zaimoni {
 		_fp_stats() : _valid(false) {};
 
 		void invalidate_stats() { _valid = false; }
+		bool valid() const { return _valid; }
 		void init_stats(typename const_param<double>::type x) const {
 			_mantissa = frexp(x, &_exponent);
 			_valid = true;
+		}
+
+		// precondition: valid
+		// precondition: incoming lb/ub are initialized appropriately
+		void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+			if (0 == _mantissa) return;
+			auto _lb = std::numeric_limits<T>::min_exponent - _exponent;
+			auto _ub = std::numeric_limits<T>::max_exponent - _exponent;
+			if (0 < _lb) _lb = 0;
+			if (0 > _ub) _ub = 0;
+			if (lb < _lb) lb = _lb;
+			if (ub > _ub) ub = _ub;
 		}
 	};
 
@@ -30,26 +43,32 @@ namespace zaimoni {
 #pragma start_copy interface_of
 	template<>
 	template<class Derived>
-	struct _interface_of<Derived, double, 0> : public virtual fp_API, private _fp_stats<double>
+	struct _interface_of<Derived, double, 0> : public virtual fp_API
 	{
-		void invalidate_stats() { _fp_stats<double>::invalidate_stats(); }
+	private:
+		_fp_stats<double> _stats;
+	public:
+		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_valid) init_stats(static_cast<const Derived*>(this)->value());
-			lb = std::numeric_limits<double>::min_exponent - _exponent;
-			ub = std::numeric_limits<double>::max_exponent - _exponent;
-			if (0 < lb) lb = 0;
-			if (0 > ub) ub = 0;
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			lb = std::numeric_limits<intmax_t>::min();
+			ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(lb, ub);
 		};
 		virtual bool scal_bn(intmax_t scale) {
 			if (0 == scale) return true;	// no-op
 			auto& x = static_cast<Derived*>(this)->value();
-			if (!_valid) init_stats(x);
+			if (0 == x) return true;	// no-op
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			auto _lb = std::numeric_limits<intmax_t>::min();
+			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 			if (0 < scale) {
-				if (scale > std::numeric_limits<double>::max_exponent - _exponent) return false;
+				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
-				if (scale < std::numeric_limits<double>::min_exponent - _exponent) return false;
+				if (scale < _lb) return false;
 			}
 			x = std::scalbn(x, scale);
 			return true;
@@ -69,26 +88,32 @@ namespace zaimoni {
 #pragma substitute float for double in interface_of
 	template<>
 	template<class Derived>
-	struct _interface_of<Derived, float, 0> : public virtual fp_API, private _fp_stats<float>
+	struct _interface_of<Derived, float, 0> : public virtual fp_API
 	{
-		void invalidate_stats() { _fp_stats<float>::invalidate_stats(); }
+	private:
+		_fp_stats<float> _stats;
+	public:
+		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_valid) init_stats(static_cast<const Derived*>(this)->value());
-			lb = std::numeric_limits<float>::min_exponent - _exponent;
-			ub = std::numeric_limits<float>::max_exponent - _exponent;
-			if (0 < lb) lb = 0;
-			if (0 > ub) ub = 0;
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			lb = std::numeric_limits<intmax_t>::min();
+			ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(lb, ub);
 		};
 		virtual bool scal_bn(intmax_t scale) {
 			if (0 == scale) return true;	// no-op
 			auto& x = static_cast<Derived*>(this)->value();
-			if (!_valid) init_stats(x);
+			if (0 == x) return true;	// no-op
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			auto _lb = std::numeric_limits<intmax_t>::min();
+			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 			if (0 < scale) {
-				if (scale > std::numeric_limits<float>::max_exponent - _exponent) return false;
+				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
-				if (scale < std::numeric_limits<float>::min_exponent - _exponent) return false;
+				if (scale < _lb) return false;
 			}
 			x = std::scalbn(x, scale);
 			return true;
@@ -108,26 +133,32 @@ namespace zaimoni {
 #pragma substitute long double for double in interface_of
 	template<>
 	template<class Derived>
-	struct _interface_of<Derived, long double, 0> : public virtual fp_API, private _fp_stats<long double>
+	struct _interface_of<Derived, long double, 0> : public virtual fp_API
 	{
-		void invalidate_stats() { _fp_stats<long double>::invalidate_stats(); }
+	private:
+		_fp_stats<long double> _stats;
+	public:
+		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_valid) init_stats(static_cast<const Derived*>(this)->value());
-			lb = std::numeric_limits<long double>::min_exponent - _exponent;
-			ub = std::numeric_limits<long double>::max_exponent - _exponent;
-			if (0 < lb) lb = 0;
-			if (0 > ub) ub = 0;
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			lb = std::numeric_limits<intmax_t>::min();
+			ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(lb, ub);
 		};
 		virtual bool scal_bn(intmax_t scale) {
 			if (0 == scale) return true;	// no-op
 			auto& x = static_cast<Derived*>(this)->value();
-			if (!_valid) init_stats(x);
+			if (0 == x) return true;	// no-op
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			auto _lb = std::numeric_limits<intmax_t>::min();
+			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 			if (0 < scale) {
-				if (scale > std::numeric_limits<long double>::max_exponent - _exponent) return false;
+				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
-				if (scale < std::numeric_limits<long double>::min_exponent - _exponent) return false;
+				if (scale < _lb) return false;
 			}
 			x = std::scalbn(x, scale);
 			return true;

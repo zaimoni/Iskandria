@@ -85,6 +85,16 @@ namespace zaimoni {
 #include "Zaimoni.STL/var.hpp"
 
 namespace zaimoni {
+
+	// we don't want to use a normal macro here as this code is not really expected to be stable
+#pragma start_copy interface_of
+#pragma end_copy
+#pragma substitute float for double in interface_of
+#pragma end_copy
+#pragma substitute long double for double in interface_of
+#pragma end_copy
+
+
 }
 
 #endif
