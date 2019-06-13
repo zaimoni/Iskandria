@@ -43,6 +43,12 @@ namespace zaimoni {
 	template<class T>
 	T* clone(const T& src) { return dynamic_cast<T*>(src.clone()); }
 
+	template<class T>
+	struct _access {
+		virtual T& value() = 0;
+		virtual const T& value() const = 0;
+	};
+
 	// top-levels: _C_SHARP_, _R_SHARP_
 	template<>
 	template<_type_spec::operation OP>

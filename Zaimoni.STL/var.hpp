@@ -225,7 +225,7 @@ namespace zaimoni {
 namespace zaimoni {
 
 template<class Derived>
-class var_CRTP : public _type_of<Derived>::type
+class var_CRTP : public _type_of<Derived>::type	// \todo eliminate this if it becomes clear it's not useful
 {
 public:
 	template<class T> T* get() { return static_cast<Derived*>(this)->template _get(); }
@@ -233,7 +233,7 @@ public:
 };
 
 template<class T, class U= typename _type_of<T>::type>
-class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T, U::API_code>
+class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T, U::API_code>, public _access<T>
 {
 private:
 	T _x;
@@ -249,8 +249,8 @@ public:
 	var& operator=(const var& src) = default;
 	var& operator=(var&& src) = default;
 
-	T& value() { this->invalidate_stats(); return _x; }
-	const T& value() const { return _x; }
+	virtual T& value() { this->invalidate_stats(); return _x; }
+	virtual const T& value() const { return _x; }
 
 	template<class V> typename std::enable_if<!std::is_base_of<V,T>::value, V*>::type _get() { return 0; }
 	template<class V> typename std::enable_if<std::is_base_of<V, T>::value, V*>::type _get() { this->invalidate_stats(); return &_x; }
