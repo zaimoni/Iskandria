@@ -19,10 +19,4 @@ struct interval_shim
 	static const interval pi;	// define is a point estimate
 };
 
-template<class T>
-struct interval_shim_template
-{
-	typedef ISK_INTERVAL<T> interval;
-};
-
 #endif

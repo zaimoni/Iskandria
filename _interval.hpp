@@ -34,6 +34,7 @@ void INC_INFORM(const ISK_INTERVAL<T>& x)
 	INC_INFORM("]");
 }
 
+// support functions with masters in Augment.STL/type_traits or cmath
 namespace zaimoni {
 
 	template<>
@@ -77,5 +78,13 @@ namespace zaimoni {
 
 	}
 }	// namespace zaimoni
+
+// would prefer to make this triggered by common include of _interval.hpp and var.hpp, but that involves
+// moving interval family to Zaimoni.STL and we're not ready for that technically
+
+#include "Zaimoni.STL/var.hpp"
+
+namespace zaimoni {
+}
 
 #endif
