@@ -178,12 +178,13 @@ public:
 		if (_known_stable) return false;
 		// \todo: greatest common integer factor exceeds one
 		// \todo: mutual cancellation of negative signs
-		// \todo: scalBn of denominator towards 1
+		// \todo: scalBn of denominator towards 1 (arguably normal-form)
 		_known_stable = true;
 		return false;
 	}
 	smart_ptr eval() {
 		if (_denominator->is_one()) return _numerator;
+		if (_numerator->is_zero()) return _numerator;
 		return 0;
 	}
 
