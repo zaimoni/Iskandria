@@ -5,6 +5,7 @@
 
 // We expect float, double, and long double to work out of the box.
 #include <cmath>
+#include <stdexcept>
 
 namespace zaimoni {
 
@@ -257,8 +258,14 @@ private:
 	T _x;
 public:
 	var() = default;
-	var(const T& src) : _x(src) {};	// \todo reject NaN here
-	var(T&& src) : _x(std::move(src)) {};
+	var(const T& src) : _x(src) {
+		const auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);
+	}
+	var(T&& src) : _x(std::move(src)) {
+		const auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);
+	}
 	var(const var& src) = default;
 	var(var&& src) = default;
 	~var() = default;
@@ -274,6 +281,13 @@ public:
 	template<class V> typename std::enable_if<std::is_base_of<V, T>::value, V*>::type _get() { this->invalidate_stats(); return &_x; }
 	template<class V> typename std::enable_if<!std::is_base_of<V, T>::value, const V*>::type _get() const { return 0; }
 	template<class V> typename std::enable_if<std::is_base_of<V, T>::value, const V*>::type _get() const { return &_x; }
+
+private:
+	const char* _constructor_fatal() const {
+		if (!this->allow_infinity() && isINF(_x)) return "infinity in finite variable";
+		if (isNaN(_x)) return "NaN in variable";
+		return 0;
+	}
 };
 
 template<class T, class U>

@@ -54,6 +54,12 @@ namespace zaimoni {
 	};
 
 	template<class T>
+	constexpr bool isINF(const ISK_INTERVAL<T>& x)
+	{
+		return isINF(x.lower()) && isINF(x.upper()) && signBit(x.lower()) == signBit(x.upper());	// we do want numeric intervals of numeric intervals to be a compiler error
+	}
+
+	template<class T>
 	constexpr bool isFinite(const ISK_INTERVAL<T>& x)
 	{
 		return isFinite(x.lower()) && isFinite(x.upper());

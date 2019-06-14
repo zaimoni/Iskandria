@@ -30,6 +30,7 @@ namespace zaimoni {
 		virtual ~fp_API() = default;
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
+		virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
 		virtual bool is_inf() const = 0;
 		virtual bool is_finite() const = 0;
 		virtual bool is_zero() const = 0;
@@ -60,12 +61,14 @@ namespace zaimoni {
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_C_SHARP_, OP> : public virtual fp_API {
 		enum { API_code = 1 };
+		virtual int allow_infinity() const { return 1; }
 	};
 
 	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_R_SHARP_, OP> : public virtual fp_API {
 		enum { API_code = 1 };
+		virtual int allow_infinity() const { return -1; }
 	};
 
 	// subspace relations
@@ -77,13 +80,16 @@ namespace zaimoni {
 		virtual ~_type() = default;
 
 		// numerical support -- these have coordinate-wise definitions available
+		virtual int allow_infinity() const override { return 0; }
 		virtual bool is_inf() const { return false; };
 		virtual bool is_finite() const { return true; };
 	};
 
 	template<>
 	template<_type_spec::operation OP>
-	struct _type<_type_spec::_R_, OP> : public _type<_type_spec::_C_, OP>, public _type<_type_spec::_R_SHARP_, OP> {};
+	struct _type<_type_spec::_R_, OP> : public _type<_type_spec::_C_, OP>, public _type<_type_spec::_R_SHARP_, OP> {
+		virtual int allow_infinity() const override { return 0; }
+	};
 
 	template<>
 	template<_type_spec::operation OP>

@@ -220,7 +220,7 @@ public:
 private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";
-		if (!_denominator) return "numerator null";
+		if (!_denominator) return "denominator null";
 		if (_denominator->is_zero()) return "zero denominator";
 		if (_numerator->is_inf() && _denominator->is_inf()) return "infinity/infinity";
 		return 0;

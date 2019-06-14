@@ -440,14 +440,6 @@ template<class T> int sgn(const math::interval<T>& x) {
 	return 0;
 }
 
-// cmath
-
-template<class T>
-constexpr bool isINF(const zaimoni::math::interval<T>& x)
-{
-	return isINF(x.lower()) && isINF(x.upper()) && signBit(x.lower()) == signBit(x.upper());	// we do want numeric intervals of numeric intervals to be a compiler error
-}
-
 namespace math {
 
 template<class T>
