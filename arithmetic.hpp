@@ -47,6 +47,22 @@ public:
 		return 0;
 	}
 	// \todo fp_API
+	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this
+	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		lb = std::numeric_limits<intmax_t>::min();
+		ub = std::numeric_limits<intmax_t>::max();
+		intmax_t _lb;
+		intmax_t _ub;
+		for(const auto& x : _x) {
+			if (x->is_scal_bn_identity()) continue;
+			x->scal_bn_safe_range(_lb, _ub);
+			if (lb < _lb) lb = _lb;
+			if (ub > _ub) ub = _ub;
+		}
+//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
+//		if (0 > ub) ub = 0;
+	};
+	virtual fp_API* clone() const { return new sum(*this); };
 };
 
 template<class T>
@@ -88,6 +104,36 @@ public:
 		return 0;
 	}
 	// \todo fp_API
+	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior anyway
+	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		lb = 0;
+		ub = 0;
+		if (_x.empty()) return;	// should have evaluated
+		intmax_t _lb;
+		intmax_t _ub;
+		for(const auto& x : _x) {
+			if (x->is_scal_bn_identity()) {
+				lb = std::numeric_limits<intmax_t>::min();
+				ub = std::numeric_limits<intmax_t>::max();
+				return;
+			}
+			x->scal_bn_safe_range(_lb, _ub);
+			bool lb_not_clamped = false;
+			bool ub_not_clamped = false;
+			if (0 > _lb) {
+				if (lb_not_clamped = (std::numeric_limits<intmax_t>::min() - _lb < lb)) lb += _lb;
+				else lb = std::numeric_limits<intmax_t>::min();
+			} else lb_not_clamped = (std::numeric_limits<intmax_t>::min() < lb);
+			if (0 < _ub) {
+				if (ub_not_clamped = (std::numeric_limits<intmax_t>::max() - _ub > ub)) ub += _ub;
+				else ub = std::numeric_limits<intmax_t>::max();
+			} else ub_not_clamped = (std::numeric_limits<intmax_t>::max() > ub);
+			if (!lb_not_clamped && !ub_not_clamped) return;
+		}
+		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
+		//		if (0 > ub) ub = 0;
+	};
+	virtual fp_API* clone() const { return new product(*this); };
 };
 
 }	// end namespace series
@@ -127,6 +173,25 @@ public:
 	}
 
 	// \todo fp_API
+	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
+	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) {
+			lb = std::numeric_limits<intmax_t>::min();
+			ub = std::numeric_limits<intmax_t>::max();
+			return;
+		}
+		_numerator->scal_bn_safe_range(lb, ub);
+		intmax_t _lb;
+		intmax_t _ub;
+		_denominator->scal_bn_safe_range(_lb, _ub);
+		if (0 > _lb && std::numeric_limits<intmax_t>::max() + _lb >= ub) ub -= _lb;
+		else ub = std::numeric_limits<intmax_t>::max();
+		if (0 < _ub && std::numeric_limits<intmax_t>::min() + _ub <= lb) lb -= _ub;
+		else lb = std::numeric_limits<intmax_t>::min();
+		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
+		//		if (0 > ub) ub = 0;
+	};
+	virtual fp_API* clone() const { return new quotient(*this); };
 private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";
