@@ -46,6 +46,7 @@ public:
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
+	// \todo fp_API
 };
 
 template<class T>
@@ -86,6 +87,7 @@ public:
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
+	// \todo fp_API
 };
 
 }	// end namespace series
@@ -123,6 +125,8 @@ public:
 		if (is_one(*_denominator)) return _numerator;
 		return 0;
 	}
+
+	// \todo fp_API
 private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";

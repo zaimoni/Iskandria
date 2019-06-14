@@ -124,22 +124,29 @@ namespace zaimoni {
 		}
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			auto tmp = x.lower();
-			return (0 == tmp || std::isinf(tmp)) && (0 == (tmp = x.upper()) || std::isinf(tmp));
+			force_valid_stats();
+			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			auto& x = static_cast<const Derived*>(this)->value();
-			if (!_stats_l.valid()) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-			}
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats_l.scal_bn_safe_range(lb, ub);
 			_stats_u.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
+			const auto rhs = _stats_u.ideal_scal_bn();
+			if (_stats_l.is_scal_bn_identity()) return rhs;
+			const auto lhs = _stats_l.ideal_scal_bn();
+			if (_stats_u.is_scal_bn_identity()) return lhs;
+			if (0 < lhs && 0 < rhs) return (lhs < rhs) ? lhs : rhs;
+			if (0 > lhs && 0 > rhs) return (lhs < rhs) ? rhs : lhs;
+//			if (0 == rhs || 0 == lhs) return 0;
+			return 0;
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -148,27 +155,17 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
-			const bool stats_were_valid = _stats_l.valid();
-			if (stats_were_valid) {
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
+			_stats_l.scal_bn_safe_range(_lb, _ub);
+			_stats_u.scal_bn_safe_range(_lb, _ub);
 
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			}
 			else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
+			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			if (!stats_were_valid) invalidate_stats();
 			return true;
 		}	// power-of-two
 
@@ -178,6 +175,14 @@ namespace zaimoni {
 			if (tmp!=x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
 			return new var<double,typename _type_of<Derived>::type>(tmp);
+		}
+	private:
+		void force_valid_stats() const {
+			if (!_stats_l.valid()) {
+				auto& x = static_cast<const Derived*>(this)->value();
+				_stats_l.init_stats(x.lower());
+				_stats_u.init_stats(x.upper());
+			}
 		}
 	};
 
@@ -210,22 +215,29 @@ namespace zaimoni {
 		}
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			auto tmp = x.lower();
-			return (0 == tmp || std::isinf(tmp)) && (0 == (tmp = x.upper()) || std::isinf(tmp));
+			force_valid_stats();
+			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			auto& x = static_cast<const Derived*>(this)->value();
-			if (!_stats_l.valid()) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-			}
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats_l.scal_bn_safe_range(lb, ub);
 			_stats_u.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
+			const auto rhs = _stats_u.ideal_scal_bn();
+			if (_stats_l.is_scal_bn_identity()) return rhs;
+			const auto lhs = _stats_l.ideal_scal_bn();
+			if (_stats_u.is_scal_bn_identity()) return lhs;
+			if (0 < lhs && 0 < rhs) return (lhs < rhs) ? lhs : rhs;
+			if (0 > lhs && 0 > rhs) return (lhs < rhs) ? rhs : lhs;
+//			if (0 == rhs || 0 == lhs) return 0;
+			return 0;
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -234,27 +246,17 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
-			const bool stats_were_valid = _stats_l.valid();
-			if (stats_were_valid) {
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
+			_stats_l.scal_bn_safe_range(_lb, _ub);
+			_stats_u.scal_bn_safe_range(_lb, _ub);
 
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			}
 			else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
+			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			if (!stats_were_valid) invalidate_stats();
 			return true;
 		}	// power-of-two
 
@@ -265,6 +267,14 @@ namespace zaimoni {
 			// singleton...optimize when cloning
 			return new var<float,typename _type_of<Derived>::type>(tmp);
 		}
+	private:
+		void force_valid_stats() const {
+			if (!_stats_l.valid()) {
+				auto& x = static_cast<const Derived*>(this)->value();
+				_stats_l.init_stats(x.lower());
+				_stats_u.init_stats(x.upper());
+			}
+		}
 	};
 
 	template<>
@@ -273,7 +283,7 @@ namespace zaimoni {
 	{
 		virtual bool is_inf() const {
 			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isinf(x.lower()) && std::isinf(x.upper()) && x.lower()==x.upper();
+			return std::isinf(x.lower()) || std::isinf(x.upper());	// \todo may not be correct
 		}
 		virtual bool is_finite() const {
 			auto& x = static_cast<const Derived*>(this)->value();
@@ -296,22 +306,29 @@ namespace zaimoni {
 		}
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			auto tmp = x.lower();
-			return (0 == tmp || std::isinf(tmp)) && (0 == (tmp = x.upper()) || std::isinf(tmp));
+			force_valid_stats();
+			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			auto& x = static_cast<const Derived*>(this)->value();
-			if (!_stats_l.valid()) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-			}
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats_l.scal_bn_safe_range(lb, ub);
 			_stats_u.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
+			const auto rhs = _stats_u.ideal_scal_bn();
+			if (_stats_l.is_scal_bn_identity()) return rhs;
+			const auto lhs = _stats_l.ideal_scal_bn();
+			if (_stats_u.is_scal_bn_identity()) return lhs;
+			if (0 < lhs && 0 < rhs) return (lhs < rhs) ? lhs : rhs;
+			if (0 > lhs && 0 > rhs) return (lhs < rhs) ? rhs : lhs;
+//			if (0 == rhs || 0 == lhs) return 0;
+			return 0;
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -320,27 +337,17 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
-			const bool stats_were_valid = _stats_l.valid();
-			if (stats_were_valid) {
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
+			_stats_l.scal_bn_safe_range(_lb, _ub);
+			_stats_u.scal_bn_safe_range(_lb, _ub);
 
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats_l.init_stats(x.lower());
-				_stats_u.init_stats(x.upper());
-				_stats_l.scal_bn_safe_range(_lb, _ub);
-				_stats_u.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			}
 			else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
+			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			if (!stats_were_valid) invalidate_stats();
 			return true;
 		}	// power-of-two
 
@@ -350,6 +357,14 @@ namespace zaimoni {
 			if (tmp!=x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
 			return new var<long double,typename _type_of<Derived>::type>(tmp);
+		}
+	private:
+		void force_valid_stats() const {
+			if (!_stats_l.valid()) {
+				auto& x = static_cast<const Derived*>(this)->value();
+				_stats_l.init_stats(x.lower());
+				_stats_u.init_stats(x.upper());
+			}
 		}
 	};
 

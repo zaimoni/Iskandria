@@ -18,6 +18,9 @@ namespace zaimoni {
 		mutable bool _valid;
 	public:
 		_fp_stats() : _valid(false) {};
+		_fp_stats(typename const_param<T>::type src) : _valid(true) {
+			_mantissa = frexp(src, &_exponent);
+		};
 
 		void invalidate_stats() { _valid = false; }
 		bool valid() const { return _valid; }
@@ -37,6 +40,12 @@ namespace zaimoni {
 			if (lb < _lb) lb = _lb;
 			if (ub > _ub) ub = _ub;
 		}
+
+		// precondition: valid
+		bool is_scal_bn_identity() const { return std::numeric_limits<T>::max_exponent < _exponent; }	// 0, infinity, or NaN
+
+		// precondition: valid
+		intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
 	};
 
 // we don't want to use a normal macro here as this code is not really expected to be stable
@@ -51,16 +60,21 @@ namespace zaimoni {
 		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return 0 == x || std::isinf(x);
+			force_valid_stats();
+			return _stats.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;
+			return _stats.ideal_scal_bn();
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -69,26 +83,24 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 
-			const bool stats_were_valid = _stats.valid();
-			if (stats_were_valid) _stats.scal_bn_safe_range(_lb, _ub);
-
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats.init_stats(x);
-				_stats.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
-			if (!stats_were_valid) invalidate_stats();
+
+			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 			return true;
 		}	// power-of-two
 
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+	private:
+		void force_valid_stats() const {
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+		}
 	};
 
 	template<>
@@ -110,16 +122,21 @@ namespace zaimoni {
 		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return 0 == x || std::isinf(x);
+			force_valid_stats();
+			return _stats.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;
+			return _stats.ideal_scal_bn();
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -128,26 +145,24 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 
-			const bool stats_were_valid = _stats.valid();
-			if (stats_were_valid) _stats.scal_bn_safe_range(_lb, _ub);
-
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats.init_stats(x);
-				_stats.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
-			if (!stats_were_valid) invalidate_stats();
+
+			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 			return true;
 		}	// power-of-two
 
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+	private:
+		void force_valid_stats() const {
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+		}
 	};
 
 	template<>
@@ -169,16 +184,21 @@ namespace zaimoni {
 		void invalidate_stats() { _stats.invalidate_stats(); }
 
 		virtual bool is_scal_bn_identity() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return 0 == x || std::isinf(x);
+			force_valid_stats();
+			return _stats.is_scal_bn_identity();
 		}
 
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+			force_valid_stats();
 			lb = std::numeric_limits<intmax_t>::min();
 			ub = std::numeric_limits<intmax_t>::max();
 			_stats.scal_bn_safe_range(lb, ub);
+		}
+
+		virtual intmax_t ideal_scal_bn() const {
+			if (is_scal_bn_identity()) return 0;
+			return _stats.ideal_scal_bn();
 		}
 
 		virtual bool scal_bn(intmax_t scale) {
@@ -187,26 +207,24 @@ namespace zaimoni {
 
 			auto _lb = std::numeric_limits<intmax_t>::min();
 			auto _ub = std::numeric_limits<intmax_t>::max();
+			_stats.scal_bn_safe_range(_lb, _ub);
 
-			const bool stats_were_valid = _stats.valid();
-			if (stats_were_valid) _stats.scal_bn_safe_range(_lb, _ub);
-
-			auto& x = static_cast<Derived*>(this)->value();
-			if (!stats_were_valid) {
-				_stats.init_stats(x);
-				_stats.scal_bn_safe_range(_lb, _ub);
-			}
 			if (0 < scale) {
 				if (scale > _ub) return false;
 			} else {	// if (0 > scale)
 				if (scale < _lb) return false;
 			}
-			if (!stats_were_valid) invalidate_stats();
+
+			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 			return true;
 		}	// power-of-two
 
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+	private:
+		void force_valid_stats() const {
+			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
+		}
 	};
 
 	template<>

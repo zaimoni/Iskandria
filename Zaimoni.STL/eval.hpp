@@ -36,6 +36,7 @@ namespace zaimoni {
 		virtual bool is_scal_bn_identity() const = 0;
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const = 0;
 		virtual bool scal_bn(intmax_t scale) = 0;	// power-of-two
+		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
 	};
