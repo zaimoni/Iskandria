@@ -273,7 +273,7 @@ namespace zaimoni {
 	{
 		virtual bool is_inf() const {
 			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isinf(x.lower()) || std::isinf(x.upper());	// \todo may not be correct
+			return std::isinf(x.lower()) && std::isinf(x.upper()) && x.lower()==x.upper();
 		}
 		virtual bool is_finite() const {
 			auto& x = static_cast<const Derived*>(this)->value();

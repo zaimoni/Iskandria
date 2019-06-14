@@ -3,7 +3,7 @@
 #ifdef TEST_APP3
 // fast compile test
 // g++ -std=c++14 -otest.exe -Os  -D__STDC_LIMIT_MACROS -DTEST_APP2 conic.test.cpp constants.cpp -Llib\host.isk -lz_stdio_c -lz_log_adapter -lz_stdio_log -lz_format_util
-#include <memory>
+#include "arithmetic.hpp"
 
 #include "test_driver.h"
 
@@ -24,6 +24,15 @@ int main(int argc, char* argv[])
 	std::shared_ptr<zaimoni::var<ISK_INTERVAL<double> > > one_i(new zaimoni::var<ISK_INTERVAL<double> >(1));
 	std::shared_ptr<zaimoni::var<ISK_INTERVAL<float> > > one_if(new zaimoni::var< ISK_INTERVAL<float> >(1));
 	std::shared_ptr<zaimoni::var<ISK_INTERVAL<long double> > > one_il(new zaimoni::var< ISK_INTERVAL<long double> >(1));
+
+	// inline prototype of reduced mass calculation as follows:
+	std::shared_ptr<zaimoni::var<decltype(sun.GM())> > sun_GM(new zaimoni::var<decltype(sun.GM())>(sun.GM()));
+	std::shared_ptr<zaimoni::var<decltype(jupiter.GM())> > jupiter_GM(new zaimoni::var<decltype(jupiter.GM())>(jupiter.GM()));
+	std::shared_ptr<zaimoni::var<decltype(saturn.GM())> > saturn_GM(new zaimoni::var<decltype(saturn.GM())>(sun.GM()));
+
+//	zaimoni::series::sum<typename zaimoni::_type_of<double>::type> inv_reduced_mass;
+//	zaimoni::series::product<typename zaimoni::_type_of<double>::type> code_coverage;
+//	zaimoni::quotient<typename zaimoni::_type_of<double>::type> code_coverage2;
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 

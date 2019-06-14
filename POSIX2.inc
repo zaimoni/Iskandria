@@ -56,7 +56,7 @@ interval.test.exe: interval.cpp $(INTERVAL_HPP)
 	strip --strip-unneeded $@
 	$@
 
-kepler_orbit.test.exe: kepler_orbit.cpp $(MASS_HPP) conic.hpp $(COORD_CHART_HPP)
+kepler_orbit.test.exe: kepler_orbit.cpp arithmetic.hpp $(MASS_HPP) conic.hpp $(COORD_CHART_HPP)
 	$(CXX) -okepler_orbit.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 kepler_orbit.cpp conic.cpp mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
