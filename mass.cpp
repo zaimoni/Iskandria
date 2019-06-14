@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(one_joule.Schwarzschild_r(), " m\n");
 	INTERVAL_TO_STDOUT(one_joule.GM(), " m^3 s^-2\n");
 
-	STRING_LITERAL_TO_STDOUT("\none Schwarzschild radius 1 meter:\n");
+	STRING_LITERAL_TO_STDOUT("\nunit Schwarzschild radius:\n");
 	mass one_meter(mass::SCHWARZSCHILD_RADIUS, fundamental_constants::MKS, 1.0);
 	assert(fundamental_constants::MKS == one_meter.system_code());
 	assert(mass::SCHWARZSCHILD_RADIUS == one_meter.measurement_code());

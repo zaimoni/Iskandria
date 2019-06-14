@@ -257,7 +257,7 @@ private:
 	T _x;
 public:
 	var() = default;
-	var(const T& src) : _x(src) {};
+	var(const T& src) : _x(src) {};	// \todo reject NaN here
 	var(T&& src) : _x(std::move(src)) {};
 	var(const var& src) = default;
 	var(var&& src) = default;

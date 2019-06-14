@@ -8,11 +8,12 @@
 namespace zaimoni {
 namespace series {
 
+// T is assumed to require zaimoni::fp_API in all of these classes
 template<class T>
 class sum : public T
 {
 public:
-	typedef std::shared_ptr<T> smart_ptr;	// unsure which type goes here
+	typedef std::shared_ptr<T> smart_ptr;
 private:
 	std::vector<smart_ptr> _x;
 	bool _known_stable;
@@ -25,16 +26,14 @@ public:
 	sum& operator=(sum&& src) = default;
 
 	void append_term(const smart_ptr& src) {
-		if (src && !is_zero(*src)) {
-			_x.push_back(src);
-			_known_stable = false;
-		}
+		if (!src || src->is_zero()) return;
+		_x.push_back(src);	// \todo react to infinity
+		_known_stable = false;
 	}
 	void append_term(smart_ptr&& src) {
-		if (src && !is_zero(*src)) {
-			_x.push_back(src);
-			_known_stable = false;
-		}
+		if (!src || src->is_zero()) return;
+		_x.push_back(src);	// \todo react to infinity
+		_known_stable = false;
 	}
 
 	bool self_eval() {
@@ -47,6 +46,15 @@ public:
 		return 0;
 	}
 	// \todo fp_API
+	virtual bool is_zero() const { 
+		if (_x.empty()) return true;
+		if (1 == _x.size()) return _x.front()->is_zero();
+		return false;
+	}
+	virtual bool is_one() const {
+		if (1 == _x.size()) return _x.front()->is_one();
+		return false;
+	}
 	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this
 	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		lb = std::numeric_limits<intmax_t>::min();
@@ -61,15 +69,15 @@ public:
 		}
 //		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
 //		if (0 > ub) ub = 0;
-	};
-	virtual fp_API* clone() const { return new sum(*this); };
+	}
+	virtual fp_API* clone() const { return new sum(*this); }
 };
 
 template<class T>
 class product : public T
 {
 public:
-	typedef std::shared_ptr<T> smart_ptr;	// unsure which type goes here
+	typedef std::shared_ptr<T> smart_ptr;
 private:
 	std::vector<smart_ptr> _x;
 	bool _known_stable;
@@ -82,16 +90,14 @@ public:
 	product& operator=(product&& src) = default;
 
 	void append_term(const smart_ptr& src) {
-		if (src && !is_one(*src)) {
-			_x.push_back(src);
-			_known_stable = false;
-		}
+		if (!src || src->is_one()) return;
+		_x.push_back(src);	// \todo react to 0, infinity
+		_known_stable = false;
 	}
 	void append_term(smart_ptr&& src) {
-		if (src && !is_one(*src)) {
-			_x.push_back(src);
-			_known_stable = false;
-		}
+		if (!src || src->is_one()) return;
+		_x.push_back(src);	// \todo react to 0, infinity
+		_known_stable = false;
 	}
 
 	bool self_eval() {
@@ -104,7 +110,16 @@ public:
 		return 0;
 	}
 	// \todo fp_API
-	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior anyway
+	virtual bool is_zero() const {
+		if (1 == _x.size()) return _x.front()->is_zero();
+		return false;
+	}
+	virtual bool is_one() const {
+		if (_x.empty()) return true;
+		if (1 == _x.size()) return _x.front()->is_one();
+		return false;
+	}
+	virtual bool is_scal_bn_identity() const { return false; }	// let evaluation handle this -- pathological behavior anyway
 	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		lb = 0;
 		ub = 0;
@@ -132,8 +147,8 @@ public:
 		}
 		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
 		//		if (0 > ub) ub = 0;
-	};
-	virtual fp_API* clone() const { return new product(*this); };
+	}
+	virtual fp_API* clone() const { return new product(*this); }
 };
 
 }	// end namespace series
@@ -142,7 +157,7 @@ template<class T>
 class quotient : public T
 {
 public:
-	typedef std::shared_ptr<T> smart_ptr;	// unsure which type goes here
+	typedef std::shared_ptr<T> smart_ptr;
 private:
 	smart_ptr _numerator;
 	smart_ptr _denominator;
@@ -168,11 +183,21 @@ public:
 		return false;
 	}
 	smart_ptr eval() {
-		if (is_one(*_denominator)) return _numerator;
+		if (_denominator->is_one()) return _numerator;
 		return 0;
 	}
 
 	// \todo fp_API
+	virtual bool is_zero() const {
+		if (_numerator->is_zero()) return true;
+		if (_denominator->is_inf()) return true;
+		return false;
+	}
+	virtual bool is_one() const {
+		if (_numerator == _denominator) return true;	// we assume that if two std::shared_ptrs are binary-equal that they are the same, even if they are intervals
+		if (_numerator.is_one() && _denominator.is_one()) return true;
+		return false;
+	}
 	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
 	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) {
@@ -196,9 +221,8 @@ private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";
 		if (!_denominator) return "numerator null";
-		if (isNaN(*_numerator)) return "numerator NAN";
-		if (isNaN(*_denominator)) return "denominator NAN";
-		if (is_zero(*_denominator)) return "zero denominator";
+		if (_denominator->is_zero()) return "zero denominator";
+		if (_numerator->is_inf() && _denominator->is_inf()) return "infinity/infinity";
 		return 0;
 	}
 };
