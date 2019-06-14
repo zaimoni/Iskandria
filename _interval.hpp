@@ -71,6 +71,36 @@ namespace zaimoni {
 		return ISK_INTERVAL<T>(scalBn(x.lower(), scale), scalBn(x.upper(), scale));
 	}
 
+	template<class T>
+	constexpr bool is_zero(const ISK_INTERVAL<T>& x)
+	{
+		return is_zero(x.lower()) && is_zero(x.upper());
+	}
+
+	template<class T>
+	constexpr bool contains_zero(const ISK_INTERVAL<T>& x)
+	{
+		return !is_positive(x.lower()) && !is_negative(x.upper());
+	}
+
+	template<class T>
+	constexpr bool is_positive(const ISK_INTERVAL<T>& x)
+	{
+		return is_positive(x.lower());
+	}
+
+	template<class T>
+	constexpr bool is_negative(const ISK_INTERVAL<T>& x)
+	{
+		return is_negative(x.upper());
+	}
+
+	template<class T>
+	constexpr bool is_one(const ISK_INTERVAL<T>& x)	// could use kronecker delta for this
+	{
+		return is_one(x.lower()) && is_one(x.upper());
+	}
+
 	namespace math {
 
 		using zaimoni::isNaN;

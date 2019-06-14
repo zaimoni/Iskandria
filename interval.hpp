@@ -425,29 +425,6 @@ template<class T> interval<T>  const interval<T>::_whole(std::numeric_limits<T>:
 } // namespace math
 
 // type_traits
-template<class T>
-constexpr bool is_zero(const zaimoni::math::interval<T>& x)
-{
-	return 0 == x;
-}
-
-template<class T>
-constexpr bool contains_zero(const zaimoni::math::interval<T>& x)
-{
-	return !is_positive(x.lower()) && !is_negative(x.upper());
-}
-
-template<class T>
-constexpr bool is_positive(const zaimoni::math::interval<T>& x)
-{
-	return 0 < x;
-}
-
-template<class T>
-constexpr bool is_negative(const zaimoni::math::interval<T>& x)
-{
-	return 0 > x;
-}
 
 template<class T>
 constexpr auto norm(const zaimoni::math::interval<T>& x)

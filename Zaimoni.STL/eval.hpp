@@ -32,6 +32,8 @@ namespace zaimoni {
 		// we do not propagate NaN so no test here for it
 		virtual bool is_inf() const = 0;
 		virtual bool is_finite() const = 0;
+		virtual bool is_zero() const = 0;
+		virtual bool is_one() const = 0;
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
 		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const = 0;
@@ -45,9 +47,12 @@ namespace zaimoni {
 	T* clone(const T& src) { return dynamic_cast<T*>(src.clone()); }
 
 	template<class T>
-	struct _access {
+	struct _access : public virtual fp_API {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
+
+		virtual bool is_zero() const { return zaimoni::is_zero(value()); };
+		virtual bool is_one() const { return zaimoni::is_one(value()); };
 	};
 
 	// top-levels: _C_SHARP_, _R_SHARP_
