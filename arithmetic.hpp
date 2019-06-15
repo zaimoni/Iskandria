@@ -83,6 +83,10 @@ public:
 		}
 	}
 	virtual sum* clone() const { return new sum(*this); }
+private:
+	virtual void _scal_bn(intmax_t scale) {
+		for (auto& x : _x) this->__scal_bn(x,scale);
+	}
 };
 
 template<class T>
@@ -155,6 +159,41 @@ public:
 		return ret;
 	}
 	virtual product* clone() const { return new product(*this); }
+private:
+	virtual void _scal_bn(intmax_t scale) {
+		bool saw_identity = false;
+		// \todo both of these loops can be specialized (scale positive/negative will be invariant)
+		for (auto& x : _x) {
+			if (x->is_scal_bn_identity()) {
+				saw_identity = true;
+				continue;
+			}
+			const auto want = x->ideal_scal_bn();
+			if (0 < want && 0 < scale) {
+				const auto _scale = (want < scale) ? want : scale;
+				this->__scal_bn(x, _scale);
+				if (0 == (scale -= _scale)) return;
+			} else if (0 > want && 0 > scale) {
+				const auto _scale = (want > scale) ? want : scale;
+				this->__scal_bn(x, _scale);
+				if (0 == (scale -= _scale)) return;
+			}
+		};
+		if (saw_identity) return;	// likely should not be happening
+		for (auto& x : _x) {
+			const auto legal = x->scal_bn_safe_range();
+			if (0 < scale && 0 < legal.second) {
+				const auto _scale = (legal.second < scale) ? legal.second : scale;
+				this->__scal_bn(x, _scale);
+				if (0 == (scale -= _scale)) return;
+			} else if (0 > scale && 0 > legal.first) {
+				const auto _scale = (legal.first > scale) ? legal.first : scale;
+				this->__scal_bn(x, _scale);
+				if (0 == (scale -= _scale)) return;
+			}
+		}
+		if (0 != scale) throw std::runtime_error("scal_bn needed additional factors added");
+	}
 };
 
 }	// end namespace series
@@ -272,7 +311,6 @@ private:
 		}
 		this->__scal_bn(_denominator, -scale);
 	}
-
 };
 
 }
