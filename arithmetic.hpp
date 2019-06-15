@@ -231,46 +231,46 @@ private:
 		if (_numerator->is_inf() && _denominator->is_inf()) return "infinity/infinity";
 		return 0;
 	}
-	virtual bool _scal_bn(intmax_t scale) {
+	virtual void _scal_bn(intmax_t scale) {
 		auto numerator_scale = _numerator->ideal_scal_bn();
 		auto denominator_scale = _denominator->ideal_scal_bn();
 		// try to normalize the denominator first
 		if (0 < scale && 0 > denominator_scale) {
 			const auto _scale = (-scale > denominator_scale) ? -scale : denominator_scale;
-			if (!this->__scal_bn(_denominator,_scale)) return false;	// likely invariant error
-			if (0 == (scale += _scale)) return true;
+			this->__scal_bn(_denominator,_scale);
+			if (0 == (scale += _scale)) return;
 			denominator_scale -= _scale;
 		}
 		if (0 < scale && 0 < numerator_scale) {
 			const auto _scale = (scale < numerator_scale) ? scale : numerator_scale;
-			if (!this->__scal_bn(_numerator,_scale)) return false;	// likely invariant error
-			if (0 == (scale -= _scale)) return true;
+			this->__scal_bn(_numerator,_scale);
+			if (0 == (scale -= _scale)) return;
 			numerator_scale -= _scale;
 		}
 		if (0 > scale && 0 < denominator_scale) {
 			const auto _scale = (-scale < denominator_scale) ? -scale : denominator_scale;
-			if (!this->__scal_bn(_denominator, _scale)) return false;	// likely invariant error
-			if (0 == (scale += _scale)) return true;
+			this->__scal_bn(_denominator, _scale);
+			if (0 == (scale += _scale)) return;
 			denominator_scale -= _scale;
 		}
 		if (0 > scale && 0 > numerator_scale) {
 			const auto _scale = (scale > numerator_scale) ? scale : numerator_scale;
-			if (!this->__scal_bn(_numerator, _scale)) return false;	// likely invariant error
-			if (0 == (scale -= _scale)) return true;
+			this->__scal_bn(_numerator, _scale);
+			if (0 == (scale -= _scale)) return;
 			numerator_scale -= _scale;
 		}
 		const auto legal = _numerator->scal_bn_safe_range();
-		const auto legal_denominator = _denominator->scal_bn_safe_range();
 		if (legal.first > scale) {
-			if (!this->__scal_bn(_numerator,legal.first)) return false;
+			this->__scal_bn(_numerator,legal.first);
 			scale -= legal.first;
 		} else if (legal.second < scale) {
-			if (!this->__scal_bn(_numerator,legal.second)) return false;
+			this->__scal_bn(_numerator,legal.second);
 			scale -= legal.second;
-		} else return this->__scal_bn(_numerator,scale);
-		if (legal_denominator.first > scale) return false;	// likely invariant error
-		else if (legal_denominator.second < scale) return false;	// likely invariant error
-		else return this->__scal_bn(_denominator, scale);
+		} else {
+			this->__scal_bn(_numerator,scale);
+			return;
+		}
+		this->__scal_bn(_denominator, -scale);
 	}
 
 };

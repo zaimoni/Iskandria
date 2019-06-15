@@ -42,31 +42,30 @@ namespace zaimoni {
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
-		bool scal_bn(intmax_t scale) {
-			if (0 == scale || is_scal_bn_identity()) return true;	// no-op
+		void scal_bn(intmax_t scale) {
+			if (0 == scale || is_scal_bn_identity()) return;	// no-op
 			const auto legal = scal_bn_safe_range();
 			if (0 < scale) {
-				if (scale > legal.second) return false;
+				if (scale > legal.second) throw std::runtime_error("attempted overflow scal_bn");
 			} else {	// if (0 > scale)
-				if (scale < legal.first) return false;
+				if (scale < legal.first) throw std::runtime_error("attempted underflow scal_bn");
 			}
 
-			return _scal_bn(scale);
+			_scal_bn(scale);
 		};	// power-of-two
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
 	protected:
 		template<class T>
-		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
+		typename std::enable_if<std::is_base_of<fp_API, T>::value, void >::type
 		static __scal_bn(std::shared_ptr<T>& dest,intmax_t scale) {
 			std::shared_ptr<T> working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
-			if (!working->scal_bn(scale)) return false;
+			working->scal_bn(scale);
 			dest = working;
-			return true;
 		}
 	private:
-		virtual bool _scal_bn(intmax_t scale) = 0;	// power-of-two
+		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
 	};
 
 	template<class T>
@@ -76,7 +75,7 @@ namespace zaimoni {
 	typename std::enable_if<std::is_base_of<fp_API,T>::value, std::shared_ptr<T> >::type
 	scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
 		auto working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
-		if (!working->scal_bn(scale)) throw std::runtime_error("scalBn failed");
+		working->scal_bn(scale);
 		return working;
 	}
 
