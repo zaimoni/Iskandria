@@ -41,10 +41,22 @@ namespace zaimoni {
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
-		virtual bool scal_bn(intmax_t scale) = 0;	// power-of-two
+		bool scal_bn(intmax_t scale) {
+			if (0 == scale || is_scal_bn_identity()) return true;	// no-op
+			const auto legal = scal_bn_safe_range();
+			if (0 < scale) {
+				if (scale > legal.second) return false;
+			} else {	// if (0 > scale)
+				if (scale < legal.first) return false;
+			}
+
+			return _scal_bn(scale);
+		};	// power-of-two
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
+	private:
+		virtual bool _scal_bn(intmax_t scale) = 0;	// power-of-two
 	};
 
 	template<class T>

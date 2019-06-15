@@ -185,22 +185,6 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			}
-			else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-			auto& x = static_cast<Derived*>(this)->value();
-			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
@@ -216,6 +200,11 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
+			return true;
+		}	// power-of-two
 	};
 
 	template<>
@@ -272,22 +261,6 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			}
-			else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-			auto& x = static_cast<Derived*>(this)->value();
-			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
@@ -303,6 +276,11 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
+			return true;
+		}	// power-of-two
 	};
 
 	template<>
@@ -359,22 +337,6 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			}
-			else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-			auto& x = static_cast<Derived*>(this)->value();
-			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
@@ -390,6 +352,11 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
+			return true;
+		}	// power-of-two
 	};
 
 	template<>

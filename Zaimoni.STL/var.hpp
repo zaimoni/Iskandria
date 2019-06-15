@@ -78,27 +78,16 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			} else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-
-			auto& x = static_cast<Derived*>(this)->value();
-			x = std::scalbn(x, scale);
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x = std::scalbn(x, scale);
+			return true;
+		}	// power-of-two
 	};
 
 	template<>
@@ -137,27 +126,16 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			} else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-
-			auto& x = static_cast<Derived*>(this)->value();
-			x = std::scalbn(x, scale);
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x = std::scalbn(x, scale);
+			return true;
+		}	// power-of-two
 	};
 
 	template<>
@@ -196,27 +174,16 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual bool scal_bn(intmax_t scale) {
-			if (0 == scale) return true;	// no-op
-			if (is_scal_bn_identity()) return true;	// no-op
-
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) return false;
-			} else {	// if (0 > scale)
-				if (scale < legal.first) return false;
-			}
-
-			auto& x = static_cast<Derived*>(this)->value();
-			x = std::scalbn(x, scale);
-			return true;
-		}	// power-of-two
-
 		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
 		}
+		virtual bool _scal_bn(intmax_t scale) {
+			auto& x = static_cast<Derived*>(this)->value();
+			x = std::scalbn(x, scale);
+			return true;
+		}	// power-of-two
 	};
 
 	template<>
