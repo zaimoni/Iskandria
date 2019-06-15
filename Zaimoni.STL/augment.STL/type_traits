@@ -134,33 +134,30 @@ struct min_unsigned
 
 // hooks for some common tests that easily cause compiler errors when done naively, or can be inefficient on more complex types
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_zero(T x)	// could use kronecker delta for this
-{
-	return 0==x;
-}
+struct type_traits_arithmetic_aux {	// defaults for std::is_arithmetic<T>::value
+	static constexpr is_zero(typename const_param<T>::type x) { return 0 == x; }	// could use kronecker delta for this
+	static constexpr contains_zero(typename const_param<T>::type x) { return 0 == x; }
+	static constexpr is_positive(typename const_param<T>::type x) { return 0 < x; }
+	static constexpr is_negative(typename const_param<T>::type x) { return 0 > x; }
+	static constexpr is_one(typename const_param<T>::type x) { return 1 == x; }
+};
 
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type contains_zero(T x)
-{
-	return 0 == x;
-}
+constexpr bool is_zero(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::is_zero(x); }
 
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_positive(T x)
-{
-	return 0 < x;
-}
+constexpr bool contains_zero(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::contains_zero(x); }
 
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_negative(T x)
-{
-	return 0 > x;
-}
+constexpr bool is_positive(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::is_positive(x); }
+
+template<class T>
+constexpr bool is_negative(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::is_negative(x); }
 
 // intent is that the following are mutually exclusive and exhaustive for types that subset real numbers: contains_zero, is_positive, is_negative
 
 template<class T>
-constexpr int sgn(typename const_param<T>::type x)
+constexpr int sgn(const T& x)
 {
 	if (is_positive(x)) return 1;
 	if (is_negative(x)) return -1;
@@ -168,10 +165,7 @@ constexpr int sgn(typename const_param<T>::type x)
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<T>::value, bool>::type is_one(T x)	// could use kronecker delta for this
-{
-	return 1 == x;
-}
+constexpr bool is_one(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::is_one(x); }
 
 template<class T>
 constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type is_negative_one(T x)	// could use kronecker delta for this, *except* that would fail for unsigned integers

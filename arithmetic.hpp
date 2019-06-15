@@ -55,6 +55,20 @@ public:
 		if (1 == _x.size()) return _x.front()->is_one();
 		return false;
 	}
+	virtual int sgn() const {
+		if (is_zero()) return 0;
+		unsigned int seen = 0;
+		for (auto& x : _x) {
+			if (x->is_zero()) continue;	// should have normalized this away
+			const auto test = x->sgn();
+			if (7U == (seen |= (1 << (test + 1)))) break;
+		}
+		if (0 == seen) return 0;
+		if (4 == seen) return 1;	// only saw positive
+		if (1 == seen) return -1;	// only saw negative
+		// anything else would need evaluation to get right
+		throw std::runtime_error("sum needs to evaluate enough to calculate sgn()");
+	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -143,6 +157,15 @@ public:
 		if (_x.empty()) return true;
 		if (1 == _x.size()) return _x.front()->is_one();
 		return false;
+	}
+	virtual int sgn() const {
+		if (_x.empty()) return 1;
+		int ret = 1;
+		for (auto& x : _x) {
+			if (const auto test = x->sgn()) ret *= test;
+			else return 0;
+		}
+		return ret;
 	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
@@ -261,6 +284,11 @@ public:
 		if (_numerator == _denominator) return true;	// we assume that if two std::shared_ptrs are binary-equal that they are the same, even if they are intervals
 		if (_numerator->is_one() && _denominator->is_one()) return true;
 		return false;
+	}
+	virtual int sgn() const {
+		const auto n_sgn = _numerator->sgn();
+		if (const auto d_sgn = _denominator->sgn()) return n_sgn * d_sgn;
+		else return n_sgn;	// division by zero hard-errors so more like "don't know"
 	}
 	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {

@@ -39,6 +39,7 @@ namespace zaimoni {
 		virtual bool is_finite() const = 0;
 		virtual bool is_zero() const = 0;
 		virtual bool is_one() const = 0;
+		virtual int sgn() const = 0;
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
@@ -86,6 +87,7 @@ namespace zaimoni {
 
 		virtual bool is_zero() const { return zaimoni::is_zero(value()); };
 		virtual bool is_one() const { return zaimoni::is_one(value()); };
+		virtual int sgn() const { return zaimoni::sgn(value()); };
 	};
 
 	template<class Derived>
