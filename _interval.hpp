@@ -185,7 +185,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual fp_API* clone() const {
+		virtual typename _type_of<Derived>::type* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp!=x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -261,7 +261,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual fp_API* clone() const {
+		virtual typename _type_of<Derived>::type* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp!=x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -337,7 +337,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual fp_API* clone() const {
+		virtual typename _type_of<Derived>::type* clone() const {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp!=x.upper()) return new Derived(*static_cast<const Derived*>(this));

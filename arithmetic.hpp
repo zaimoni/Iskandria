@@ -82,7 +82,7 @@ public:
 			} else return 0;
 		}
 	}
-	virtual fp_API* clone() const { return new sum(*this); }
+	virtual sum* clone() const { return new sum(*this); }
 };
 
 template<class T>
@@ -154,7 +154,7 @@ public:
 		}
 		return ret;
 	}
-	virtual fp_API* clone() const { return new product(*this); }
+	virtual product* clone() const { return new product(*this); }
 };
 
 }	// end namespace series
@@ -222,7 +222,7 @@ public:
 		clamped_diff_assign(ret, _denominator->ideal_scal_bn());
 		return ret;
 	}
-	virtual fp_API* clone() const { return new quotient(*this); };
+	virtual quotient* clone() const { return new quotient(*this); };
 private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";

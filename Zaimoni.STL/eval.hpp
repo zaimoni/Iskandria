@@ -70,7 +70,7 @@ namespace zaimoni {
 	};
 
 	template<class T>
-	T* clone(const T& src) { return dynamic_cast<T*>(src.clone()); }
+	T* clone(const T& src) { return src.clone(); }
 
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API,T>::value, std::shared_ptr<T> >::type
