@@ -68,7 +68,7 @@ namespace zaimoni {
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 			_stats.scal_bn_safe_range(ret.first, ret.second);
 			return ret;
 		}
@@ -116,7 +116,7 @@ namespace zaimoni {
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 			_stats.scal_bn_safe_range(ret.first, ret.second);
 			return ret;
 		}
@@ -164,7 +164,7 @@ namespace zaimoni {
 		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 			_stats.scal_bn_safe_range(ret.first, ret.second);
 			return ret;
 		}

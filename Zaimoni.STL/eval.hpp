@@ -28,7 +28,7 @@ namespace zaimoni {
 	};
 
 	struct fp_API {	// virtual base
-		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range = std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 
 		virtual ~fp_API() = default;
 		// numerical support -- these have coordinate-wise definitions available

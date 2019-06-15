@@ -57,7 +57,7 @@ public:
 	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
-		std::pair<intmax_t, intmax_t> ret(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		for(const auto& x : _x) {
 			if (x->is_scal_bn_identity()) continue;
 			const auto tmp = x->scal_bn_safe_range();
@@ -136,7 +136,7 @@ public:
 		std::pair<intmax_t, intmax_t> ret(0, 0);
 		if (_x.empty()) return ret;	// should have evaluated
 		for(const auto& x : _x) {
-			if (x->is_scal_bn_identity()) return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+			if (x->is_scal_bn_identity()) return fp_API::max_scal_bn_safe_range();
 			const auto tmp = x->scal_bn_safe_range();
 			clamped_sum_assign(ret.first,tmp.first);
 			clamped_sum_assign(ret.second,tmp.second);
@@ -207,7 +207,7 @@ public:
 	}
 	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
-		std::pair<intmax_t, intmax_t> ret(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return ret;
 
 		ret = _numerator->scal_bn_safe_range();
@@ -232,7 +232,7 @@ private:
 		return 0;
 	}
 	static bool _scal_bn(smart_ptr& dest,intmax_t scale) {
-		smart_ptr working = dest->unique() ? dest : dest->clone();
+		smart_ptr working = dest.unique() ? dest : dest->clone();
 		if (!working->scal_bn(scale)) return false;
 		dest = working;
 		return true;
