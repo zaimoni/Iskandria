@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <type_traits>
+#include <utility>
 
 namespace zaimoni {
 
@@ -27,6 +28,8 @@ namespace zaimoni {
 	};
 
 	struct fp_API {	// virtual base
+		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range = std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+
 		virtual ~fp_API() = default;
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
@@ -37,7 +40,7 @@ namespace zaimoni {
 		virtual bool is_one() const = 0;
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
-		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const = 0;
+		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
 		virtual bool scal_bn(intmax_t scale) = 0;	// power-of-two
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure

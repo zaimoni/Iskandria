@@ -56,19 +56,15 @@ public:
 		return false;
 	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
-	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
-		lb = std::numeric_limits<intmax_t>::min();
-		ub = std::numeric_limits<intmax_t>::max();
-		intmax_t _lb;
-		intmax_t _ub;
+	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> ret(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
 		for(const auto& x : _x) {
 			if (x->is_scal_bn_identity()) continue;
-			x->scal_bn_safe_range(_lb, _ub);
-			if (lb < _lb) lb = _lb;
-			if (ub > _ub) ub = _ub;
+			const auto tmp = x->scal_bn_safe_range();
+			if (ret.first < tmp.first) ret.first = tmp.first;
+			if (ret.second > tmp.second) ret.second = tmp.second;
 		}
-//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
-//		if (0 > ub) ub = 0;
+		return ret;
 	}
 	virtual intmax_t ideal_scal_bn() const {
 		if (is_scal_bn_identity() || is_one()) return 0;
@@ -136,25 +132,17 @@ public:
 		return false;
 	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
-	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
-		lb = 0;
-		ub = 0;
-		if (_x.empty()) return;	// should have evaluated
-		intmax_t _lb;
-		intmax_t _ub;
+	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> ret(0, 0);
+		if (_x.empty()) return ret;	// should have evaluated
 		for(const auto& x : _x) {
-			if (x->is_scal_bn_identity()) {
-				lb = std::numeric_limits<intmax_t>::min();
-				ub = std::numeric_limits<intmax_t>::max();
-				return;
-			}
-			x->scal_bn_safe_range(_lb, _ub);
-			clamped_sum_assign(lb,_lb);
-			clamped_sum_assign(ub,_ub);
-			if (std::numeric_limits<intmax_t>::min() >= lb && std::numeric_limits<intmax_t>::max() <= ub) return;
+			if (x->is_scal_bn_identity()) return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+			const auto tmp = x->scal_bn_safe_range();
+			clamped_sum_assign(ret.first,tmp.first);
+			clamped_sum_assign(ret.second,tmp.second);
+			if (std::numeric_limits<intmax_t>::min() >= ret.first && std::numeric_limits<intmax_t>::max() <= ret.second) return ret;
 		}
-		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
-		//		if (0 > ub) ub = 0;
+		return ret;
 	}
 	virtual intmax_t ideal_scal_bn() const {
 		if (is_scal_bn_identity() || is_one()) return 0;
@@ -214,24 +202,19 @@ public:
 	}
 	virtual bool is_one() const {
 		if (_numerator == _denominator) return true;	// we assume that if two std::shared_ptrs are binary-equal that they are the same, even if they are intervals
-		if (_numerator.is_one() && _denominator.is_one()) return true;
+		if (_numerator->is_one() && _denominator->is_one()) return true;
 		return false;
 	}
 	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
-	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
-		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) {
-			lb = std::numeric_limits<intmax_t>::min();
-			ub = std::numeric_limits<intmax_t>::max();
-			return;
-		}
-		_numerator->scal_bn_safe_range(lb, ub);
-		intmax_t _lb;
-		intmax_t _ub;
-		_denominator->scal_bn_safe_range(_lb, _ub);
-		clamped_diff_assign(ub, _lb);
-		clamped_diff_assign(lb, _ub);
-		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
-		//		if (0 > ub) ub = 0;
+	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> ret(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return ret;
+
+		ret = _numerator->scal_bn_safe_range();
+		const auto tmp = _denominator->scal_bn_safe_range();
+		clamped_diff_assign(ret.second, tmp.second);
+		clamped_diff_assign(ret.first, tmp.second);
+		return ret;
 	};
 	virtual intmax_t ideal_scal_bn() const {
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return 0;

@@ -65,12 +65,12 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			lb = std::numeric_limits<intmax_t>::min();
-			ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(lb, ub);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			_stats.scal_bn_safe_range(ret.first, ret.second);
+			return ret;
 		}
 
 		virtual intmax_t ideal_scal_bn() const {
@@ -82,14 +82,11 @@ namespace zaimoni {
 			if (0 == scale) return true;	// no-op
 			if (is_scal_bn_identity()) return true;	// no-op
 
-			auto _lb = std::numeric_limits<intmax_t>::min();
-			auto _ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(_lb, _ub);
-
+			const auto legal = scal_bn_safe_range();
 			if (0 < scale) {
-				if (scale > _ub) return false;
+				if (scale > legal.second) return false;
 			} else {	// if (0 > scale)
-				if (scale < _lb) return false;
+				if (scale < legal.first) return false;
 			}
 
 			auto& x = static_cast<Derived*>(this)->value();
@@ -127,12 +124,12 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			lb = std::numeric_limits<intmax_t>::min();
-			ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(lb, ub);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			_stats.scal_bn_safe_range(ret.first, ret.second);
+			return ret;
 		}
 
 		virtual intmax_t ideal_scal_bn() const {
@@ -144,14 +141,11 @@ namespace zaimoni {
 			if (0 == scale) return true;	// no-op
 			if (is_scal_bn_identity()) return true;	// no-op
 
-			auto _lb = std::numeric_limits<intmax_t>::min();
-			auto _ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(_lb, _ub);
-
+			const auto legal = scal_bn_safe_range();
 			if (0 < scale) {
-				if (scale > _ub) return false;
+				if (scale > legal.second) return false;
 			} else {	// if (0 > scale)
-				if (scale < _lb) return false;
+				if (scale < legal.first) return false;
 			}
 
 			auto& x = static_cast<Derived*>(this)->value();
@@ -189,12 +183,12 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
-			lb = std::numeric_limits<intmax_t>::min();
-			ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(lb, ub);
+			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range);
+			_stats.scal_bn_safe_range(ret.first, ret.second);
+			return ret;
 		}
 
 		virtual intmax_t ideal_scal_bn() const {
@@ -206,14 +200,11 @@ namespace zaimoni {
 			if (0 == scale) return true;	// no-op
 			if (is_scal_bn_identity()) return true;	// no-op
 
-			auto _lb = std::numeric_limits<intmax_t>::min();
-			auto _ub = std::numeric_limits<intmax_t>::max();
-			_stats.scal_bn_safe_range(_lb, _ub);
-
+			const auto legal = scal_bn_safe_range();
 			if (0 < scale) {
-				if (scale > _ub) return false;
+				if (scale > legal.second) return false;
 			} else {	// if (0 > scale)
-				if (scale < _lb) return false;
+				if (scale < legal.first) return false;
 			}
 
 			auto& x = static_cast<Derived*>(this)->value();
