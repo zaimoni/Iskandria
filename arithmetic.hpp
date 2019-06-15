@@ -10,7 +10,7 @@ namespace series {
 
 // T is assumed to require zaimoni::fp_API in all of these classes
 template<class T>
-class sum : public T
+class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -45,7 +45,7 @@ public:
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
-	// \todo fp_API
+	// fp_API
 	virtual bool is_zero() const { 
 		if (_x.empty()) return true;
 		if (1 == _x.size()) return _x.front()->is_zero();
@@ -83,6 +83,15 @@ public:
 		}
 	}
 	virtual sum* clone() const { return new sum(*this); }
+
+	bool _is_inf() const {
+		for (auto& x : _x) if (x->is_inf()) return true;
+		return false;
+	}
+	bool _is_finite() const {
+		for (auto& x : _x) if (!x->is_finite()) return false;
+		return true;
+	}
 private:
 	virtual void _scal_bn(intmax_t scale) {
 		for (auto& x : _x) this->__scal_bn(x,scale);
@@ -90,7 +99,7 @@ private:
 };
 
 template<class T>
-class product : public T
+class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -125,7 +134,7 @@ public:
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
-	// \todo fp_API
+	// fp_API
 	virtual bool is_zero() const {
 		if (1 == _x.size()) return _x.front()->is_zero();
 		return false;
@@ -159,6 +168,15 @@ public:
 		return ret;
 	}
 	virtual product* clone() const { return new product(*this); }
+
+	bool _is_inf() const {
+		for (auto& x : _x) if (x->is_inf()) return true;
+		return false;
+	}
+	bool _is_finite() const {
+		for (auto& x : _x) if (!x->is_finite()) return false;
+		return true;
+	}
 private:
 	virtual void _scal_bn(intmax_t scale) {
 		bool saw_identity = false;
@@ -199,7 +217,7 @@ private:
 }	// end namespace series
 
 template<class T>
-class quotient : public T
+class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -233,7 +251,7 @@ public:
 		return 0;
 	}
 
-	// \todo fp_API
+	// fp_API
 	virtual bool is_zero() const {
 		if (_numerator->is_zero()) return true;
 		if (_denominator->is_inf()) return true;
@@ -262,13 +280,27 @@ public:
 		return ret;
 	}
 	virtual quotient* clone() const { return new quotient(*this); };
+
+	bool _is_inf() const {
+		return _numerator->is_inf();	// cf. _transform_fatal which requires finite denominator in this case
+	}
+	bool _is_finite() const {
+		if (_numerator->is_finite()) return true;
+		else if (_numerator->is_inf()) return false;
+		else if (_denominator->is_inf()) return true;	// presumed not-undefined
+		return false;
+	}
 private:
+	static const char* _transform_fatal(const smart_ptr& n, const smart_ptr& d)
+	{
+		if (d->is_zero()) return "zero denominator";
+		if (n->is_inf() && d->is_inf()) return "infinity/infinity";
+		return 0;
+	}
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";
 		if (!_denominator) return "denominator null";
-		if (_denominator->is_zero()) return "zero denominator";
-		if (_numerator->is_inf() && _denominator->is_inf()) return "infinity/infinity";
-		return 0;
+		return _transform_fatal(_numerator, _denominator);
 	}
 	virtual void _scal_bn(intmax_t scale) {
 		auto numerator_scale = _numerator->ideal_scal_bn();

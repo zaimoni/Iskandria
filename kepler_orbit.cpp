@@ -30,9 +30,9 @@ int main(int argc, char* argv[])
 	std::shared_ptr<zaimoni::var<decltype(jupiter.GM())> > jupiter_GM(new zaimoni::var<decltype(jupiter.GM())>(jupiter.GM()));
 	std::shared_ptr<zaimoni::var<decltype(saturn.GM())> > saturn_GM(new zaimoni::var<decltype(saturn.GM())>(sun.GM()));
 
-//	zaimoni::series::sum<typename zaimoni::_type_of<double>::type> inv_reduced_mass;
-//	zaimoni::series::product<typename zaimoni::_type_of<double>::type> code_coverage;
-//	zaimoni::quotient<typename zaimoni::_type_of<double>::type> code_coverage2;
+	zaimoni::series::sum<typename zaimoni::_type_of<double>::type> inv_reduced_mass;
+	zaimoni::series::product<typename zaimoni::_type_of<double>::type> code_coverage;
+	zaimoni::quotient<typename zaimoni::_type_of<double>::type> code_coverage2;
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 

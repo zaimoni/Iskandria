@@ -88,6 +88,12 @@ namespace zaimoni {
 		virtual bool is_one() const { return zaimoni::is_one(value()); };
 	};
 
+	template<class Derived>
+	struct _infinite : public virtual fp_API {
+		virtual bool is_inf() const { return static_cast<const Derived*>(this)->_is_inf(); }
+		virtual bool is_finite() const { return static_cast<const Derived*>(this)->_is_finite(); };
+	};
+
 	// top-levels: _C_SHARP_, _R_SHARP_
 	template<>
 	template<_type_spec::operation OP>
@@ -136,6 +142,18 @@ namespace zaimoni {
 
 	template<class Derived, class T, int API_CODE>
 	struct _interface_of {};	// must override to do anything useful
+
+	template<>
+	template<class Derived, class T>
+	struct _interface_of<Derived, std::shared_ptr<T>, 0>
+	{
+	};
+
+	template<>
+	template<class Derived, class T>
+	struct _interface_of<Derived, std::shared_ptr<T>, 1> : public _infinite<Derived>
+	{
+	};
 
 	template<>
 	struct _type_of<float>
