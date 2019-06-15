@@ -191,6 +191,40 @@ constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_signed<
 	return false;
 }
 
+// clamped signed arithmetic
+template<class T>
+struct clamped_signed
+{
+	static_assert(std::is_integral<T>::value&& std::is_signed<T>::value, "signed integers only");
+	static void sum_assign(T& dest, T delta) {
+		if (0 < delta) {
+			if (std::numeric_limits<intmax_t>::max()-delta <= dest) dest = std::numeric_limits<intmax_t>::max();
+			else dest += delta;
+		}
+		else if (0 > delta) {
+			if (std::numeric_limits<intmax_t>::min()-delta >= dest) dest = std::numeric_limits<intmax_t>::min();
+			else dest += delta;
+		}
+	}
+
+	static void diff_assign(T& dest, T delta) {
+		if (0 < delta) {
+			if (0 > dest && std::numeric_limits<intmax_t>::min() + delta >= dest) dest = std::numeric_limits<intmax_t>::min();
+			else dest -= delta;
+		}
+		else if (0 > delta) {
+			if (0 < dest && std::numeric_limits<intmax_t>::max() + delta <= dest) dest = std::numeric_limits<intmax_t>::max();
+			else dest -= delta;
+		}
+	}
+};
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value, void>::type clamped_sum_assign(typename std::remove_cv<T>::type& dest, T delta) { clamped_signed<typename std::remove_cv<T>::type>::sum_assign(dest, delta); }
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value, void>::type clamped_diff_assign(typename std::remove_cv<T>::type& dest, T delta) { clamped_signed<typename std::remove_cv<T>::type>::diff_assign(dest,delta); }
+
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)
 template<class T>

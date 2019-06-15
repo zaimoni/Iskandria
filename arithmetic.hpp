@@ -55,7 +55,7 @@ public:
 		if (1 == _x.size()) return _x.front()->is_one();
 		return false;
 	}
-	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this
+	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
 	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		lb = std::numeric_limits<intmax_t>::min();
 		ub = std::numeric_limits<intmax_t>::max();
@@ -69,6 +69,22 @@ public:
 		}
 //		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
 //		if (0 > ub) ub = 0;
+	}
+	virtual intmax_t ideal_scal_bn() const {
+		if (is_scal_bn_identity() || is_one()) return 0;
+		intmax_t ret = 0;
+		for (const auto& x : _x) {
+			const auto test = x->ideal_scal_bn();
+			if (0 < test) {
+				if (0 > ret) return 0;
+				if (0 < ret && test >= ret) continue;
+				ret = test;
+			} else if (0 > test) {
+				if (0 < ret) return 0;
+				if (0 > ret && test <= ret) continue;
+				ret = test;
+			} else return 0;
+		}
 	}
 	virtual fp_API* clone() const { return new sum(*this); }
 };
@@ -119,7 +135,7 @@ public:
 		if (1 == _x.size()) return _x.front()->is_one();
 		return false;
 	}
-	virtual bool is_scal_bn_identity() const { return false; }	// let evaluation handle this -- pathological behavior anyway
+	virtual bool is_scal_bn_identity() const { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
 	virtual void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		lb = 0;
 		ub = 0;
@@ -133,20 +149,22 @@ public:
 				return;
 			}
 			x->scal_bn_safe_range(_lb, _ub);
-			bool lb_not_clamped = false;
-			bool ub_not_clamped = false;
-			if (0 > _lb) {
-				if (lb_not_clamped = (std::numeric_limits<intmax_t>::min() - _lb < lb)) lb += _lb;
-				else lb = std::numeric_limits<intmax_t>::min();
-			} else lb_not_clamped = (std::numeric_limits<intmax_t>::min() < lb);
-			if (0 < _ub) {
-				if (ub_not_clamped = (std::numeric_limits<intmax_t>::max() - _ub > ub)) ub += _ub;
-				else ub = std::numeric_limits<intmax_t>::max();
-			} else ub_not_clamped = (std::numeric_limits<intmax_t>::max() > ub);
-			if (!lb_not_clamped && !ub_not_clamped) return;
+			clamped_sum_assign(lb,_lb);
+			clamped_sum_assign(ub,_ub);
+			if (std::numeric_limits<intmax_t>::min() >= lb && std::numeric_limits<intmax_t>::max() <= ub) return;
 		}
 		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
 		//		if (0 > ub) ub = 0;
+	}
+	virtual intmax_t ideal_scal_bn() const {
+		if (is_scal_bn_identity() || is_one()) return 0;
+		intmax_t ret = 0;
+		for (const auto& x : _x) {
+			if (x->is_scal_bn_identity()) return 0;
+			clamped_sum_assign(ret, x->ideal_scal_bn());
+			if (std::numeric_limits<intmax_t>::max() == ret || std::numeric_limits<intmax_t>::min() == ret) return ret;	// assumes in normal form
+		}
+		return ret;
 	}
 	virtual fp_API* clone() const { return new product(*this); }
 };
@@ -210,13 +228,17 @@ public:
 		intmax_t _lb;
 		intmax_t _ub;
 		_denominator->scal_bn_safe_range(_lb, _ub);
-		if (0 > _lb && std::numeric_limits<intmax_t>::max() + _lb >= ub) ub -= _lb;
-		else ub = std::numeric_limits<intmax_t>::max();
-		if (0 < _ub && std::numeric_limits<intmax_t>::min() + _ub <= lb) lb -= _ub;
-		else lb = std::numeric_limits<intmax_t>::min();
+		clamped_diff_assign(ub, _lb);
+		clamped_diff_assign(lb, _ub);
 		//		if (0 < lb) lb = 0;	// if we wanted to explicitly enforce invariants
 		//		if (0 > ub) ub = 0;
 	};
+	virtual intmax_t ideal_scal_bn() const {
+		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return 0;
+		intmax_t ret = _numerator->ideal_scal_bn();
+		clamped_diff_assign(ret, _denominator->ideal_scal_bn());
+		return ret;
+	}
 	virtual fp_API* clone() const { return new quotient(*this); };
 private:
 	const char* _constructor_fatal() const {
