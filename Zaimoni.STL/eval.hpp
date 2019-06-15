@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <type_traits>
 #include <utility>
+#include <memory>
 
 namespace zaimoni {
 
@@ -55,12 +56,29 @@ namespace zaimoni {
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
+	protected:
+		template<class T>
+		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
+		static __scal_bn(std::shared_ptr<T>& dest,intmax_t scale) {
+			std::shared_ptr<T> working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
+			if (!working->scal_bn(scale)) return false;
+			dest = working;
+			return true;
+		}
 	private:
 		virtual bool _scal_bn(intmax_t scale) = 0;	// power-of-two
 	};
 
 	template<class T>
 	T* clone(const T& src) { return dynamic_cast<T*>(src.clone()); }
+
+	template<class T>
+	typename std::enable_if<std::is_base_of<fp_API,T>::value, std::shared_ptr<T> >::type
+	scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
+		auto working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
+		if (!working->scal_bn(scale)) throw std::runtime_error("scalBn failed");
+		return working;
+	}
 
 	template<class T>
 	struct _access : public virtual fp_API {
