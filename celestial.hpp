@@ -4,7 +4,6 @@
 #define CELESTIAL_HPP
 
 #include "constants.hpp"
-#include "conventions.hpp"
 #include "object.hpp"
 #include "coord_chart.hpp"
 
