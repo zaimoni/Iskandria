@@ -32,9 +32,10 @@ public:
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
-		_x.push_back(src);	// \todo react to infinity
+		_x.push_back(std::move(src));	// \todo react to infinity
 		_known_stable = false;
 	}
+	void append_term(T* src) { append_term(smart_ptr(src)); }
 
 	bool self_eval() {
 		if (_known_stable) return false;
@@ -135,9 +136,10 @@ public:
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_one()) return;
-		_x.push_back(src);	// \todo react to 0, infinity
+		_x.push_back(std::move(src));	// \todo react to 0, infinity
 		_known_stable = false;
 	}
+	void append_term(T* src) { append_term(smart_ptr(src)); }
 
 	bool self_eval() {
 		if (_known_stable) return false;
@@ -250,7 +252,39 @@ private:
 	bool _known_stable;
 public:
 	quotient() = default;
-	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(denominator), _known_stable(false){
+	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _known_stable(false){
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _known_stable(false) {
+		auto err = _constructor_fatal();
+		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+	}
+	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _known_stable(false) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
