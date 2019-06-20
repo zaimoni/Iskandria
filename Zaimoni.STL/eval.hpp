@@ -5,8 +5,11 @@
 #include <type_traits>
 #include <utility>
 #include <memory>
+#include <string>
 
 namespace zaimoni {
+
+	using std::to_string;
 
 	// Yet another take on higher-mathematics typing.
 	struct _type_spec {
@@ -57,6 +60,8 @@ namespace zaimoni {
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1
 		// technical infrastructure
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
+		virtual std::string to_s() const = 0;
+		virtual int precedence() const = 0;
 	protected:
 		template<class T>
 		typename std::enable_if<std::is_base_of<fp_API, T>::value, void >::type
@@ -88,6 +93,9 @@ namespace zaimoni {
 		virtual bool is_zero() const { return zaimoni::is_zero(value()); };
 		virtual bool is_one() const { return zaimoni::is_one(value()); };
 		virtual int sgn() const { return zaimoni::sgn(value()); };
+
+		virtual std::string to_s() const { return to_string(value()); }
+		virtual int precedence() const { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
 	};
 
 	template<class Derived>

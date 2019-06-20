@@ -6,33 +6,26 @@
 #endif
 // Logging.h support -- outside of namespace to match Logging.h
 
-template<class T>
-void INFORM(const ISK_INTERVAL<T>& x)
-{
-	if (x.lower() == x.upper()) {
-		INFORM(x.upper());
-		return;
+#include <string>
+
+namespace zaimoni {
+
+	using std::to_string;
+
+	template<class T>
+	std::string to_string(const ISK_INTERVAL<T>& x)
+	{
+		if (x.lower() == x.upper()) return to_string(x.lower());
+		return std::string("[") + to_string(x.lower()) + ',' + to_string(x.upper()) + ']';
 	}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INFORM("]");
+
 }
 
 template<class T>
-void INC_INFORM(const ISK_INTERVAL<T>& x)
-{
-	if (x.lower() == x.upper()) {
-		INC_INFORM(x.upper());
-		return;
-	}
-	INC_INFORM("[");
-	INC_INFORM(x.lower());
-	INC_INFORM(",");
-	INC_INFORM(x.upper());
-	INC_INFORM("]");
-}
+void INFORM(const ISK_INTERVAL<T>& x) { INFORM(zaimoni::to_string(x).c_str()); }
+
+template<class T>
+void INC_INFORM(const ISK_INTERVAL<T>& x) { INC_INFORM(zaimoni::to_string(x).c_str()); }
 
 // support functions with masters in Augment.STL/type_traits or cmath
 namespace zaimoni {

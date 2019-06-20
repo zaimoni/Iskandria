@@ -98,6 +98,26 @@ public:
 		}
 	}
 	virtual sum* clone() const { return new sum(*this); }
+	std::string to_s() const {
+		if (_x.empty()) return "0";
+		const auto _size = _x.size();
+		if (1 == _size) return _x.front()->to_s();
+		bool first = true;
+		std::string ret;
+		for (auto& x : _x) {
+			auto tmp = x->to_s();
+			if (precedence() >= x->precedence()) tmp = std::string("(") + tmp + ')';
+			if (first) {
+				ret = std::move(tmp);
+				first = false;
+			}
+			else {
+				ret += '+' + tmp;
+			}
+		}
+		return ret;
+	}
+	virtual int precedence() const { return 1; }
 
 	bool _is_inf() const {
 		for (auto& x : _x) if (x->is_inf()) return true;
@@ -193,6 +213,25 @@ public:
 		return ret;
 	}
 	virtual product* clone() const { return new product(*this); }
+	std::string to_s() const {
+		if (_x.empty()) return "1";
+		const auto _size = _x.size();
+		if (1 == _size) return _x.front()->to_s();
+		bool first = true;
+		std::string ret;
+		for (auto& x : _x) {
+			auto tmp = x->to_s();
+			if (precedence() >= x->precedence()) tmp = std::string("(") + tmp + ')';
+			if (first) {
+				ret = std::move(tmp);
+				first = false;
+			} else {
+				ret += '*' + tmp;
+			}
+		}
+		return ret;
+	}
+	virtual int precedence() const { return 2; }
 
 	bool _is_inf() const {
 		for (auto& x : _x) if (x->is_inf()) return true;
@@ -342,6 +381,14 @@ public:
 		return ret;
 	}
 	virtual quotient* clone() const { return new quotient(*this); };
+	virtual std::string to_s() const {
+		auto n = _numerator->to_s();
+		if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';
+		auto d = _denominator->to_s();
+		if (precedence() >= _denominator->precedence()) d = std::string("(") + d + ')';
+		return n + '/' + d;
+	}
+	virtual int precedence() const { return 2; }
 
 	bool _is_inf() const {
 		return _numerator->is_inf();	// cf. _transform_fatal which requires finite denominator in this case

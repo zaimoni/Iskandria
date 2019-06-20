@@ -27,15 +27,19 @@ int main(int argc, char* argv[])
 
 	// inline prototype of reduced mass calculation as follows:
 	auto inv_reduced_mass = new zaimoni::series::sum<typename zaimoni::_type_of<double>::type>();
-	inv_reduced_mass->append_term(new zaimoni::var<mass::interval>(sun.GM()));
-	inv_reduced_mass->append_term(new zaimoni::var<mass::interval>(jupiter.GM()));
-	inv_reduced_mass->append_term(new zaimoni::var<mass::interval>(saturn.GM()));
+	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(sun.GM())));
+	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(jupiter.GM())));
+	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(saturn.GM())));
+	STRING_LITERAL_TO_STDOUT("example inverse reduced mass (GM)\n");
+	INFORM(inv_reduced_mass->to_s().c_str());
 
 	zaimoni::series::product<typename zaimoni::_type_of<double>::type> code_coverage;
 	zaimoni::quotient<typename zaimoni::_type_of<double>::type> code_coverage2;
 	zaimoni::quotient<typename zaimoni::_type_of<double>::type> reduced_mass(one,inv_reduced_mass);
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
+	STRING_LITERAL_TO_STDOUT("example reduced mass (GM)\n");
+	INFORM(reduced_mass.to_s().c_str());
 
 	// \todo units conversion...put astronomical unit AU somewhere, then use it below
 	conic unit_circle(1);
