@@ -35,6 +35,9 @@ namespace zaimoni {
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 
 		virtual ~fp_API() = default;
+
+		virtual bool self_eval() = 0;
+
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
 		virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
@@ -89,6 +92,8 @@ namespace zaimoni {
 	struct _access : public virtual fp_API {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
+
+		virtual bool self_eval() { return false; };
 
 		virtual bool is_zero() const { return zaimoni::is_zero(value()); };
 		virtual bool is_one() const { return zaimoni::is_one(value()); };

@@ -37,17 +37,17 @@ public:
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
-	bool self_eval() {
-		if (_known_stable) return false;
-		_known_stable = true;
-		return false;
-	}
 	smart_ptr eval() {
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
 	// fp_API
-	virtual bool is_zero() const { 
+	virtual bool self_eval() {
+		if (_known_stable) return false;
+		_known_stable = true;
+		return false;
+	}
+	virtual bool is_zero() const {
 		if (_x.empty()) return true;
 		if (1 == _x.size()) return _x.front()->is_zero();
 		return false;
@@ -161,16 +161,16 @@ public:
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
-	bool self_eval() {
-		if (_known_stable) return false;
-		_known_stable = true;
-		return false;
-	}
 	smart_ptr eval() {
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
 	// fp_API
+	virtual bool self_eval() {
+		if (_known_stable) return false;
+		_known_stable = true;
+		return false;
+	}
 	virtual bool is_zero() const {
 		if (1 == _x.size()) return _x.front()->is_zero();
 		return false;
@@ -333,14 +333,6 @@ public:
 	quotient& operator=(const quotient& src) = default;
 	quotient& operator=(quotient&& src) = default;
 
-	bool self_eval() {
-		if (_known_stable) return false;
-		// \todo: greatest common integer factor exceeds one
-		// \todo: mutual cancellation of negative signs
-		// \todo: scalBn of denominator towards 1 (arguably normal-form)
-		_known_stable = true;
-		return false;
-	}
 	smart_ptr eval() {
 		if (_denominator->is_one()) return _numerator;
 		if (_numerator->is_zero()) return _numerator;
@@ -348,6 +340,14 @@ public:
 	}
 
 	// fp_API
+	virtual bool self_eval() {
+		if (_known_stable) return false;
+		// \todo: greatest common integer factor exceeds one
+		// \todo: mutual cancellation of negative signs
+		// \todo: scalBn of denominator towards 1 (arguably normal-form)
+		_known_stable = true;
+		return false;
+	}
 	virtual bool is_zero() const {
 		if (_numerator->is_zero()) return true;
 		if (_denominator->is_inf()) return true;
