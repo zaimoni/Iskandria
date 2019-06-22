@@ -14,11 +14,14 @@ class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_cod
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
+	typedef std::pair<int, size_t> eval_spec;
 private:
 	std::vector<smart_ptr> _x;
-	unsigned int _heuristic_code;
+	std::vector<eval_spec> _heuristic;
 	enum {
 		componentwise_evaluation = 1,
+		remove_identity,
+		linear_scan,	// should be "highest" numerically.  Reacts to infinity
 		strict_max_heuristic
 	};
 public:
@@ -31,16 +34,23 @@ public:
 
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_zero()) return;
-		_x.push_back(src);	// \todo react to infinity
-		_heuristic_code = strict_max_heuristic - 1;
+		if (!_x.empty()) {
+			if (_heuristic.empty() || linear_scan!=_heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
+		}
+		_x.push_back(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
-		_x.push_back(std::move(src));	// \todo react to infinity
-		_heuristic_code = strict_max_heuristic - 1;
+		if (!_x.empty()) {
+			if (_heuristic.empty() || linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
+		}
+		_x.push_back(std::move(src));
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
+private:
+	bool would_fpAPI_eval() const { return 1 >= _x.size(); }
+public:
 	// eval_shared_ptr
 	virtual smart_ptr destructive_eval() {
 		if (1 == _x.size()) return _x.front();
@@ -48,8 +58,91 @@ public:
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (0 >= _heuristic_code) return false;
-		_heuristic_code = 0;
+		if (_heuristic.empty()) return false;
+restart:
+		auto& checking = _heuristic.back();
+		if (0 >= checking.first) return false;	// doing something else instead
+		// process
+		switch (checking.first)
+		{
+		case linear_scan:
+			{	// O(n^2) pairwise interaction checks (addition is always commutative)
+linear_scan_restart:
+			if (_x.size() > checking.second && 1 <= checking.second) {
+				auto& viewpoint = _x[checking.second];
+				size_t i = 0;
+				do {
+#if 0
+					auto& target = _x[i];
+					const auto result_code = zaimoni::math::rearrange_sum(target, viewpoint);
+					if (0 == result_code) continue;	// no interaction
+					switch(result_code)
+					{
+					case 1:		// rhs annihilated (may have swapped to ensure this).  Mutual kill should be very rare
+						{
+						if (target->is_zero()) _heuristic.push_back(eval_spec(remove_identity, i));
+						else if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
+						_heuristic.push_back(eval_spec(remove_identity, checking.second));
+						if (1 < checking.second) checking.second--;
+						return true;
+						}
+					case 2:		// non-annihiliating change
+						{
+						if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
+						if (1<checking.second) checking.second--;
+						return true;
+						}
+					}
+#endif
+				} while (++i < checking.second);
+				// we fell through.  Everything at or below us does not interact (strong natural induction)
+				checking.second++;
+				goto linear_scan_restart;
+			}
+			_heuristic.pop_back();
+			if (_heuristic.empty()) _heuristic.push_back(eval_spec(componentwise_evaluation, 0));
+			goto restart;
+			}
+		case remove_identity:
+			{
+			const auto i = checking.second;
+			_heuristic.pop_back();
+			if (_x.size() <= i) goto restart;
+			_x.erase(_x.begin()+i);
+			if (would_fpAPI_eval()) _heuristic.clear();
+			return true;
+			}
+		case componentwise_evaluation:
+			{
+			const auto strict_ub = _x.size();
+			while (strict_ub > checking.second) {
+				auto& viewpoint = _x[checking.second];
+				if (viewpoint->self_eval()) {
+					if (viewpoint->is_zero()) {
+						_heuristic.push_back(eval_spec(remove_identity, checking.second));
+						return true;
+					}
+					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
+					_heuristic.push_back(eval_spec(linear_scan, strict_ub - 1));
+					return true;
+				}
+				if (fp_API::eval(viewpoint)) {
+					if (viewpoint->is_zero()) {
+						_heuristic.push_back(eval_spec(remove_identity, checking.second));
+						return true;
+					}
+					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
+					_heuristic.push_back(eval_spec(linear_scan, strict_ub - 1));
+					return true;
+				}
+				checking.second++;
+			}
+			_heuristic.pop_back();
+			if (_heuristic.empty()) return false;
+			goto restart;
+			}
+		}
+		_heuristic.clear();
 		return false;
 	}
 	virtual bool is_zero() const {
@@ -144,11 +237,13 @@ class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
+	typedef std::pair<int, size_t> eval_spec;
 private:
 	std::vector<smart_ptr> _x;
-	unsigned int _heuristic_code;
+	std::vector<eval_spec> _heuristic;
 	enum {
 		componentwise_evaluation = 1,
+		linear_scan,	// should be "highest" numerically.  Reacts to zero, infinity
 		strict_max_heuristic
 	};
 public:
@@ -161,13 +256,17 @@ public:
 
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_one()) return;
-		_x.push_back(src);	// \todo react to 0, infinity
-		_heuristic_code = strict_max_heuristic - 1;
+		if (!_x.empty()) {
+			if (_heuristic.empty() || linear_scan!=_heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
+		}
+		_x.push_back(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_one()) return;
-		_x.push_back(std::move(src));	// \todo react to 0, infinity
-		_heuristic_code = strict_max_heuristic - 1;
+		if (!_x.empty()) {
+			if (_heuristic.empty() || linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
+		}
+		_x.push_back(std::move(src));
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
@@ -178,8 +277,20 @@ public:
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (0>= _heuristic_code) return false;
-		_heuristic_code = 0;
+		if (_heuristic.empty()) return false;
+#if 0
+		auto & checking = _heuristic.back();
+		switch (checking.first)
+		{
+		case linear_scan:
+		{	// O(n^2) pairwise interaction checks.
+		}
+		case componentwise_evaluation:
+		{
+		}
+		}
+#endif
+		_heuristic.clear();
 		return false;
 	}
 	virtual bool is_zero() const {
@@ -300,46 +411,46 @@ public:
 private:
 	smart_ptr _numerator;
 	smart_ptr _denominator;
-	unsigned int _heuristic_code;
+	std::pair<unsigned int, unsigned int> _heuristic;
 	enum {
 		componentwise_evaluation = 1,
 		strict_max_heuristic
 	};
 public:
 	quotient() = default;
-	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _heuristic_code(strict_max_heuristic-1){
+	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic-1,0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
+	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
@@ -349,6 +460,13 @@ public:
 	quotient& operator=(const quotient& src) = default;
 	quotient& operator=(quotient&& src) = default;
 
+private:
+	bool would_destructive_eval() const {
+		if (_denominator->is_one()) return true;
+		if (_numerator->is_zero()) return true;
+		return false;
+	}
+public:
 	// eval_shared_ptr
 	virtual smart_ptr destructive_eval() {
 		if (_denominator->is_one()) return _numerator;
@@ -358,12 +476,42 @@ public:
 
 	// fp_API
 	virtual bool self_eval() {
-		if (0 >= _heuristic_code) return false;
+		if (0 >= _heuristic.first) return false;
 		// \todo: greatest common integer factor exceeds one
 		// \todo: mutual cancellation of negative signs
 		// \todo: scalBn of denominator towards 1 (arguably normal-form)
-		_heuristic_code = 0;
-		return false;
+		switch (_heuristic.first) {
+		case componentwise_evaluation:
+			{
+			unsigned int n_state = _heuristic.second % 3;	// chinese remainder theorem encoding
+			unsigned int d_state = _heuristic.second / 3;
+			switch (n_state) {
+			case 0:
+				if (_numerator->self_eval()) break;
+				n_state = 1;
+				// intentional fall-through
+			case 1:
+				n_state = fp_API::eval(_numerator) ? 0 : 2;
+			};
+			switch (d_state) {
+			case 0:
+				if (_denominator->self_eval()) break;
+				d_state = 1;
+				// intentional fall-through
+			case 1:
+				d_state = fp_API::eval(_denominator) ? 0 : 2;
+			};
+			if (8 > (_heuristic.second = 3 * d_state + n_state)) {
+				if (auto msg = _transform_fatal(_numerator, _denominator)) throw std::runtime_error(msg);
+				if (would_destructive_eval()) _heuristic.first = 0;
+				return true;
+			}
+			}
+			// intentional fall-through
+		default:
+			_heuristic.first = 0;
+			return false;
+		}
 	}
 	virtual bool is_zero() const {
 		if (_numerator->is_zero()) return true;

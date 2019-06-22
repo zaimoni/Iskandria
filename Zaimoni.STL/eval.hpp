@@ -47,7 +47,7 @@ namespace zaimoni {
 		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
 		static eval(std::shared_ptr<T>& dest) {
 			if (auto efficient = dynamic_cast<eval_shared_ptr<T>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
-				if (auto result = efficient.destructive_eval()) {
+				if (auto result = efficient->destructive_eval()) {
 					dest = result;
 					return true;
 				}
