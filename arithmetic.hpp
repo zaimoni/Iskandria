@@ -10,7 +10,7 @@ namespace series {
 
 // T is assumed to require zaimoni::fp_API in all of these classes
 template<class T>
-class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>
+class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -37,7 +37,8 @@ public:
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
-	smart_ptr eval() {
+	// eval_shared_ptr
+	virtual smart_ptr destructive_eval() {
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
@@ -134,7 +135,7 @@ private:
 };
 
 template<class T>
-class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>
+class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -161,7 +162,8 @@ public:
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
-	smart_ptr eval() {
+	// eval_shared_ptr
+	virtual smart_ptr destructive_eval() {
 		if (1 == _x.size()) return _x.front();
 		return 0;
 	}
@@ -281,7 +283,7 @@ private:
 }	// end namespace series
 
 template<class T>
-class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>
+class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
 	typedef std::shared_ptr<T> smart_ptr;
@@ -333,7 +335,8 @@ public:
 	quotient& operator=(const quotient& src) = default;
 	quotient& operator=(quotient&& src) = default;
 
-	smart_ptr eval() {
+	// eval_shared_ptr
+	virtual smart_ptr destructive_eval() {
 		if (_denominator->is_one()) return _numerator;
 		if (_numerator->is_zero()) return _numerator;
 		return 0;

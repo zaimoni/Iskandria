@@ -31,12 +31,36 @@ namespace zaimoni {
 		virtual ~_type() = default;
 	};
 
+	template<class T>
+	struct eval_shared_ptr
+	{
+		virtual std::shared_ptr<T> destructive_eval() = 0;
+	};
+
 	struct fp_API {	// virtual base
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 
 		virtual ~fp_API() = default;
 
 		virtual bool self_eval() = 0;
+		template<class T>
+		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
+		static eval(std::shared_ptr<T>& dest) {
+			if (auto efficient = dynamic_cast<eval_shared_ptr<T>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
+				if (auto result = efficient.destructive_eval()) {
+					dest = result;
+					return true;
+				}
+			}
+			return false;
+/*
+			std::shared_ptr<T> working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
+			auto result = working->_eval();
+			if (!result) return false;
+			dest = std::shared_ptr<T>(dynamic_cast<T*>(result));
+			return true;
+*/
+		}
 
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
