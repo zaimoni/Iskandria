@@ -207,6 +207,11 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
+		virtual fp_API* _eval() const {
+			auto& x = static_cast<const Derived*>(this)->value();
+			if (x.lower() == x.upper()) return new var<double>(x.lower());
+			return 0;
+		}
 	};
 
 	template<>
@@ -282,6 +287,11 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
+		virtual fp_API* _eval() const {
+			auto& x = static_cast<const Derived*>(this)->value();
+			if (x.lower() == x.upper()) return new var<float>(x.lower());
+			return 0;
+		}
 	};
 
 	template<>
@@ -355,8 +365,13 @@ namespace zaimoni {
 		}
 		virtual void _scal_bn(intmax_t scale) {
 			auto& x = static_cast<Derived*>(this)->value();
-			x.assign(std::scalbn(x.lower(), scale),std::scalbn(x.upper(), scale));
+			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
+		virtual fp_API* _eval() const {
+			auto& x = static_cast<const Derived*>(this)->value();
+			if (x.lower() == x.upper()) return new var<long double>(x.lower());
+			return 0;
+		}
 	};
 
 	template<>

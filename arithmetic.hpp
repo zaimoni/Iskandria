@@ -16,7 +16,11 @@ public:
 	typedef std::shared_ptr<T> smart_ptr;
 private:
 	std::vector<smart_ptr> _x;
-	bool _known_stable;
+	unsigned int _heuristic_code;
+	enum {
+		componentwise_evaluation = 1,
+		strict_max_heuristic
+	};
 public:
 	sum() = default;
 	sum(const sum& src) = default;
@@ -28,12 +32,12 @@ public:
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_zero()) return;
 		_x.push_back(src);	// \todo react to infinity
-		_known_stable = false;
+		_heuristic_code = strict_max_heuristic - 1;
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
 		_x.push_back(std::move(src));	// \todo react to infinity
-		_known_stable = false;
+		_heuristic_code = strict_max_heuristic - 1;
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
@@ -44,8 +48,8 @@ public:
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (_known_stable) return false;
-		_known_stable = true;
+		if (0 >= _heuristic_code) return false;
+		_heuristic_code = 0;
 		return false;
 	}
 	virtual bool is_zero() const {
@@ -132,6 +136,7 @@ private:
 	virtual void _scal_bn(intmax_t scale) {
 		for (auto& x : _x) this->__scal_bn(x,scale);
 	}
+	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
 
 template<class T>
@@ -141,7 +146,11 @@ public:
 	typedef std::shared_ptr<T> smart_ptr;
 private:
 	std::vector<smart_ptr> _x;
-	bool _known_stable;
+	unsigned int _heuristic_code;
+	enum {
+		componentwise_evaluation = 1,
+		strict_max_heuristic
+	};
 public:
 	product() = default;
 	product(const product& src) = default;
@@ -153,12 +162,12 @@ public:
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_one()) return;
 		_x.push_back(src);	// \todo react to 0, infinity
-		_known_stable = false;
+		_heuristic_code = strict_max_heuristic - 1;
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_one()) return;
 		_x.push_back(std::move(src));	// \todo react to 0, infinity
-		_known_stable = false;
+		_heuristic_code = strict_max_heuristic - 1;
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
@@ -169,8 +178,8 @@ public:
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (_known_stable) return false;
-		_known_stable = true;
+		if (0>= _heuristic_code) return false;
+		_heuristic_code = 0;
 		return false;
 	}
 	virtual bool is_zero() const {
@@ -278,6 +287,7 @@ private:
 		}
 		if (0 != scale) throw std::runtime_error("scal_bn needed additional factors added");
 	}
+	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
 
 }	// end namespace series
@@ -290,42 +300,46 @@ public:
 private:
 	smart_ptr _numerator;
 	smart_ptr _denominator;
-	bool _known_stable;
+	unsigned int _heuristic_code;
+	enum {
+		componentwise_evaluation = 1,
+		strict_max_heuristic
+	};
 public:
 	quotient() = default;
-	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _known_stable(false){
+	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _heuristic_code(strict_max_heuristic-1){
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _known_stable(false) {
+	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _known_stable(false) {
+	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _known_stable(false) {
+	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _known_stable(false) {
+	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _known_stable(false) {
+	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _known_stable(false) {
+	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _known_stable(false) {
+	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
-	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _known_stable(false) {
+	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic_code(strict_max_heuristic - 1) {
 		auto err = _constructor_fatal();
 		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
 	}
@@ -344,11 +358,11 @@ public:
 
 	// fp_API
 	virtual bool self_eval() {
-		if (_known_stable) return false;
+		if (0 >= _heuristic_code) return false;
 		// \todo: greatest common integer factor exceeds one
 		// \todo: mutual cancellation of negative signs
 		// \todo: scalBn of denominator towards 1 (arguably normal-form)
-		_known_stable = true;
+		_heuristic_code = 0;
 		return false;
 	}
 	virtual bool is_zero() const {
@@ -455,6 +469,7 @@ private:
 		}
 		this->__scal_bn(_denominator, -scale);
 	}
+	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
 
 }

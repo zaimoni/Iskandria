@@ -52,14 +52,11 @@ namespace zaimoni {
 					return true;
 				}
 			}
+			if (auto result = dest->_eval()) {
+				dest = std::shared_ptr<T>(dynamic_cast<T*>(result));
+				return true;
+			}
 			return false;
-/*
-			std::shared_ptr<T> working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
-			auto result = working->_eval();
-			if (!result) return false;
-			dest = std::shared_ptr<T>(dynamic_cast<T*>(result));
-			return true;
-*/
 		}
 
 		// numerical support -- these have coordinate-wise definitions available
@@ -99,6 +96,7 @@ namespace zaimoni {
 		}
 	private:
 		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
+		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation
 	};
 
 	template<class T>
