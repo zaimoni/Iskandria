@@ -6,13 +6,13 @@
 #include <vector>
 
 namespace zaimoni {
-namespace series {
 
 // T is assumed to require zaimoni::fp_API in all of these classes
 template<class T>
 class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
+	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
 	typedef std::shared_ptr<T> smart_ptr;
 	typedef std::pair<int, size_t> eval_spec;
 private:
@@ -236,6 +236,7 @@ template<class T>
 class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
+	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
 	typedef std::shared_ptr<T> smart_ptr;
 	typedef std::pair<int, size_t> eval_spec;
 private:
@@ -401,12 +402,11 @@ private:
 	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
 
-}	// end namespace series
-
 template<class T>
 class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
 {
 public:
+	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
 	typedef std::shared_ptr<T> smart_ptr;
 private:
 	smart_ptr _numerator;

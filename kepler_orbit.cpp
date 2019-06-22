@@ -26,14 +26,14 @@ int main(int argc, char* argv[])
 	std::shared_ptr<zaimoni::var<ISK_INTERVAL<long double> > > one_il(new zaimoni::var< ISK_INTERVAL<long double> >(1));
 
 	// inline prototype of reduced mass calculation as follows:
-	auto inv_reduced_mass = new zaimoni::series::sum<typename zaimoni::_type_of<double>::type>();
+	auto inv_reduced_mass = new zaimoni::sum<typename zaimoni::_type_of<double>::type>();
 	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(sun.GM())));
 	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(jupiter.GM())));
 	inv_reduced_mass->append_term(new zaimoni::quotient<typename zaimoni::_type_of<double>::type>(one, new zaimoni::var<mass::interval>(saturn.GM())));
 	STRING_LITERAL_TO_STDOUT("example inverse reduced mass (GM)\n");
 	INFORM(inv_reduced_mass->to_s().c_str());
 
-	zaimoni::series::product<typename zaimoni::_type_of<double>::type> code_coverage;
+	zaimoni::product<typename zaimoni::_type_of<double>::type> code_coverage;
 	zaimoni::quotient<typename zaimoni::_type_of<double>::type> code_coverage2;
 	zaimoni::quotient<typename zaimoni::_type_of<double>::type> reduced_mass(one,inv_reduced_mass);
 
