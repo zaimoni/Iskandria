@@ -121,7 +121,7 @@ namespace zaimoni {
 // would prefer to make this triggered by common include of _interval.hpp and var.hpp, but that involves
 // moving interval family to Zaimoni.STL and we're not ready for that technically
 
-#include "Zaimoni.STL/var.hpp"
+#include "var.hpp"
 
 namespace zaimoni {
 

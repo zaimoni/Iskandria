@@ -10,7 +10,7 @@
 #include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Logging.h"
 #define ISK_INTERVAL boost::numeric::interval
-#include "_interval.hpp"
+#include "Zaimoni.STL/_interval.hpp"
 #endif
 
 struct interval_shim
