@@ -7,6 +7,21 @@
 
 namespace zaimoni {
 
+namespace math {
+
+// prototype, establishing required syntax.  These are good candidates for explicit instantiation.
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& n, std::shared_ptr<T>& d) { return 0; }
+
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_product(std::shared_ptr<T>& n, std::shared_ptr<T>& d) { return 0; }
+
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d) { return 0; }
+
+}
+
+
 struct _n_ary_op {
 	enum {
 		componentwise_evaluation = 1,
@@ -212,7 +227,7 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_additive_identity,_n_ary_op::null_rearrange)) return true;
+		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum)) return true;
 //		auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
@@ -345,7 +360,7 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_multiplicative_identity,_n_ary_op::null_rearrange)) return true;
+		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product)) return true;
 //		auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
@@ -674,7 +689,7 @@ private:
 		}
 		this->__scal_bn(_denominator, -scale);
 	}
-	virtual fp_API* _eval() const { return 0; }	// placeholder
+	virtual fp_API* _eval() const { return zaimoni::math::eval_quotient(_numerator,_denominator); }
 };
 
 }
