@@ -2,7 +2,7 @@
 #define INTERVAL_HPP 1
 
 // interval.hpp
-// interval arithmatic.  Generally follows Boost API design decisions, but specified to not have the critical bugs that should have blocked release (but didn't)
+// interval arithmetic.  Generally follows Boost API design decisions, but specified to not have the critical bugs that should have blocked release (but didn't)
 
 #include <stdexcept>
 #include <fenv.h>

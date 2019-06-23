@@ -4,6 +4,7 @@
 // fast compile test
 // g++ -std=c++14 -otest.exe -Os  -D__STDC_LIMIT_MACROS -DTEST_APP2 conic.test.cpp constants.cpp -Llib\host.isk -lz_stdio_c -lz_log_adapter -lz_stdio_log -lz_format_util
 #include "arithmetic.hpp"
+#include "Zaimoni.STL/var.hpp"
 
 #include "test_driver.h"
 

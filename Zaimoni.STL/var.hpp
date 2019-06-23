@@ -256,4 +256,8 @@ struct _type_of<var<T, U> >
 
 }	// namespace zaimoni
 
+#ifdef _INTERVAL_HPP
+#include "bits/_interval_var.hpp"
+#endif
+
 #endif

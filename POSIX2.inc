@@ -3,7 +3,7 @@ OBJECT_HPP = object.hpp Zaimoni.STL/Pure.C/stdio_c.h $(LOGGING_H)
 DICOUNTER_HPP = dicounter.hpp $(LOGGING_H)
 ANGLE_HPP = angle.hpp interval_shim.hpp $(LOGGING_H) 
 AUGMENT_CMATH = Zaimoni.STL/augment.STL/cmath Zaimoni.STL/augment.STL/type_traits $(LOGGING_H)
-INTERVAL_HPP = Zaimoni.STL/interval.hpp Zaimoni.STL/_interval.hpp Zaimoni.STL/var.hpp $(AUGMENT_CMATH)
+INTERVAL_HPP = Zaimoni.STL/interval.hpp Zaimoni.STL/_interval.hpp $(AUGMENT_CMATH)
 LOSSY_HPP = lossy.hpp $(AUGMENT_CMATH)
 CONSTANTS_HPP = constants.hpp interval_shim.hpp $(INTERVAL_HPP)
 MASS_HPP = mass.hpp $(CONSTANTS_HPP)
@@ -57,7 +57,7 @@ interval.test.exe: interval.test.cpp $(INTERVAL_HPP)
 	strip --strip-unneeded $@
 	$@
 
-kepler_orbit.test.exe: kepler_orbit.cpp $(ARITHMETIC_HPP) $(MASS_HPP) conic.hpp $(COORD_CHART_HPP)
+kepler_orbit.test.exe: kepler_orbit.cpp $(ARITHMETIC_HPP) $(MASS_HPP) Zaimoni.STL/var.hpp Zaimoni.STL/bits/_interval_var.hpp conic.hpp $(COORD_CHART_HPP)
 	$(CXX) -okepler_orbit.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 kepler_orbit.cpp conic.cpp mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
