@@ -52,8 +52,8 @@ int_range.test.exe: int_range.cpp $(INT_RANGE_HPP)
 	strip --strip-unneeded $@
 	$@
 
-interval.test.exe: interval.cpp $(INTERVAL_HPP)
-	$(CXX) -ointerval.test.exe $(TESTDRIVER_FLAGS) interval.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
+interval.test.exe: interval.test.cpp $(INTERVAL_HPP)
+	$(CXX) -ointerval.test.exe $(TESTDRIVER_FLAGS) interval.test.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
