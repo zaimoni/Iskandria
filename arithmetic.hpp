@@ -7,22 +7,181 @@
 
 namespace zaimoni {
 
-// T is assumed to require zaimoni::fp_API in all of these classes
-template<class T>
-class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
-{
-public:
-	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	typedef std::shared_ptr<T> smart_ptr;
-	typedef std::pair<int, size_t> eval_spec;
-private:
-	std::vector<smart_ptr> _x;
-	std::vector<eval_spec> _heuristic;
+struct _n_ary_op {
 	enum {
 		componentwise_evaluation = 1,
 		remove_identity,
-		linear_scan,	// should be "highest" numerically.  Reacts to infinity
-		strict_max_heuristic
+		linear_scan,
+		strict_max_core_heuristic
+	};
+
+	static bool is_additive_identity(const fp_API* x) { return x->is_zero(); }
+	static bool is_multiplicative_identity(const fp_API* x) { return x->is_one(); }
+	// bridge support
+	template<class T> static int null_rearrange(T& lhs, T& rhs) { return 0; }
+};
+
+// associative operations naturally are n-ary
+template<class T>
+class n_ary_op
+{
+public:
+	typedef std::shared_ptr<T> smart_ptr;
+	typedef std::pair<int, size_t> eval_spec;
+protected:
+	std::vector<smart_ptr> _x;
+	std::vector<eval_spec> _heuristic;
+
+	n_ary_op() = default;
+	n_ary_op(const n_ary_op& src) = default;
+	n_ary_op(n_ary_op&& src) = default;
+	~n_ary_op() = default;
+	n_ary_op& operator=(const n_ary_op& src) = default;
+	n_ary_op& operator=(n_ary_op&& src) = default;
+
+	void _append_term(const smart_ptr& src) {
+		if (!_x.empty()) {
+			if (_heuristic.empty() || _n_ary_op::linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(_n_ary_op::linear_scan, _x.size()));
+		}
+		_x.push_back(src);
+	}
+
+	void _append_term(smart_ptr&& src) {
+		if (!_x.empty()) {
+			if (_heuristic.empty() || _n_ary_op::linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(_n_ary_op::linear_scan, _x.size()));
+		}
+		_x.push_back(std::move(src));
+	}
+
+
+	virtual bool would_fpAPI_eval() const = 0;
+
+	bool _pre_self_eval()
+	{
+restart:
+		if (_heuristic.empty()) return false;
+		auto& checking = this->_heuristic.back();
+		if (0 >= checking.first) return false;	// doing something else instead
+		switch (checking.first)
+		{
+		case _n_ary_op::linear_scan:
+			if (_x.size() <= checking.second || 1 <= checking.second) {
+				_heuristic.pop_back();
+				goto restart;
+			}
+			return true;
+		case _n_ary_op::remove_identity:
+			if (_x.size() <= checking.second) {
+				_heuristic.pop_back();
+				goto restart;
+			}
+			return true;
+		case _n_ary_op::componentwise_evaluation:
+			if (_x.size() <= checking.second) {
+				_heuristic.pop_back();
+				goto restart;
+			}
+			return true;
+		}
+		return true;
+	}
+
+	bool _self_eval(bool (*is_identity)(const fp_API*),int (*rearrange)(smart_ptr&, smart_ptr&))
+	{
+restart:
+		auto& checking = this->_heuristic.back();
+		switch (checking.first)
+		{
+		case _n_ary_op::linear_scan:
+		{	// O(n^2) pairwise interaction checks (addition is always commutative)
+		linear_scan_restart:
+			if (_x.size() > checking.second && 1 <= checking.second) {
+				auto& viewpoint = this->_x[checking.second];
+				size_t i = 0;
+				do {
+					auto& target = _x[i];
+					const auto result_code = rearrange(target, viewpoint);
+					if (0 == result_code) continue;	// no interaction
+					switch (result_code)
+					{
+					case 1:		// rhs annihilated (commutative operation may have swapped to ensure this).  Mutual kill should be very rare
+						{
+						if (is_identity(target.get())) _heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
+						else if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
+						if (1 < checking.second) checking.second--;
+						return true;
+						}
+					case 2:		// non-annihiliating change
+						{
+						if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
+						if (1 < checking.second) checking.second--;
+						return true;
+						}
+					}
+				} while (++i < checking.second);
+				// we fell through.  Everything at or below us does not interact (strong natural induction)
+				checking.second++;
+				goto linear_scan_restart;
+			}
+			_heuristic.pop_back();
+			if (_heuristic.empty()) _heuristic.push_back(eval_spec(_n_ary_op::componentwise_evaluation, 0));
+			goto restart;
+		}
+		case _n_ary_op::remove_identity:
+			{
+			const auto i = checking.second;
+			_heuristic.pop_back();
+			_x.erase(_x.begin() + i);
+			}
+			if (would_fpAPI_eval()) _heuristic.clear();
+			return true;
+		case _n_ary_op::componentwise_evaluation:
+			{
+			const auto strict_ub = _x.size();
+			while (strict_ub > checking.second) {
+				auto& viewpoint = _x[checking.second];
+				if (viewpoint->self_eval()) {
+					if (is_identity(viewpoint.get())) {
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
+						return true;
+					}
+					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
+					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, strict_ub - 1));
+					return true;
+				}
+				if (fp_API::eval(viewpoint)) {
+					if (is_identity(viewpoint.get())) {
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
+						return true;
+					}
+					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
+					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, strict_ub - 1));
+					return true;
+				}
+				checking.second++;
+			}
+			_heuristic.pop_back();
+			if (_pre_self_eval()) goto restart;
+			return false;
+		}
+		}
+		return false;
+	}
+
+};
+
+// T is assumed to require zaimoni::fp_API in all of these classes
+template<class T>
+class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
+{
+public:
+	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
+	typedef typename n_ary_op<T>::smart_ptr smart_ptr;
+	typedef typename n_ary_op<T>::eval_spec eval_spec;
+private:
+	enum {
+		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
 	};
 public:
 	sum() = default;
@@ -34,130 +193,44 @@ public:
 
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_zero()) return;
-		if (!_x.empty()) {
-			if (_heuristic.empty() || linear_scan!=_heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
-		}
-		_x.push_back(src);
+		this->_append_term(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
-		if (!_x.empty()) {
-			if (_heuristic.empty() || linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
-		}
-		_x.push_back(std::move(src));
+		this->_append_term(std::move(src));
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
 private:
-	bool would_fpAPI_eval() const { return 1 >= _x.size(); }
+	virtual bool would_fpAPI_eval() const { return 1 >= this->_x.size(); }
 public:
 	// eval_shared_ptr
 	virtual smart_ptr destructive_eval() {
-		if (1 == _x.size()) return _x.front();
+		if (1 == this->_x.size()) return this->_x.front();
 		return 0;
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (_heuristic.empty()) return false;
-restart:
-		auto& checking = _heuristic.back();
-		if (0 >= checking.first) return false;	// doing something else instead
-		// process
-		switch (checking.first)
-		{
-		case linear_scan:
-			{	// O(n^2) pairwise interaction checks (addition is always commutative)
-linear_scan_restart:
-			if (_x.size() > checking.second && 1 <= checking.second) {
-				auto& viewpoint = _x[checking.second];
-				size_t i = 0;
-				do {
-#if 0
-					auto& target = _x[i];
-					const auto result_code = zaimoni::math::rearrange_sum(target, viewpoint);
-					if (0 == result_code) continue;	// no interaction
-					switch(result_code)
-					{
-					case 1:		// rhs annihilated (may have swapped to ensure this).  Mutual kill should be very rare
-						{
-						if (target->is_zero()) _heuristic.push_back(eval_spec(remove_identity, i));
-						else if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
-						_heuristic.push_back(eval_spec(remove_identity, checking.second));
-						if (1 < checking.second) checking.second--;
-						return true;
-						}
-					case 2:		// non-annihiliating change
-						{
-						if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
-						if (1<checking.second) checking.second--;
-						return true;
-						}
-					}
-#endif
-				} while (++i < checking.second);
-				// we fell through.  Everything at or below us does not interact (strong natural induction)
-				checking.second++;
-				goto linear_scan_restart;
-			}
-			_heuristic.pop_back();
-			if (_heuristic.empty()) _heuristic.push_back(eval_spec(componentwise_evaluation, 0));
-			goto restart;
-			}
-		case remove_identity:
-			{
-			const auto i = checking.second;
-			_heuristic.pop_back();
-			if (_x.size() <= i) goto restart;
-			_x.erase(_x.begin()+i);
-			if (would_fpAPI_eval()) _heuristic.clear();
-			return true;
-			}
-		case componentwise_evaluation:
-			{
-			const auto strict_ub = _x.size();
-			while (strict_ub > checking.second) {
-				auto& viewpoint = _x[checking.second];
-				if (viewpoint->self_eval()) {
-					if (viewpoint->is_zero()) {
-						_heuristic.push_back(eval_spec(remove_identity, checking.second));
-						return true;
-					}
-					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
-					_heuristic.push_back(eval_spec(linear_scan, strict_ub - 1));
-					return true;
-				}
-				if (fp_API::eval(viewpoint)) {
-					if (viewpoint->is_zero()) {
-						_heuristic.push_back(eval_spec(remove_identity, checking.second));
-						return true;
-					}
-					if (strict_ub - 1 > checking.second) swap(viewpoint, _x.back());
-					_heuristic.push_back(eval_spec(linear_scan, strict_ub - 1));
-					return true;
-				}
-				checking.second++;
-			}
-			_heuristic.pop_back();
-			if (_heuristic.empty()) return false;
-			goto restart;
-			}
-		}
-		_heuristic.clear();
+		if (!this->_pre_self_eval()) return false;
+		if (this->_self_eval(_n_ary_op::is_additive_identity,_n_ary_op::null_rearrange)) return true;
+//		auto& checking = this->_heuristic.back();
+		// \todo process our specific rules
+		this->_heuristic.clear();
 		return false;
 	}
 	virtual bool is_zero() const {
-		if (_x.empty()) return true;
-		if (1 == _x.size()) return _x.front()->is_zero();
+		if (this->_x.empty()) return true;
+		if (1 == this->_x.size()) return this->_x.front()->is_zero();
 		return false;
 	}
 	virtual bool is_one() const {
-		if (1 == _x.size()) return _x.front()->is_one();
+		if (1 == this->_x.size()) return this->_x.front()->is_one();
 		return false;
 	}
 	virtual int sgn() const {
 		if (is_zero()) return 0;
 		unsigned int seen = 0;
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			if (x->is_zero()) continue;	// should have normalized this away
 			const auto test = x->sgn();
 			if (7U == (seen |= (1 << (test + 1)))) break;
@@ -171,7 +244,7 @@ linear_scan_restart:
 	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-		for(const auto& x : _x) {
+		for(const auto& x : this->_x) {
 			if (x->is_scal_bn_identity()) continue;
 			const auto tmp = x->scal_bn_safe_range();
 			if (ret.first < tmp.first) ret.first = tmp.first;
@@ -182,7 +255,7 @@ linear_scan_restart:
 	virtual intmax_t ideal_scal_bn() const {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
-		for (const auto& x : _x) {
+		for (const auto& x : this->_x) {
 			const auto test = x->ideal_scal_bn();
 			if (0 < test) {
 				if (0 > ret) return 0;
@@ -197,12 +270,12 @@ linear_scan_restart:
 	}
 	virtual sum* clone() const { return new sum(*this); }
 	std::string to_s() const {
-		if (_x.empty()) return "0";
-		const auto _size = _x.size();
-		if (1 == _size) return _x.front()->to_s();
+		if (this->_x.empty()) return "0";
+		const auto _size = this->_x.size();
+		if (1 == _size) return this->_x.front()->to_s();
 		bool first = true;
 		std::string ret;
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			auto tmp = x->to_s();
 			if (precedence() >= x->precedence()) tmp = std::string("(") + tmp + ')';
 			if (first) {
@@ -218,34 +291,30 @@ linear_scan_restart:
 	virtual int precedence() const { return 1; }
 
 	bool _is_inf() const {
-		for (auto& x : _x) if (x->is_inf()) return true;
+		for (auto& x : this->_x) if (x->is_inf()) return true;
 		return false;
 	}
 	bool _is_finite() const {
-		for (auto& x : _x) if (!x->is_finite()) return false;
+		for (auto& x : this->_x) if (!x->is_finite()) return false;
 		return true;
 	}
 private:
 	virtual void _scal_bn(intmax_t scale) {
-		for (auto& x : _x) this->__scal_bn(x,scale);
+		for (auto& x : this->_x) this->__scal_bn(x,scale);
 	}
 	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
 
 template<class T>
-class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
+class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
 {
 public:
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	typedef std::shared_ptr<T> smart_ptr;
-	typedef std::pair<int, size_t> eval_spec;
+	typedef typename n_ary_op<T>::smart_ptr smart_ptr;
+	typedef typename n_ary_op<T>::eval_spec eval_spec;
 private:
-	std::vector<smart_ptr> _x;
-	std::vector<eval_spec> _heuristic;
 	enum {
-		componentwise_evaluation = 1,
-		linear_scan,	// should be "highest" numerically.  Reacts to zero, infinity
-		strict_max_heuristic
+		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
 	};
 public:
 	product() = default;
@@ -257,56 +326,44 @@ public:
 
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_one()) return;
-		if (!_x.empty()) {
-			if (_heuristic.empty() || linear_scan!=_heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
-		}
-		_x.push_back(src);
+		this->_append_term(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_one()) return;
-		if (!_x.empty()) {
-			if (_heuristic.empty() || linear_scan != _heuristic.back().first) _heuristic.push_back(eval_spec(linear_scan, _x.size()));
-		}
-		_x.push_back(std::move(src));
+		this->_append_term(std::move(src));
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
+private:
+	virtual bool would_fpAPI_eval() const { return 1 >= this->_x.size(); }
+public:
 	// eval_shared_ptr
 	virtual smart_ptr destructive_eval() {
-		if (1 == _x.size()) return _x.front();
+		if (1 == this->_x.size()) return this->_x.front();
 		return 0;
 	}
 	// fp_API
 	virtual bool self_eval() {
-		if (_heuristic.empty()) return false;
-#if 0
-		auto & checking = _heuristic.back();
-		switch (checking.first)
-		{
-		case linear_scan:
-		{	// O(n^2) pairwise interaction checks.
-		}
-		case componentwise_evaluation:
-		{
-		}
-		}
-#endif
-		_heuristic.clear();
+		if (!this->_pre_self_eval()) return false;
+		if (this->_self_eval(_n_ary_op::is_multiplicative_identity,_n_ary_op::null_rearrange)) return true;
+//		auto& checking = this->_heuristic.back();
+		// \todo process our specific rules
+		this->_heuristic.clear();
 		return false;
 	}
 	virtual bool is_zero() const {
-		if (1 == _x.size()) return _x.front()->is_zero();
+		if (1 == this->_x.size()) return this->_x.front()->is_zero();
 		return false;
 	}
 	virtual bool is_one() const {
-		if (_x.empty()) return true;
-		if (1 == _x.size()) return _x.front()->is_one();
+		if (this->_x.empty()) return true;
+		if (1 == this->_x.size()) return this->_x.front()->is_one();
 		return false;
 	}
 	virtual int sgn() const {
-		if (_x.empty()) return 1;
+		if (this->_x.empty()) return 1;
 		int ret = 1;
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			if (const auto test = x->sgn()) ret *= test;
 			else return 0;
 		}
@@ -315,8 +372,8 @@ public:
 	virtual bool is_scal_bn_identity() const { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(0, 0);
-		if (_x.empty()) return ret;	// should have evaluated
-		for(const auto& x : _x) {
+		if (this->_x.empty()) return ret;	// should have evaluated
+		for(const auto& x : this->_x) {
 			if (x->is_scal_bn_identity()) return fp_API::max_scal_bn_safe_range();
 			const auto tmp = x->scal_bn_safe_range();
 			clamped_sum_assign(ret.first,tmp.first);
@@ -328,7 +385,7 @@ public:
 	virtual intmax_t ideal_scal_bn() const {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
-		for (const auto& x : _x) {
+		for (const auto& x : this->_x) {
 			if (x->is_scal_bn_identity()) return 0;
 			clamped_sum_assign(ret, x->ideal_scal_bn());
 			if (std::numeric_limits<intmax_t>::max() == ret || std::numeric_limits<intmax_t>::min() == ret) return ret;	// assumes in normal form
@@ -337,12 +394,12 @@ public:
 	}
 	virtual product* clone() const { return new product(*this); }
 	std::string to_s() const {
-		if (_x.empty()) return "1";
-		const auto _size = _x.size();
-		if (1 == _size) return _x.front()->to_s();
+		if (this->_x.empty()) return "1";
+		const auto _size = this->_x.size();
+		if (1 == _size) return this->_x.front()->to_s();
 		bool first = true;
 		std::string ret;
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			auto tmp = x->to_s();
 			if (precedence() >= x->precedence()) tmp = std::string("(") + tmp + ')';
 			if (first) {
@@ -357,18 +414,18 @@ public:
 	virtual int precedence() const { return 2; }
 
 	bool _is_inf() const {
-		for (auto& x : _x) if (x->is_inf()) return true;
+		for (auto& x : this->_x) if (x->is_inf()) return true;
 		return false;
 	}
 	bool _is_finite() const {
-		for (auto& x : _x) if (!x->is_finite()) return false;
+		for (auto& x : this->_x) if (!x->is_finite()) return false;
 		return true;
 	}
 private:
 	virtual void _scal_bn(intmax_t scale) {
 		bool saw_identity = false;
 		// \todo both of these loops can be specialized (scale positive/negative will be invariant)
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			if (x->is_scal_bn_identity()) {
 				saw_identity = true;
 				continue;
@@ -385,7 +442,7 @@ private:
 			}
 		};
 		if (saw_identity) return;	// likely should not be happening
-		for (auto& x : _x) {
+		for (auto& x : this->_x) {
 			const auto legal = x->scal_bn_safe_range();
 			if (0 < scale && 0 < legal.second) {
 				const auto _scale = (legal.second < scale) ? legal.second : scale;
