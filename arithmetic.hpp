@@ -11,16 +11,15 @@ namespace math {
 
 // prototype, establishing required syntax.  These are good candidates for explicit instantiation.
 template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& n, std::shared_ptr<T>& d) { return 0; }
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
 
 template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_product(std::shared_ptr<T>& n, std::shared_ptr<T>& d) { return 0; }
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_product(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
 
 template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d) { return 0; }
+typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d);
 
 }
-
 
 struct _n_ary_op {
 	enum {
