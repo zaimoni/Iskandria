@@ -2,10 +2,11 @@
 #define EVAL_HPP 1
 
 #include <limits.h>
-#include <type_traits>
+#include <limits>
 #include <utility>
 #include <memory>
 #include <string>
+#include "Augment.STL/type_traits"
 
 namespace zaimoni {
 

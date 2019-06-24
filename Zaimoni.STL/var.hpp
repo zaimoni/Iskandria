@@ -12,7 +12,7 @@ namespace zaimoni {
 	template<class T>
 	class _fp_stats	// odd name avoids conflicting with an earlier prototype in Iskandria's overprecise.hpp
 	{
-	ZAIMONI_STATIC_ASSERT(std::is_floating_point<T>::value);
+	static_assert(std::is_floating_point<T>::value,"need floating point numeral type");
 	protected:
 		mutable T _mantissa;
 		mutable int _exponent;
@@ -25,7 +25,7 @@ namespace zaimoni {
 
 		void invalidate_stats() { _valid = false; }
 		bool valid() const { return _valid; }
-		void init_stats(typename const_param<double>::type x) const {
+		void init_stats(typename const_param<T>::type x) const {
 			_mantissa = frexp(x, &_exponent);
 			_valid = true;
 		}
