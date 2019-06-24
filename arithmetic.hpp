@@ -2,6 +2,7 @@
 #define ARITHMETIC_HPP 1
 
 #include "Zaimoni.STL/eval.hpp"
+#include "Zaimoni.STL/numeric_error.hpp"
 #include <memory>
 #include <vector>
 
@@ -253,7 +254,7 @@ public:
 		if (4 == seen) return 1;	// only saw positive
 		if (1 == seen) return -1;	// only saw negative
 		// anything else would need evaluation to get right
-		throw std::runtime_error("sum needs to evaluate enough to calculate sgn()");
+		throw zaimoni::math::numeric_error("sum needs to evaluate enough to calculate sgn()");
 	}
 	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
@@ -468,7 +469,7 @@ private:
 				if (0 == (scale -= _scale)) return;
 			}
 		}
-		if (0 != scale) throw std::runtime_error("scal_bn needed additional factors added");
+		if (0 != scale) throw zaimoni::math::numeric_error("scal_bn needed additional factors added");
 	}
 	virtual fp_API* _eval() const { return 0; }	// placeholder
 };
@@ -491,39 +492,39 @@ public:
 	quotient() = default;
 	quotient(const smart_ptr& numerator, const smart_ptr& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic-1,0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(const smart_ptr& numerator, smart_ptr&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(smart_ptr&& numerator, const smart_ptr& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(smart_ptr&& numerator, smart_ptr&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);	// might want the numeric error class instead
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	quotient(const quotient& src) = default;
 	quotient(quotient&& src) = default;
@@ -573,7 +574,7 @@ public:
 				d_state = fp_API::eval(_denominator) ? 0 : 2;
 			};
 			if (8 > (_heuristic.second = 3 * d_state + n_state)) {
-				if (auto msg = _transform_fatal(_numerator, _denominator)) throw std::runtime_error(msg);
+				if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
 				if (would_destructive_eval()) _heuristic.first = 0;
 				return true;
 			}
