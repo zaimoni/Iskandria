@@ -4,22 +4,15 @@
 // interval.hpp
 // interval arithmetic.  Generally follows Boost API design decisions, but specified to not have the critical bugs that should have blocked release (but didn't)
 
-#include <stdexcept>
 #include <fenv.h>
 #include "augment.STL/cmath"
+#include "numeric_error.hpp"
 
 #pragma STD FENV_ACCESS ON
 
 namespace zaimoni {
 
 namespace math {
-
-// subclassing so we can distinguish our runtime errors from others
-class numeric_error : public std::runtime_error {
-public:
-	explicit numeric_error(std::string e) : std::runtime_error(e) {}
-	explicit numeric_error(const char* const e) : std::runtime_error(e) {}
-};
 
 template<class T> class trivial;
 

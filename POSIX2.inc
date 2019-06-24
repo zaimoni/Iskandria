@@ -57,7 +57,7 @@ interval.test.exe: interval.test.cpp $(INTERVAL_HPP)
 	strip --strip-unneeded $@
 	$@
 
-kepler_orbit.test.exe: kepler_orbit.cpp $(ARITHMETIC_HPP) $(MASS_HPP) Zaimoni.STL/var.hpp Zaimoni.STL/bits/_interval_var.hpp conic.hpp $(COORD_CHART_HPP)
+kepler_orbit.test.exe: kepler_orbit.cpp arithmetic.cpp conic.cpp mass.cpp constants.cpp interval_shim.cpp $(ARITHMETIC_HPP) $(MASS_HPP) Zaimoni.STL/var.hpp Zaimoni.STL/bits/_interval_var.hpp conic.hpp $(COORD_CHART_HPP)
 	$(CXX) -okepler_orbit.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 kepler_orbit.cpp arithmetic.cpp conic.cpp mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@

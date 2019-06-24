@@ -17,7 +17,29 @@ namespace math {
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 	template int rearrange_product< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 	template _type<_type_spec::_R_SHARP_, _type_spec::none>* eval_quotient< _type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& d);
+#if 0
+	template<> _type<_type_spec::_R_SHARP_, _type_spec::none>* eval_quotient< _type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& d)
+	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
+		auto d_src = d.get();
+		auto n_src = n.get();
+		if (auto r = dynamic_cast<_access<float>*>(d_src)) {
+		} else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(d_src)) {
+		} else if (auto r = dynamic_cast<_access<double>*>(d_src)) {
+		} else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(d_src)) {
+		} else if (auto r = dynamic_cast<_access<long double>*>(d_src)) {
+		} else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(d_src)) {
+		}
 
+		if (auto l = dynamic_cast<_access<float>*>(n_src)) {
+		} else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(n_src)) {
+		} else if (auto l = dynamic_cast<_access<double>*>(n_src)) {
+		} else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(n_src)) {
+		} else if (auto l = dynamic_cast<_access<long double>*>(n_src)) {
+		} else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(n_src)) {
+		}
+		return 0;
+	}
+#endif
 }
 }
 

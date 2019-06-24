@@ -3,6 +3,7 @@
 #ifndef ZAIMONI_AUGMENT_STL_TYPE_TRAITS
 #define ZAIMONI_AUGMENT_STL_TYPE_TRAITS 1
 
+#include <inttypes.h>
 #include <limits>
 #include <type_traits>
 

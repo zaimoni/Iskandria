@@ -3,9 +3,10 @@
 #ifndef ZAIMONI_AUGMENT_STL_TYPE_CMATH
 #define ZAIMONI_AUGMENT_STL_TYPE_CMATH 1
 
-#include <cmath>
 #include "type_traits"
 #include "../Logging.h"
+#include <cmath>
+#include <utility>
 
 // namespace setup.  Anything we would want for high-precision arithmetic should be imported into both of our namespaces.
 // Favor once-and-only-once over technical efficiency.
