@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 	STRING_LITERAL_TO_STDOUT("example reduced mass (GM)\n");
 	INFORM(reduced_mass.to_s().c_str());
+	while(reduced_mass.self_eval()) INFORM(reduced_mass.to_s().c_str());
 
 	// \todo units conversion...put astronomical unit AU somewhere, then use it below
 	conic unit_circle(1);

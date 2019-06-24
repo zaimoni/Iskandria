@@ -7,6 +7,8 @@
 // Logging.h support -- outside of namespace to match Logging.h
 
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace zaimoni {
 
@@ -15,8 +17,11 @@ namespace zaimoni {
 	template<class T>
 	std::string to_string(const ISK_INTERVAL<T>& x)
 	{
-		if (x.lower() == x.upper()) return to_string(x.lower());
-		return std::string("[") + to_string(x.lower()) + ',' + to_string(x.upper()) + ']';
+		std::stringstream dest;
+		dest << std::setiosflags(std::ios::scientific) << std::setprecision(std::numeric_limits<T>::max_digits10);
+		if (x.lower() == x.upper()) dest << x.upper();
+		else dest << "[" << x.lower() << ',' << x.upper() << ']';
+		return dest.str();
 	}
 
 }

@@ -80,7 +80,7 @@ restart:
 		switch (checking.first)
 		{
 		case _n_ary_op::linear_scan:
-			if (_x.size() <= checking.second || 1 <= checking.second) {
+			if (_x.size() <= checking.second || 1 > checking.second) {
 				_heuristic.pop_back();
 				goto restart;
 			}
@@ -228,7 +228,7 @@ public:
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
 		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum)) return true;
-//		auto& checking = this->_heuristic.back();
+		//		auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
 		return false;
