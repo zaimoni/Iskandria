@@ -32,7 +32,7 @@ namespace zaimoni {
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<typename std::remove_reference<T>::type>::value, bool>::type isINF(T x)
+constexpr typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isINF(T x)
 {
 	return std::isinf(x);
 }
@@ -44,7 +44,7 @@ constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type 
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<typename std::remove_reference<T>::type>::value, bool>::type isNaN(T x)
+constexpr typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isNaN(T x)
 {
 	return std::isnan(x);
 }

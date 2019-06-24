@@ -4,8 +4,8 @@
 #include "eval.hpp"
 
 // We expect float, double, and long double to work out of the box.
-#include <cmath>
-#include <stdexcept>
+#include "Augment.STL/cmath"
+#include "numeric_error.hpp"
 
 namespace zaimoni {
 
@@ -218,11 +218,11 @@ public:
 	var() = default;
 	var(const T& src) : _x(src) {
 		const auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	var(T&& src) : _x(std::move(src)) {
 		const auto err = _constructor_fatal();
-		if (err) throw std::runtime_error(err);
+		if (err) throw zaimoni::math::numeric_error(err);
 	}
 	var(const var& src) = default;
 	var(var&& src) = default;
