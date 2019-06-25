@@ -112,6 +112,7 @@ restart:
 		linear_scan_restart:
 			if (_x.size() > checking.second && 1 <= checking.second) {
 				auto& viewpoint = this->_x[checking.second];
+				size_t anchor = checking.second;
 				size_t i = 0;
 				do {
 					auto& target = _x[i];
@@ -119,12 +120,26 @@ restart:
 					if (0 == result_code) continue;	// no interaction
 					switch (result_code)
 					{
+					case -2:	// mutual annihilation; should be very rare
+						{
+						if (1 < checking.second) checking.second--;
+						if (1 < checking.second) checking.second--;
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, anchor));
+						return true;
+						}
+					case -1:		// lhs annihilated.  assume mutual kill is reported as rhs
+						{
+						if (1 < checking.second) checking.second--;
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
+						return true;
+						}
 					case 1:		// rhs annihilated (commutative operation may have swapped to ensure this).  Mutual kill should be very rare
 						{
-						if (is_identity(target.get())) _heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
-						else if (i + 1 < checking.second) swap(target, _x[checking.second - 1]);
-						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
 						if (1 < checking.second) checking.second--;
+						if (is_identity(target.get())) _heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
+						else if (i + 1 < anchor) swap(target, _x[anchor - 1]);
+						_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, anchor));
 						return true;
 						}
 					case 2:		// non-annihiliating change
@@ -206,12 +221,33 @@ public:
 	sum& operator=(const sum& src) = default;
 	sum& operator=(sum&& src) = default;
 
+private:
+	bool _append_infinity(const smart_ptr& src) {
+		auto i = this->_x.size();
+		const auto sign = src->sgn();
+		while (0 < i) {
+			const auto& x = this->_x[--i];
+			if (x->is_finite()) {
+				this->_x.erase(this->_x.begin() + i);
+				continue;
+			}
+			else if (x->is_inf()) {
+				const auto x_sign = x->sgn();
+				if (sign == x_sign) return false;
+				throw zaimoni::math::numeric_error("infinity-infinity");
+			}
+		}
+		return true;
+	}
+public:
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_zero()) return;
+		if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
 		this->_append_term(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
+		if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
 		this->_append_term(std::move(src));
 	}
 	void append_term(T* src) { append_term(smart_ptr(src)); }

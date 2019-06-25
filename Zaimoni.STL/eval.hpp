@@ -11,6 +11,7 @@
 namespace zaimoni {
 
 	using std::to_string;
+	using std::swap;
 
 	// Yet another take on higher-mathematics typing.
 	struct _type_spec {
