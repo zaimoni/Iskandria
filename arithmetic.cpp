@@ -24,10 +24,10 @@ namespace math {
 	{
 		int ret = 0;
 
-		// \todo eliminate in favor of fp_stats class
+		// we don't handle infinity or NaN here
 		fp_stats<F> l_stat(lhs);
+		if (std::numeric_limits<F>::max_exponent < l_stat.exponent()) return 0;
 		fp_stats<F> r_stat(rhs);
-		if (std::numeric_limits<F>::max_exponent < l_stat.exponent()) return 0;	// we don't handle infinity or NaN here
 		if (std::numeric_limits<F>::max_exponent < r_stat.exponent()) return 0;
 
 		if (l_stat.exponent() > r_stat.exponent()) {	// doesn't work for different types
@@ -77,9 +77,9 @@ resolve_exact_now:
 			if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
 			else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
 			else {	// sum may be overprecise
-				auto l_test = mantissa_bits(l_stat.mantissa());	// \todo micro-optimize, only need bit count here
-				auto r_test = mantissa_bits(r_stat.mantissa());
-				if ((std::numeric_limits<F>::digits<l_test.first) == (std::numeric_limits<F>::digits < r_test.first)) {
+				auto l_test = mantissa_bitcount(l_stat.mantissa());
+				auto r_test = mantissa_bitcount(r_stat.mantissa());
+				if ((std::numeric_limits<F>::digits<l_test) == (std::numeric_limits<F>::digits < r_test)) {
 					// direct addition ok
 					lhs += rhs;
 					rhs = 0;
@@ -106,8 +106,8 @@ restart:
 			F ceiling = r_stat.delta(r_stat.exponent()+1);
 			ceiling -= delta;
 			if (ceiling < rhs) {
-				auto test = mantissa_bits(r_stat.mantissa());	// \todo micro-optimize, we don't need the uintmax_t return half here
-				if (std::numeric_limits<F>::digits < test.second) return ret;	// would lose the lowest bit
+				auto test = mantissa_bitcount(r_stat.mantissa());
+				if (std::numeric_limits<F>::digits < test) return ret;	// would lose the lowest bit
 			}
 		}
 
@@ -128,7 +128,7 @@ restart:
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int>::type rearrange_sum(F& lhs, F2& rhs)
 	{
-		int ret = rearrange_sum<T>(rhs,lhs);
+		int ret = rearrange_sum<T>(rhs, lhs);
 		switch (ret)
 		{
 		case 1: return -1;
@@ -149,10 +149,28 @@ restart:
 		return 0;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	template<class T, class F>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		return 0;
+	}
+
+	template<class T, class F, class F2>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits), int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	{
+		return 0;
+	}
+
+	template<class T, class F, class F2>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	{
+		int ret = rearrange_sum<T>(rhs, lhs);
+		switch (ret)
+		{
+		case 1: return -1;
+		case -1: return 1;
+		default: return ret;
+		}
 	}
 
 	template<class T, class F>

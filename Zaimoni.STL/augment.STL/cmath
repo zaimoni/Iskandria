@@ -71,9 +71,10 @@ typename std::enable_if<std::is_floating_point<T>::value, uintmax_t>::type _mant
 	while (0.0<mantissa)
 	{
 		ret <<= 1;
-		if (0.5 <= mantissa) ret += 1;
+		const bool have_bit = (T(0.5) <= mantissa);
+		if (have_bit) ret += 1;
 		mantissa = scalbn(mantissa, 1);
-		mantissa -= 1.0;
+		mantissa -= have_bit;
 	}
 	return ret;
 }
@@ -86,13 +87,27 @@ typename std::enable_if<std::is_floating_point<T>::value, std::pair<int, uintmax
 	while (0.0 < mantissa) {
 		ret.first++;
 		ret.second <<= 1;
-		if (0.5 <= mantissa) ret.second += 1;
+		const bool have_bit = (T(0.5) <= mantissa);
+		if (have_bit) ret.second += 1;
 		mantissa = scalbn(mantissa, 1);
-		mantissa -= 1.0;
+		mantissa -= have_bit;
 	}
 	return ret;
 }
 
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, int>::type mantissa_bitcount(T mantissa)	// cmath target
+{
+	int ret = 0;
+
+	while (0.0 < mantissa) {
+		ret++;
+		const bool have_bit = (T(0.5) <= mantissa);
+		mantissa = scalbn(mantissa, 1);
+		mantissa -= have_bit;
+	}
+	return ret;
+}
 
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_cancel(T& lhs, T& rhs, T delta)
