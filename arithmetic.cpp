@@ -37,8 +37,10 @@ namespace math {
 
 		bool l_negative = std::signbit(lhs);
 		bool same_sign = (std::signbit(rhs) == l_negative);
-		if (l_stat.exponent() == r_stat.exponent()) {
-			if (!same_sign) {	// proceed (subtractive cancellation ok at this point)
+		if (std::numeric_limits<F>::min_exponent > l_stat.exponent() && std::numeric_limits<F>::min_exponent > r_stat.exponent()) {
+			// double-denormal; requires that two types be the same
+			if (!same_sign) {
+resolve_exact_now:
 				F tmp = lhs + rhs;
 				if (0 == tmp) {
 					// mutual annihilation
@@ -54,41 +56,39 @@ namespace math {
 				lhs = 0;
 				rhs = tmp;
 				return -1;
-			} else if (std::numeric_limits<F>::min_exponent > l_stat.exponent()) {
-				// denormal, same sign:
-				F anchor = std::scalbn(l_negative ? F(-1) : F(1), std::numeric_limits<F>::min_exponent);
-				F reference = anchor-lhs;
-				if (l_negative) {
-					if (reference <= rhs) {	// still denormal, proceed
-						rhs += lhs;
-						lhs = 0;
-						return -1;
-					} else {
-						// negate the anchor, then use it.
-						reference = std::scalbn(F(1), std::numeric_limits<F>::min_exponent);
-						reference += rhs;
-						lhs += reference;
-						rhs = anchor;
-						return 2;
-					}
-				} else {
-					if (reference >= rhs) {	// still denormal, proceed
-						rhs += lhs;
-						lhs = 0;
-						return -1;
-					} else {
-						// negate the anchor, then use it.
-						reference = std::scalbn(F(-1), std::numeric_limits<F>::min_exponent);
-						reference += rhs;
-						lhs += reference;
-						rhs = anchor;
-						return 2;
-					}
-				}
-			} else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
+			}
+			F anchor = l_stat.delta(std::numeric_limits<F>::min_exponent);
+			F reference = anchor - lhs;
+			if (l_negative ? (reference <= rhs) : (reference >= rhs)) {
+				// still denormal, proceed
+				rhs += lhs;
+				lhs = 0;
+				return -1;
+			}
+			// negate the anchor, then use it.
+			reference = -anchor;
+			reference += rhs;
+			lhs += reference;
+			rhs = anchor;
+			return 2;
+		}
+
+		if (l_stat.exponent() == r_stat.exponent()) {	// depends on two types being same
+			if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
+			else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
 			else {	// sum may be overprecise
+				auto l_test = mantissa_bits(l_stat.mantissa());	// \todo micro-optimize, only need bit count here
+				auto r_test = mantissa_bits(r_stat.mantissa());
+				if ((std::numeric_limits<F>::digits<l_test.first) == (std::numeric_limits<F>::digits < r_test.first)) {
+					// direct addition ok
+					lhs += rhs;
+					rhs = 0;
+					return 1;
+				}
+
 				F bias = l_stat.delta(0);
 				F anchor = (l_stat.mantissa() - bias) + (r_stat.mantissa() - bias);
+
 				rhs = std::scalbn(bias, l_stat.exponent() + 1);
 				lhs = std::scalbn(anchor, l_stat.exponent());
 				ret = 2;
