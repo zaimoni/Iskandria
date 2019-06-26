@@ -24,20 +24,18 @@ namespace math {
 	{
 		int ret = 0;
 
-		// we don't handle infinity or NaN here
-		fp_stats<F> l_stat(lhs);
-		if (std::numeric_limits<F>::max_exponent < l_stat.exponent()) return 0;
-		fp_stats<F> r_stat(rhs);
-		if (std::numeric_limits<F>::max_exponent < r_stat.exponent()) return 0;
-
-		if (l_stat.exponent() > r_stat.exponent()) {	// doesn't work for different types
-			swap(l_stat,r_stat);
-			swap(lhs, rhs);
-		}
+		int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs) };
+		assert(FP_NAN != fp_type[0]);
+		assert(FP_NAN != fp_type[1]);
+		assert(FP_INFINITE != fp_type[0]);
+		assert(FP_INFINITE != fp_type[1]);
+		if (FP_ZERO == fp_type[0]) return -1;	// should have intercepted earlier but we know what to do with these
+		if (FP_ZERO == fp_type[1]) return 1;
 
 		bool l_negative = std::signbit(lhs);
 		bool same_sign = (std::signbit(rhs) == l_negative);
-		if (std::numeric_limits<F>::min_exponent > l_stat.exponent() && std::numeric_limits<F>::min_exponent > r_stat.exponent()) {
+
+		if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
 			// double-denormal; requires that two types be the same
 			if (!same_sign) {
 resolve_exact_now:
@@ -57,7 +55,7 @@ resolve_exact_now:
 				rhs = tmp;
 				return -1;
 			}
-			F anchor = l_stat.delta(std::numeric_limits<F>::min_exponent);
+			F anchor = l_negative ? -std::numeric_limits<F>::min() : std::numeric_limits<F>::min();
 			F reference = anchor - lhs;
 			if (l_negative ? (reference <= rhs) : (reference >= rhs)) {
 				// still denormal, proceed
@@ -68,12 +66,33 @@ resolve_exact_now:
 			// negate the anchor, then use it.
 			reference = -anchor;
 			reference += rhs;
-			lhs += reference;
+			lhs += reference;	// should not be zero as that would be "above"
 			rhs = anchor;
 			return 2;
 		}
 
-		if (l_stat.exponent() == r_stat.exponent()) {	// depends on two types being same
+		// we don't handle infinity or NaN here
+		fp_stats<F> l_stat(lhs);
+		assert(std::numeric_limits<F>::max_exponent >= l_stat.exponent());
+		assert((std::numeric_limits<F>::min_exponent > l_stat.exponent()) == (FP_SUBNORMAL == fp_type[0]));
+		fp_stats<F> r_stat(rhs);
+		assert(std::numeric_limits<F>::max_exponent >= r_stat.exponent());
+		assert((std::numeric_limits<F>::min_exponent > r_stat.exponent()) == (FP_SUBNORMAL == fp_type[1]));
+
+		if (   (std::numeric_limits<F>::min_exponent == l_stat.exponent() || FP_SUBNORMAL == fp_type[0])
+			&& (std::numeric_limits<F>::min_exponent == r_stat.exponent() || FP_SUBNORMAL == fp_type[1])
+			&& !same_sign)
+			goto resolve_exact_now;
+
+		if (r_stat.exponent() > l_stat.exponent()) {	// doesn't work for different types
+			swap(fp_type[0], fp_type[1]);
+			swap(l_stat,r_stat);
+			swap(lhs, rhs);
+			l_negative = std::signbit(lhs);
+		}
+		const int exponent_delta = l_stat.exponent() - (FP_SUBNORMAL == fp_type[1] ? std::numeric_limits<F>::min_exponent : r_stat.exponent());
+
+		if (0 == exponent_delta) {	// depends on two types being same
 			if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
 			else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
 			else {	// sum may be overprecise
@@ -98,21 +117,20 @@ resolve_exact_now:
 		}
 
 restart:
-		bool l_to_r = std::numeric_limits<F>::min_exponent <= l_stat.exponent() && l_stat.exponent() <= r_stat.exponent() && r_stat.exponent() - std::numeric_limits<F>::digits <= l_stat.exponent();
-		if (!l_to_r) return ret;	// done
-		F delta = l_stat.delta(l_stat.exponent());
+		if (std::numeric_limits<F>::digits < exponent_delta) return ret;
+		F delta = r_stat.delta(r_stat.exponent());
 
 		if (same_sign) {
-			F ceiling = r_stat.delta(r_stat.exponent()+1);
+			F ceiling = l_stat.delta(l_stat.exponent()+1);
 			ceiling -= delta;
-			if (ceiling < rhs) {
-				auto test = mantissa_bitcount(r_stat.mantissa());
+			if (ceiling < lhs) {
+				auto test = mantissa_bitcount(l_stat.mantissa());
 				if (std::numeric_limits<F>::digits < test) return ret;	// would lose the lowest bit
 			}
 		}
 
 		// controlled subtractive cancellation.
-		if (delta_cancel(rhs,lhs,delta)) return -1;
+		if (delta_cancel(lhs,rhs,delta)) return 1;
 		l_stat = lhs;
 		r_stat = rhs;
 		ret = 2;
