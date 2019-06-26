@@ -108,8 +108,8 @@ resolve_exact_now:
 				F bias = l_stat.delta(0);
 				F anchor = (l_stat.mantissa() - bias) + (r_stat.mantissa() - bias);
 
-				rhs = std::scalbn(bias, l_stat.exponent() + 1);
-				lhs = std::scalbn(anchor, l_stat.exponent());
+				lhs = std::scalbn(bias, l_stat.exponent() + 1);
+				rhs = std::scalbn(anchor, l_stat.exponent());
 				ret = 2;
 				l_stat = lhs;
 				r_stat = rhs;
@@ -170,7 +170,94 @@ restart:
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 	{
-		return 0;
+		F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
+
+		// legal values: -2...2
+		const int l_code = rearrange_sum<T>(working[0], working[2]);
+		const int u_code = rearrange_sum<T>(working[1], working[3]);
+		assert(-2 <= l_code && 2 >= l_code);
+		assert(-2 <= u_code && 2 >= u_code);
+		if (0 == l_code && 0 == u_code) return 0;
+		const int CRM_code = 5 * l_code + u_code;
+		switch (CRM_code)
+		{
+		case 0: return 0;	// no change
+		case 5 * -2 - 2: FATAL("unexpected double-cancellation of upper and lower bounds");
+		case 5 * -2 - 1:
+			assert(0 < working[3]);
+			lhs = F(0);
+			rhs.assign(F(0), working[3]);
+			return -1;
+		case 5 * -2 + 1:
+			assert(0 < working[1]);
+			lhs = F(0);
+			rhs.assign(F(0), working[1]);
+			return -1;
+		case 5 * -2 + 0:
+		case 5 * -2 + 2:
+			assert(0 < working[1] || 0 < working[3]);
+			if (0 > working[1] || 0 > working[3]) break;	// input may have been ok but output cannot be normalized
+			lhs.assign(F(0), working[1]);
+			rhs.assign(F(0), working[3]);
+			return 2;
+
+		case 5 * -1 - 2:
+			assert(0 > working[2]);
+			lhs = F(0);
+			rhs.assign(working[2], F(0));
+			return -1;
+		case 5 * 1 + -2:
+			assert(0 > working[0]);
+			lhs = F(0);
+			rhs.assign(F(0), working[0]);
+			return -1;
+		case 5 * 0 - 2:
+		case 5 * 2 - 2:
+			assert(0 > working[0] || 0 > working[2]);
+			if (0 < working[0] || 0 < working[2]) break;	// input may have been ok but output cannot be normalized
+			lhs.assign(working[0], F(0));
+			rhs.assign(working[2], F(0));
+			return 2;
+
+		case 5 * -1 - 1:
+			assert(working[2] <= working[3]);
+			lhs = F(0);
+			rhs.assign(working[2], working[3]);
+			return -1;
+		case 5 * -1 + 1:
+			assert(working[2] <= working[1]);
+			lhs = F(0);
+			rhs.assign(working[2], working[1]);
+			return -1;
+		case 5 * 1 - 1:
+			assert(working[0] <= working[3]);
+			lhs = F(0);
+			rhs.assign(working[0], working[3]);
+			return -1;
+		case 5 * 1 + 1:
+			assert(working[0] <= working[1]);
+			lhs = F(0);
+			rhs.assign(working[0], working[1]);
+			return -1;
+
+		default:
+			if (working[0] > working[1]) {
+				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
+				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
+				else break;	// not normalizable (possibly should error out)
+			}
+			else if (working[2] > working[3]) {
+				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
+				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
+				else break;	// not normalizable (possibly should error out)
+			}
+			// \todo try to get at least one of the two pairs "very close" in endpoints
+			lhs.assign(working[0], working[1]);
+			rhs.assign(working[2], working[3]);
+			return 2;
+		}
+
+		return 0;	// needed a different approach
 	}
 
 	template<class T, class F, class F2>
