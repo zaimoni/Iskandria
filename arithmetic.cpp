@@ -118,17 +118,12 @@ restart:
 		}
 
 		if (std::numeric_limits<F>::digits < exponent_delta) return ret;
+
 		F delta = r_stat.delta(r_stat.exponent());
 
 		if (same_sign) {
-			F ceiling = l_stat.delta(l_stat.exponent()+1);
-			if ((ceiling-delta) < lhs) {
-				auto test = mantissa_bitcount(l_stat.mantissa());
-				if (std::numeric_limits<F>::digits < test) {	// would lose the lowest bit
-					delta = l_stat.delta(l_stat.exponent() - std::numeric_limits<F>::digits);
-					if ((ceiling - delta) < lhs) return ret;
-				}
-			}
+			const auto lhs_safe(l_stat.safe_add_exponents());
+			if (lhs_safe.second < r_stat.exponent()) delta = r_stat.delta(lhs_safe.second);
 		}
 
 		// controlled subtractive cancellation.
@@ -169,11 +164,19 @@ restart:
 		return 0;
 	}
 
+	template<class T>
+	void self_intersect(std::pair<T, T>& lhs, const std::pair<T, T>& rhs)	// prototype
+	{
+		if (lhs.first < rhs.first) lhs.first = rhs.first;
+		if (lhs.second > rhs.second) lhs.second = rhs.second;
+	}
+
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
 
+		// coordinate-wise rearrange_sum (failover, does not completely work)
 		// legal values: -2...2
 		const int l_code = rearrange_sum<T>(working[0], working[2]);
 		const int u_code = rearrange_sum<T>(working[1], working[3]);
@@ -181,6 +184,7 @@ restart:
 		assert(-2 <= u_code && 2 >= u_code);
 		if (0 == l_code && 0 == u_code) return 0;
 		const int CRM_code = 5 * l_code + u_code;
+		int ret = 0;
 		switch (CRM_code)
 		{
 		case 0: return 0;	// no change
@@ -198,7 +202,10 @@ restart:
 		case 5 * -2 + 0:
 		case 5 * -2 + 2:
 			assert(0 < working[1] || 0 < working[3]);
-			if (0 > working[1] || 0 > working[3]) break;	// input may have been ok but output cannot be normalized
+			if (0 > working[1] || 0 > working[3]) {
+				ret = -3;
+				break;	// not normalizable (possibly should error out)
+			}
 			lhs.assign(F(0), working[1]);
 			rhs.assign(F(0), working[3]);
 			return 2;
@@ -216,7 +223,10 @@ restart:
 		case 5 * 0 - 2:
 		case 5 * 2 - 2:
 			assert(0 > working[0] || 0 > working[2]);
-			if (0 < working[0] || 0 < working[2]) break;	// input may have been ok but output cannot be normalized
+			if (0 < working[0] || 0 < working[2]) {
+				ret = -3;
+				break;	// not normalizable (possibly should error out)
+			}
 			lhs.assign(working[0], F(0));
 			rhs.assign(working[2], F(0));
 			return 2;
@@ -246,27 +256,89 @@ restart:
 			if (working[0] > working[1]) {
 				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
 				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
-				else break;	// not normalizable (possibly should error out)
+				else {
+					ret = -3;
+					break;	// not normalizable (possibly should error out)
+				}
 			}
 			else if (working[2] > working[3]) {
 				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
 				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
-				else break;	// not normalizable (possibly should error out)
+				else {
+					ret = -3;
+					break;	// not normalizable (possibly should error out)
+				}
 			}
-			// \todo try to get at least one of the two pairs "very close" in endpoints
+			ret = 2;
+			break;
+		}
+		if (-3 == ret) {	// results of rearrange_sum were non-normalizable, re-initialize
+			working[0] = lhs.lower();
+			working[1] = lhs.upper();
+			working[2] = rhs.lower();
+			working[3] = rhs.upper();
+			ret = 0;
+		}
+		// version of fp_stats for intervals would make sense here
+restart:
+		fp_stats<F> stats[4] = { fp_stats<F>(working[0]), fp_stats<F>(working[1]),  fp_stats<F>(working[2]),  fp_stats<F>(working[3]) };
+		// \todo try to get at least one of the two pairs "very close" in endpoints
+
+		if (0 < working[0] && 0 < working[2]) {
+			if (working[1] <= working[3]) {
+				auto safe_add_exponent = stats[3].safe_add_exponents();
+				self_intersect(safe_add_exponent, stats[2].safe_add_exponents());
+				if (safe_add_exponent.first <= safe_add_exponent.second) {
+					auto safe_subtract_exponent = stats[1].safe_subtract_exponents();
+					self_intersect(safe_subtract_exponent, stats[0].safe_subtract_exponents());
+					if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
+						self_intersect(safe_add_exponent, safe_subtract_exponent);
+						if (safe_add_exponent.first <= safe_add_exponent.second) {
+							F delta = stats[3].delta(safe_add_exponent.second);
+							ret = 2;
+							bool lower_cancel = delta_cancel(working[2], working[0], delta);
+							bool upper_cancel = delta_cancel(working[3], working[1], delta);
+							if (lower_cancel || upper_cancel) goto final_exit;
+							goto restart;
+						}
+						if (stats[2].exponent() == stats[3].exponent()) {
+							int test = stats[3].exponent() - std::numeric_limits<F>::digits;
+							if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic: rhs");
+						}
+					}
+				}
+			} else {
+				auto safe_add_exponent = stats[1].safe_add_exponents();
+				self_intersect(safe_add_exponent, stats[0].safe_add_exponents());
+				if (safe_add_exponent.first <= safe_add_exponent.second) {
+					auto safe_subtract_exponent = stats[3].safe_subtract_exponents();
+					self_intersect(safe_subtract_exponent, stats[2].safe_subtract_exponents());
+					if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
+						self_intersect(safe_add_exponent, safe_subtract_exponent);
+						if (safe_add_exponent.first <= safe_add_exponent.second) {
+							F delta = stats[1].delta(safe_add_exponent.second);
+							ret = 2;
+							bool lower_cancel = delta_cancel(working[0], working[2], delta);
+							bool upper_cancel = delta_cancel(working[1], working[3], delta);
+							if (lower_cancel || upper_cancel) goto final_exit;
+							goto restart;
+						}
+						if (stats[0].exponent() == stats[1].exponent()) {
+							int test = stats[1].exponent() - std::numeric_limits<F>::digits;
+							if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic: lhs");
+						}
+					}
+				}
+			}
+		}
+		if (0 > working[1] && 0 > working[2]) FATAL("need to mirror interval-arithmetic double-positive block for double-negative");
+
+final_exit:
+		if (2 == ret) {
 			lhs.assign(working[0], working[1]);
 			rhs.assign(working[2], working[3]);
-			return 2;
 		}
-#if 0
-		INFORM(CRM_code);
-		INFORM((long double)working[0]);
-		INFORM((long double)working[1]);
-		INFORM((long double)working[2]);
-		INFORM((long double)working[3]);
-		FATAL("backup algorithm needed");
-#endif
-		return 0;	// needed a different approach
+		return ret;
 	}
 
 	template<class T, class F, class F2>

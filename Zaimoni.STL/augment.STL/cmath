@@ -163,12 +163,14 @@ public:
 	{
 		std::pair<int, int> ret(_exponent - std::numeric_limits<T>::digits, _exponent);
 		const double abs_mantissa = (signBit(_mantissa) ? -_mantissa : _mantissa);
-		double mantissa_delta = 0.5;
-		while (1.0 - mantissa_delta < abs_mantissa)
-		{
-			assert(ret.first<ret.second);
-			ret.second--;
-			mantissa_delta = scalbn(mantissa_delta, -1);
+		if (std::numeric_limits<T>::digits < mantissa_bitcount(abs_mantissa)) {
+			double mantissa_delta = 0.5;
+			while (1.0 - mantissa_delta < abs_mantissa)
+			{
+				assert(ret.first < ret.second);
+				ret.second--;
+				mantissa_delta = scalbn(mantissa_delta, -1);
+			}
 		}
 		return ret;
 	}
