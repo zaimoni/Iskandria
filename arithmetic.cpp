@@ -90,8 +90,8 @@ resolve_exact_now:
 			swap(lhs, rhs);
 			l_negative = std::signbit(lhs);
 		}
+restart:
 		const int exponent_delta = l_stat.exponent() - (FP_SUBNORMAL == fp_type[1] ? std::numeric_limits<F>::min_exponent : r_stat.exponent());
-
 		if (0 == exponent_delta) {	// depends on two types being same
 			if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
 			else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
@@ -116,7 +116,6 @@ resolve_exact_now:
 			}
 		}
 
-restart:
 		if (std::numeric_limits<F>::digits < exponent_delta) return ret;
 		F delta = r_stat.delta(r_stat.exponent());
 
@@ -256,7 +255,14 @@ restart:
 			rhs.assign(working[2], working[3]);
 			return 2;
 		}
-
+#if 0
+		INFORM(CRM_code);
+		INFORM((long double)working[0]);
+		INFORM((long double)working[1]);
+		INFORM((long double)working[2]);
+		INFORM((long double)working[3]);
+		FATAL("backup algorithm needed");
+#endif
 		return 0;	// needed a different approach
 	}
 
