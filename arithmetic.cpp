@@ -113,6 +113,7 @@ restart:
 				ret = 2;
 				l_stat = lhs;
 				r_stat = rhs;
+				goto restart;
 			}
 		}
 
@@ -121,10 +122,12 @@ restart:
 
 		if (same_sign) {
 			F ceiling = l_stat.delta(l_stat.exponent()+1);
-			ceiling -= delta;
-			if (ceiling < lhs) {
+			if ((ceiling-delta) < lhs) {
 				auto test = mantissa_bitcount(l_stat.mantissa());
-				if (std::numeric_limits<F>::digits < test) return ret;	// would lose the lowest bit
+				if (std::numeric_limits<F>::digits < test) {	// would lose the lowest bit
+					delta = l_stat.delta(l_stat.exponent() - std::numeric_limits<F>::digits);
+					if ((ceiling - delta) < lhs) return ret;
+				}
 			}
 		}
 
