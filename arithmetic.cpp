@@ -19,42 +19,25 @@ namespace math {
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 #else
 	// rearrange_sum support
-	template<class T>
-	typename std::enable_if<std::is_floating_point<T>::value, std::pair<int, uintmax_t>>::type mantissa_bits(T mantissa)	// cmath target
-	{
-		std::pair<int, uintmax_t> ret(0,1);
-
-		while (0.0 < mantissa) {
-			ret.first++;
-			ret.second <<= 1;
-			if (0.5 <= mantissa) ret.second += 1;
-			mantissa = scalbn(mantissa, 1);
-			mantissa -= 1.0;
-		}
-		return ret;
-	}
-
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(F& lhs, F& rhs)
 	{
 		int ret = 0;
 
-		int _exponents[2];	// 0: lhs; 1:rhs
-		F l_mantissa = frexp(lhs, &_exponents[0]);
-		F r_mantissa = frexp(rhs, &_exponents[1]);
-		if (std::numeric_limits<F>::max_exponent < _exponents[0]) return 0;	// we don't handle infinity or NaN here
-		if (std::numeric_limits<F>::max_exponent < _exponents[1]) return 0;
+		// \todo eliminate in favor of fp_stats class
+		fp_stats<F> l_stat(lhs);
+		fp_stats<F> r_stat(rhs);
+		if (std::numeric_limits<F>::max_exponent < l_stat.exponent()) return 0;	// we don't handle infinity or NaN here
+		if (std::numeric_limits<F>::max_exponent < r_stat.exponent()) return 0;
 
-		if (_exponents[0] > _exponents[1]) {	// doesn't work for different types
-			swap(_exponents[0], _exponents[1]);
-			swap(l_mantissa, r_mantissa);
+		if (l_stat.exponent() > r_stat.exponent()) {	// doesn't work for different types
+			swap(l_stat,r_stat);
 			swap(lhs, rhs);
 		}
 
 		bool l_negative = std::signbit(lhs);
-		bool r_negative = std::signbit(rhs);
-		bool same_sign = (l_negative == r_negative);
-		if (_exponents[0] == _exponents[1]) {
+		bool same_sign = (std::signbit(rhs) == l_negative);
+		if (l_stat.exponent() == r_stat.exponent()) {
 			if (!same_sign) {	// proceed (subtractive cancellation ok at this point)
 				F tmp = lhs + rhs;
 				if (0 == tmp) {
@@ -63,28 +46,15 @@ namespace math {
 					rhs = 0;
 					return -2;
 				}
-				if (std::signbit(tmp)) {
-					if (l_negative) {
-						lhs = tmp;
-						rhs = 0;
-						return 1;
-					} else {
-						lhs = 0;
-						rhs = tmp;
-						return -1;
-					}
-				} else {
-					if (!l_negative) {
-						lhs = tmp;
-						rhs = 0;
-						return 1;
-					} else {
-						lhs = 0;
-						rhs = tmp;
-						return -1;
-					}
+				if (std::signbit(tmp) == l_negative) {
+					lhs = tmp;
+					rhs = 0;
+					return 1;
 				}
-			} else if (std::numeric_limits<F>::min_exponent > _exponents[0]) {
+				lhs = 0;
+				rhs = tmp;
+				return -1;
+			} else if (std::numeric_limits<F>::min_exponent > l_stat.exponent()) {
 				// denormal, same sign:
 				F anchor = std::scalbn(l_negative ? F(-1) : F(1), std::numeric_limits<F>::min_exponent);
 				F reference = anchor-lhs;
@@ -115,36 +85,36 @@ namespace math {
 						return 2;
 					}
 				}
-			} else if (std::numeric_limits<F>::max_exponent == _exponents[0]) return 0; // overflow imminent
+			} else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
 			else {	// sum may be overprecise
-				F bias = l_negative ? F(-0.5) : F(0.5);
-				F anchor = (l_mantissa - bias) + (r_mantissa - bias);
-				rhs = std::scalbn(bias, _exponents[0] + 1);
-				lhs = std::scalbn(anchor, _exponents[0]);
+				F bias = l_stat.delta(0);
+				F anchor = (l_stat.mantissa() - bias) + (r_stat.mantissa() - bias);
+				rhs = std::scalbn(bias, l_stat.exponent() + 1);
+				lhs = std::scalbn(anchor, l_stat.exponent());
 				ret = 2;
-				l_mantissa = frexp(lhs, &_exponents[0]);
-				r_mantissa = frexp(rhs, &_exponents[1]);
+				l_stat = lhs;
+				r_stat = rhs;
 			}
 		}
 
 restart:
-		bool l_to_r = std::numeric_limits<F>::min_exponent <= _exponents[0] && _exponents[0] <= _exponents[1] && _exponents[1] - std::numeric_limits<F>::digits <= _exponents[0];
+		bool l_to_r = std::numeric_limits<F>::min_exponent <= l_stat.exponent() && l_stat.exponent() <= r_stat.exponent() && r_stat.exponent() - std::numeric_limits<F>::digits <= l_stat.exponent();
 		if (!l_to_r) return ret;	// done
-		F delta = std::scalbn(l_negative ? F(-0.5) : F(0.5), _exponents[0]);
+		F delta = l_stat.delta(l_stat.exponent());
 
 		if (same_sign) {
-			F ceiling = std::scalbn(l_negative ? F(-1) : F(1), _exponents[1]);
+			F ceiling = r_stat.delta(r_stat.exponent()+1);
 			ceiling -= delta;
 			if (ceiling < rhs) {
-				auto test = mantissa_bits(r_mantissa);	// \todo micro-optimize, we don't need the uintmax_t return half here
+				auto test = mantissa_bits(r_stat.mantissa());	// \todo micro-optimize, we don't need the uintmax_t return half here
 				if (std::numeric_limits<F>::digits < test.second) return ret;	// would lose the lowest bit
 			}
 		}
 
 		// controlled subtractive cancellation.
 		if (delta_cancel(rhs,lhs,delta)) return -1;
-		l_mantissa = frexp(lhs, &_exponents[0]);
-		r_mantissa = frexp(rhs, &_exponents[1]);
+		l_stat = lhs;
+		r_stat = rhs;
 		ret = 2;
 		goto restart;
 	}
@@ -152,18 +122,6 @@ restart:
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int>::type rearrange_sum(F& lhs, F2& rhs)
 	{
-		int ret = 0;
-
-		int _exponents[2];	// 0: lhs; 1:rhs
-		F l_mantissa = frexp(lhs, &_exponents[0]);
-		F2 r_mantissa = frexp(rhs, &_exponents[1]);
-		if (std::numeric_limits<F>::max_exponent < _exponents[0]) return 0;	// we don't handle infinity or NaN here
-		if (std::numeric_limits<F2>::max_exponent < _exponents[1]) return 0;
-
-		bool l_to_r = std::numeric_limits<F>::min_exponent <= _exponents[0] && _exponents[0] <= _exponents[1] && _exponents[1] - std::numeric_limits<F2>::digits <= _exponents[0];
-		bool r_to_l = std::numeric_limits<F2>::min_exponent <= _exponents[1] && _exponents[1] <= _exponents[0] && _exponents[0] - std::numeric_limits<F>::digits <= _exponents[1];
-		if (!l_to_r && !r_to_l) return ret;	// done; denormal heuristics are same-type only
-
 		return 0;
 	}
 

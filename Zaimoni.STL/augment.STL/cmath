@@ -79,6 +79,22 @@ typename std::enable_if<std::is_floating_point<T>::value, uintmax_t>::type _mant
 }
 
 template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, std::pair<int, uintmax_t>>::type mantissa_bits(T mantissa)	// cmath target
+{
+	std::pair<int, uintmax_t> ret(0, 1);
+
+	while (0.0 < mantissa) {
+		ret.first++;
+		ret.second <<= 1;
+		if (0.5 <= mantissa) ret.second += 1;
+		mantissa = scalbn(mantissa, 1);
+		mantissa -= 1.0;
+	}
+	return ret;
+}
+
+
+template<class T>
 typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_cancel(T& lhs, T& rhs, T delta)
 {
 	lhs += delta;
@@ -94,7 +110,7 @@ class fp_stats
 	ZAIMONI_STATIC_ASSERT(std::is_floating_point<T>::value);
 private:
 	int _exponent;
-	double _mantissa;
+	T _mantissa;
 public:
 	fp_stats() = delete;
 	explicit fp_stats(T src) { assert(0.0 != src); assert(isFinite(src)); _mantissa = frexp(src, &_exponent); }
@@ -113,7 +129,7 @@ public:
 	double mantissa() const { return _mantissa; };
 	uintmax_t int_mantissa() const { return _mantissa_as_int(_mantissa); }
 	uintmax_t divisibilty_test() const { return _mantissa_as_int(_mantissa); }
-	int safe_2_n_multiply() const { return std::numeric_limits<T>::min_exponent - _exponent; };
+	int safe_2_n_multiply() const { return std::numeric_limits<T>::max_exponent - _exponent; };
 	int safe_2_n_divide() const { return _exponent - std::numeric_limits<T>::min_exponent; };
 
 	T delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); };	// usually prepared for subtractive cancellation
