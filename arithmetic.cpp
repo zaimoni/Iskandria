@@ -137,6 +137,7 @@ restart:
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int>::type rearrange_sum(F& lhs, F2& rhs)
 	{
+		FATAL("need to implement");
 		return 0;
 	}
 
@@ -155,13 +156,20 @@ restart:
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value, int>::type rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
 	{
+		FATAL("need to implement");
 		return 0;
 	}
 
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
 	{
-		return 0;
+		int ret = rearrange_sum<T>(rhs, lhs);
+		switch (ret)
+		{
+		case 1: return -1;
+		case -1: return 1;
+		default: return ret;
+		}
 	}
 
 	template<class T>
@@ -361,6 +369,7 @@ final_exit:
 	template<class T, class F, class F2>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits), int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
+		FATAL("need to implement");
 		return 0;
 	}
 
