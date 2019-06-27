@@ -5,6 +5,7 @@
 #include "Zaimoni.STL/numeric_error.hpp"
 #include <memory>
 #include <vector>
+#include <map>
 
 namespace zaimoni {
 
@@ -110,6 +111,75 @@ restart:
 		auto& checking = this->_heuristic.back();
 		switch (checking.first)
 		{
+		case _n_ary_op::fold:
+		{
+			std::vector<size_t> legal;
+			std::map<size_t, int> legal_scores;
+			const size_t ub = _x.size();
+			ptrdiff_t i = -1;
+			while (ub > ++i) {
+				auto score = fold_ok(_x[i]);
+				if (std::numeric_limits<int>::min() < score) {
+					legal.push_back(i);
+					legal_scores[i] = score;
+				}
+			}
+			const size_t legal_ub = legal.size();
+			if (2 > legal_ub) {
+				_heuristic.pop_back();
+				if (_pre_self_eval()) goto restart;
+				return false;
+			}
+			std::map<std::pair<size_t, size_t>, int> possible;
+			i = 0;
+			while (legal_ub > ++i) {
+				ptrdiff_t j = -1;
+				while (i > ++j) {
+					auto score = fold_score(_x[legal[i]], _x[legal[j]]);
+					if (std::numeric_limits<int>::min() < score) {
+						bool ok = true;
+						if (!possible.empty()) {
+							for(const auto& x : possible) {
+								if (x.second > score) {
+									ok = false;
+									break;
+								} else if (x.second < score) {
+									possible.clear();
+									break;
+								}
+							}
+						}
+						if (ok) possible[std::pair<size_t, size_t>(j, i)] = score;
+					}
+				}
+			}
+			while(!possible.empty()) {
+				const auto test = *possible.begin();
+				const auto result_code = fold(_x[test.first.first], _x[test.first.second]);
+				if (0 == result_code) {
+					possible.erase(test.first);
+					continue;
+				}
+				switch (result_code) {
+				case -1:
+					if (test.first.second < ub - 1) swap(_x[test.first.second], _x[ub - 1]);
+					_x.erase(_x.begin() + test.first.first);
+					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, ub - 2));
+					return true;
+				case 1:
+					_x.erase(_x.begin() + test.first.second);
+					if (test.first.first < ub - 2) swap(_x[test.first.first], _x[ub - 2]);
+					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, ub - 2));
+					return true;
+//				case -2:	// mutual annihilation; should have been caught at rearranging stage
+//				case 2:	// Haskell/F# folding doesn't leave both elements behind
+				default: FATAL((std::string("unhandled fold result code ") + std::to_string(result_code)).c_str());
+				}
+			}
+			_heuristic.pop_back();
+			if (_pre_self_eval()) goto restart;
+			return false;
+		}
 		case _n_ary_op::linear_scan:
 		{	// O(n^2) pairwise interaction checks (addition is always commutative)
 			// \todo non-commutative version (blocks e.g. matrix multiplication)
