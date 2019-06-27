@@ -27,6 +27,7 @@ struct _n_ary_op {
 		componentwise_evaluation = 1,
 		remove_identity,
 		linear_scan,
+		fold,	// Haskell/F#; pairwise destructive evaluation
 		strict_max_core_heuristic
 	};
 
@@ -34,6 +35,8 @@ struct _n_ary_op {
 	static bool is_multiplicative_identity(const fp_API* x) { return x->is_one(); }
 	// bridge support
 	template<class T> static int null_rearrange(T& lhs, T& rhs) { return 0; }
+	template<class T> static int null_fold_ok(const T&) { return std::numeric_limits<int>::min(); }
+	template<class T> static int null_fold_score(const T& lhs, const T& rhs) { return std::numeric_limits<int>::min(); }
 };
 
 // associative operations naturally are n-ary
@@ -101,7 +104,7 @@ restart:
 		return true;
 	}
 
-	bool _self_eval(bool (*is_identity)(const fp_API*),int (*rearrange)(smart_ptr&, smart_ptr&))
+	bool _self_eval(bool (*is_identity)(const fp_API*),int (*rearrange)(smart_ptr&, smart_ptr&),int (*fold_ok)(const smart_ptr&),int (*fold_score)(const smart_ptr&, const smart_ptr&),int (*fold)(smart_ptr&, smart_ptr&))
 	{
 restart:
 		auto& checking = this->_heuristic.back();
@@ -109,6 +112,7 @@ restart:
 		{
 		case _n_ary_op::linear_scan:
 		{	// O(n^2) pairwise interaction checks (addition is always commutative)
+			// \todo non-commutative version (blocks e.g. matrix multiplication)
 		linear_scan_restart:
 			if (_x.size() > checking.second && 1 <= checking.second) {
 				auto& viewpoint = this->_x[checking.second];
@@ -263,8 +267,8 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum)) return true;
-		//		auto& checking = this->_heuristic.back();
+		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_rearrange)) return true;
+		//	auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
 		return false;
@@ -396,7 +400,7 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product)) return true;
+		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_rearrange)) return true;
 //		auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
