@@ -267,6 +267,10 @@ restart:
 			}
 			_heuristic.pop_back();
 			if (_pre_self_eval()) goto restart;
+			if (_heuristic.empty()) {
+				_heuristic.push_back(eval_spec(_n_ary_op::fold, 0));
+				if (_pre_self_eval()) goto restart;
+			}
 			return false;
 		}
 		}
