@@ -15,6 +15,15 @@ namespace math {
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d) { return 0; }
 
+	template<class T>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x) { return std::numeric_limits<int>::min(); }
+
+	template<class T>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return std::numeric_limits<int>::min(); }
+
+	template<class T>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type eval_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs) { return 0; }
+
 #if 0
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 #else
@@ -514,8 +523,15 @@ final_exit:
 		return 0;
 	}
 #endif
-}
-}
+
+	template int sum_implemented<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& x);
+
+	template int sum_score<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+
+	template int eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+
+}	// namespace math
+}	// namespace zaimoni
 
 #ifdef TEST_APP
 // fast compile test

@@ -21,6 +21,15 @@ typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d);
 
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x);
+
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
+
+template<class T>
+typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type eval_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
+
 }
 
 struct _n_ary_op {
@@ -337,7 +346,7 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_rearrange)) return true;
+		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum, zaimoni::math::sum_implemented, zaimoni::math::sum_score, zaimoni::math::eval_sum)) return true;
 		//	auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
