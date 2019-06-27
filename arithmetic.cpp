@@ -22,7 +22,7 @@ namespace math {
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return std::numeric_limits<int>::min(); }
 
 	template<class T>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type eval_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs) { return 0; }
+	typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return 0; }
 
 #if 0
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
@@ -524,11 +524,15 @@ final_exit:
 	}
 #endif
 
+	// generally speaking, for floating point numerals we want to destructively add the smallest two exponents first.
+	// * minimizes the numerical error which is controlled by the size of the larger absolute-value numeral
+	// * may enable further rearrangement
+	// so the score should be largest for denormals and smallest near infinity
 	template int sum_implemented<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& x);
 
 	template int sum_score<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 
-	template int eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+	template std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> > eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 
 }	// namespace math
 }	// namespace zaimoni

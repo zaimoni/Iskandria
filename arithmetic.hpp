@@ -28,7 +28,7 @@ template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
 
 template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type eval_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
+typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
 
 }
 
@@ -47,6 +47,7 @@ struct _n_ary_op {
 	template<class T> static int null_rearrange(T& lhs, T& rhs) { return 0; }
 	template<class T> static int null_fold_ok(const T&) { return std::numeric_limits<int>::min(); }
 	template<class T> static int null_fold_score(const T& lhs, const T& rhs) { return std::numeric_limits<int>::min(); }
+	template<class T> static T null_eval(const T& lhs, const T& rhs) { return 0; }
 };
 
 // associative operations naturally are n-ary
@@ -114,7 +115,7 @@ restart:
 		return true;
 	}
 
-	bool _self_eval(bool (*is_identity)(const fp_API*),int (*rearrange)(smart_ptr&, smart_ptr&),int (*fold_ok)(const smart_ptr&),int (*fold_score)(const smart_ptr&, const smart_ptr&),int (*fold)(smart_ptr&, smart_ptr&))
+	bool _self_eval(bool (*is_identity)(const fp_API*),int (*rearrange)(smart_ptr&, smart_ptr&),int (*fold_ok)(const smart_ptr&),int (*fold_score)(const smart_ptr&, const smart_ptr&),smart_ptr (*fold)(const smart_ptr&, const smart_ptr&))
 	{
 restart:
 		auto& checking = this->_heuristic.back();
@@ -164,26 +165,16 @@ restart:
 			}
 			while(!possible.empty()) {
 				const auto test = *possible.begin();
-				const auto result_code = fold(_x[test.first.first], _x[test.first.second]);
-				if (0 == result_code) {
+				auto result = fold(_x[test.first.first], _x[test.first.second]);
+				if (!result) {
 					possible.erase(test.first);
 					continue;
 				}
-				switch (result_code) {
-				case -1:
-					if (test.first.second < ub - 1) swap(_x[test.first.second], _x[ub - 1]);
-					_x.erase(_x.begin() + test.first.first);
-					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, ub - 2));
-					return true;
-				case 1:
-					_x.erase(_x.begin() + test.first.second);
-					if (test.first.first < ub - 2) swap(_x[test.first.first], _x[ub - 2]);
-					_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, ub - 2));
-					return true;
-//				case -2:	// mutual annihilation; should have been caught at rearranging stage
-//				case 2:	// Haskell/F# folding doesn't leave both elements behind
-				default: FATAL((std::string("unhandled fold result code ") + std::to_string(result_code)).c_str());
-				}
+				_x.erase(_x.begin() + test.first.second);
+				_x.erase(_x.begin() + test.first.first);
+				_x.push_back(result);
+				_heuristic.push_back(eval_spec(_n_ary_op::linear_scan, ub - 2));
+				return true;
 			}
 			_heuristic.pop_back();
 			if (_pre_self_eval()) goto restart;
@@ -479,7 +470,7 @@ public:
 	// fp_API
 	virtual bool self_eval() {
 		if (!this->_pre_self_eval()) return false;
-		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_rearrange)) return true;
+		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_eval)) return true;
 //		auto& checking = this->_heuristic.back();
 		// \todo process our specific rules
 		this->_heuristic.clear();
