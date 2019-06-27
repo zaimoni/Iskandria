@@ -532,7 +532,61 @@ final_exit:
 
 	template int sum_score<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
 
+#if 0
 	template std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> > eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+#else
+	template<class T, class F>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
+	{
+		try {
+			auto ret = lhs + rhs;
+			if (ret.lower() == ret.upper()) return new var<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+			return new var<decltype(ret)>(ret);
+		}
+		catch (zaimoni::math::numeric_error& e) {
+			// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
+			return 0;
+		}
+		return 0;
+	}
+
+	template<class T, class F, class F2>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	{
+		return eval_sum<T>(ISK_INTERVAL<F2>(lhs), rhs);
+	}
+
+	template<class T, class F, class F2>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	{
+		return eval_sum<T>(lhs, ISK_INTERVAL<F>(rhs));
+	}
+
+	template<class T, class F>
+	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_sum(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
+	{
+		auto src = lhs.get();
+		if (auto l = dynamic_cast<_access<float>*>(src)) return eval_sum<T>(ISK_INTERVAL<float>(l->value()),rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return eval_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<double>*>(src)) return eval_sum<T>(ISK_INTERVAL<double>(l->value()), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return eval_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<long double>*>(src)) return eval_sum<T>(ISK_INTERVAL<long double>(l->value()), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return eval_sum<T>(l->value(), rhs);
+		return 0;
+	}
+
+	template<> std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> > eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs)
+	{
+		auto src = rhs.get();
+		if (auto r = dynamic_cast<_access<float>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<float>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
+		return 0;
+	}
+#endif
 
 }	// namespace math
 }	// namespace zaimoni
