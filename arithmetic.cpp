@@ -285,51 +285,68 @@ restart:
 		// \todo try to get at least one of the two pairs "very close" in endpoints
 
 		if (0 < working[0] && 0 < working[2]) {
-			if (working[1] <= working[3]) {
-				auto safe_add_exponent = stats[3].safe_add_exponents();
-				self_intersect(safe_add_exponent, stats[2].safe_add_exponents());
-				if (safe_add_exponent.first <= safe_add_exponent.second) {
-					auto safe_subtract_exponent = stats[1].safe_subtract_exponents();
-					self_intersect(safe_subtract_exponent, stats[0].safe_subtract_exponents());
-					if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
-						self_intersect(safe_add_exponent, safe_subtract_exponent);
-						if (safe_add_exponent.first <= safe_add_exponent.second) {
-							F delta = stats[3].delta(safe_add_exponent.second);
-							ret = 2;
-							bool lower_cancel = delta_cancel(working[2], working[0], delta);
-							bool upper_cancel = delta_cancel(working[3], working[1], delta);
-							if (lower_cancel || upper_cancel) goto final_exit;
-							goto restart;
-						}
-						if (stats[2].exponent() == stats[3].exponent()) {
-							int test = stats[3].exponent() - std::numeric_limits<F>::digits;
-							if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic: rhs");
-						}
+			const int upper_parity = (working[1] <= working[3]) ? 1 : -1;
+			auto safe_add_exponent = stats[2+upper_parity].safe_add_exponents();
+			self_intersect(safe_add_exponent, stats[1 + upper_parity].safe_add_exponents());
+			if (safe_add_exponent.first <= safe_add_exponent.second) {
+				auto safe_subtract_exponent = stats[2 - upper_parity].safe_subtract_exponents();
+				self_intersect(safe_subtract_exponent, stats[1 - upper_parity].safe_subtract_exponents());
+				if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
+					self_intersect(safe_add_exponent, safe_subtract_exponent);
+					if (safe_add_exponent.first <= safe_add_exponent.second) {
+						F delta = stats[2 + upper_parity].delta(safe_add_exponent.second);
+						ret = 2;
+						bool lower_cancel = delta_cancel(working[1 + upper_parity], working[1 - upper_parity], delta);
+						bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], delta);
+						if (lower_cancel || upper_cancel) goto final_exit;
+						goto restart;
 					}
-				}
-			} else {
-				auto safe_add_exponent = stats[1].safe_add_exponents();
-				self_intersect(safe_add_exponent, stats[0].safe_add_exponents());
-				if (safe_add_exponent.first <= safe_add_exponent.second) {
-					auto safe_subtract_exponent = stats[3].safe_subtract_exponents();
-					self_intersect(safe_subtract_exponent, stats[2].safe_subtract_exponents());
-					if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
-						self_intersect(safe_add_exponent, safe_subtract_exponent);
-						if (safe_add_exponent.first <= safe_add_exponent.second) {
-							F delta = stats[1].delta(safe_add_exponent.second);
-							ret = 2;
-							bool lower_cancel = delta_cancel(working[0], working[2], delta);
-							bool upper_cancel = delta_cancel(working[1], working[3], delta);
-							if (lower_cancel || upper_cancel) goto final_exit;
-							goto restart;
-						}
-						if (stats[0].exponent() == stats[1].exponent()) {
-							int test = stats[1].exponent() - std::numeric_limits<F>::digits;
-							if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic: lhs");
-						}
+					if (stats[1 + upper_parity].exponent() == stats[2 + upper_parity].exponent()) {
+						int test = stats[2 + upper_parity].exponent() - std::numeric_limits<F>::digits;
+						if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic");
 					}
 				}
 			}
+			// retry, but independently: upper bound first
+			safe_add_exponent = stats[2 + upper_parity].safe_add_exponents();
+			self_intersect(safe_add_exponent, stats[2 - upper_parity].safe_add_exponents());
+			{
+				const F backup[2] = { working[2 - upper_parity], working[2 + upper_parity] };
+				while (safe_add_exponent.first <= safe_add_exponent.second) {
+					const bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], stats[2 + upper_parity].delta(safe_add_exponent.second));
+					if (working[1 - upper_parity] > working[2 - upper_parity]) {
+						// denormalized: retry
+						working[2 - upper_parity] = backup[0];
+						working[2 + upper_parity] = backup[1];
+						safe_add_exponent.second--;
+						continue;
+					}
+					ret = 2;
+					if (upper_cancel) break;
+					goto restart;
+				}
+			}
+
+			const int lower_parity = (working[0] <= working[2]) ? 1 : -1;
+			safe_add_exponent = stats[1 + lower_parity].safe_add_exponents();
+			self_intersect(safe_add_exponent, stats[1 - lower_parity].safe_add_exponents());
+			{
+				const F backup[2] = { working[1 - lower_parity], working[1 + lower_parity] };
+				while (safe_add_exponent.first <= safe_add_exponent.second) {
+					const bool upper_cancel = delta_cancel(working[1 + lower_parity], working[1 - lower_parity], stats[1 + lower_parity].delta(safe_add_exponent.second));
+					if (working[1 - lower_parity] > working[2 - lower_parity]) {
+						// denormalized: retry
+						working[1 - lower_parity] = backup[0];
+						working[1 + lower_parity] = backup[1];
+						safe_add_exponent.second--;
+						continue;
+					}
+					ret = 2;
+					if (upper_cancel) break;
+					goto restart;
+				}
+			}
+			goto final_exit;
 		}
 		if (0 > working[1] && 0 > working[2]) FATAL("need to mirror interval-arithmetic double-positive block for double-negative");
 
