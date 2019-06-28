@@ -1,6 +1,6 @@
 /* Compiler.h */
 /* cross-compiler compatiblity header */
-/* (C)2009,2010 Kenneth Boyd, license: MIT.txt */
+/* (C)2009,2010,2019 Kenneth Boyd, license: MIT.txt */
 
 #ifndef ZAIMONI_COMPILER_H
 #define ZAIMONI_COMPILER_H 1
@@ -50,6 +50,15 @@
 /* some macros to help with aggregate initialization */
 #define DICT_STRUCT(A) { (A), sizeof(A)-1 }
 #define DICT2_STRUCT(A,B) { (A), sizeof(A)-1, (B) }
+
+#ifndef ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN
+#define ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(A)	\
+	A(const A& src) = default;	\
+	A(A&& src) = default;	\
+	~A() = default;	\
+	A& operator=(const A& src) = default;	\
+	A& operator=(A&& src) = default
+#endif
 
 /* platform config copied from Boost */
 /* would prefer to use BOOST_PLATFORM, but strings aren't allowed in preprocessor tests */

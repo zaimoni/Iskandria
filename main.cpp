@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	isk::Wrap<iskandria::grid::cartesian_2d>::world_setup();
 	iskandria::minkowski::world_setup();
 
-	iskandria::agent::world_setup();
+	isk::Wrap<iskandria::agent>::world_setup();
 	iskandria::craft::world_setup();
 
 	// start the game engine

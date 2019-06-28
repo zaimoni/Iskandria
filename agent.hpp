@@ -3,7 +3,10 @@
 #ifndef AGENT_HPP
 #define AGENT_HPP 1
 
-#include "object.hpp"
+#include "Zaimoni.STL/rw.hpp"
+
+#include <stddef.h>
+#include <stdio.h>
 
 namespace iskandria
 {
@@ -38,7 +41,7 @@ struct agent_species
 	size_t desc_len;
 };
 
-class agent final : public isk::Object
+class agent final
 {
 public:
 	static const agent_species* species;		// external configuration would be strictly for modding support.
@@ -46,29 +49,26 @@ public:
 private:
 	size_t _species_index;
 
-	agent(FILE* src);
 public:
 	agent() = default;
+	agent(FILE* src);
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(agent);
+	void save(FILE* dest) const;
 
 	const agent_species& type() const {return species[_species_index];}
+};
 
-	static std::weak_ptr<agent> track(std::shared_ptr<agent> src);
+}	// namespace iskandria
 
-	// this has to integrate with the world manager	
-	static void world_setup();
-	static std::weak_ptr<agent> read_synthetic_id(FILE* src);
-	static void write_synthetic_id(const std::shared_ptr<agent>& src,FILE* dest);
-private:
-	void save(FILE* dest);
-	static void update_all();
-	static void gc_all();
-	static void load_all(FILE* src);
-	static void save_all(FILE* dest);
-
-	static std::vector<std::shared_ptr<agent> >& cache();
+namespace zaimoni {
+	template<>
+	struct rw_mode<iskandria::agent>
+	{
+		enum {
+			group_write = 3,
+			group_read = 3
+		};
 	};
-
 }
 
 #endif

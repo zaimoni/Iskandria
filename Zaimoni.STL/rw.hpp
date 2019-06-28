@@ -27,6 +27,15 @@ struct rw_mode
 	};
 };
 
+#ifndef ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN
+#define ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(A)	\
+	A(const A& src) = default;	\
+	A(A&& src) = default;	\
+	~A() = default;	\
+	A& operator=(const A& src) = default;	\
+	A& operator=(A&& src) = default
+#endif
+
 }	// namespace zaimoni
 
 #endif

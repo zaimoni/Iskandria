@@ -2,8 +2,8 @@
 
 #include "agent.hpp"
 #include "civilization.hpp"
-
-#include "world_manager.hpp"
+#include "Zaimoni.STL/Compiler.h"
+#include "Zaimoni.STL/Pure.C/stdio_c.h"
 
 namespace iskandria {
 
@@ -82,92 +82,18 @@ agent::agent(FILE* src)
 	_species_index = zaimoni::read<decltype(_species_index)>(src,species_len);
 }
 
-void agent::save(FILE* dest)
+void agent::save(FILE* dest) const
 {
 	zaimoni::write(_species_index,dest,species_len);
-}
-
-
-std::vector<std::shared_ptr<agent> >& agent::cache()
-{
-	static std::vector<std::shared_ptr<agent> > ooao;
-	return ooao;
-}
-
-std::weak_ptr<agent> agent::track(std::shared_ptr<agent> src)
-{
-	if (!src.get()) return std::weak_ptr<agent>();
-	cache().push_back(src);
-	return src;
-}
-
-void agent::world_setup()
-{
-	isk::WorldManager& cosmos = isk::WorldManager::get();
-	cosmos.register_update(update_all);
-	cosmos.register_gc(gc_all);
-	cosmos.register_load(load_all);
-	cosmos.register_save(save_all);
-}
-
-std::weak_ptr<agent> agent::read_synthetic_id(FILE* src)
-{
-	return isk::Object::read_synthetic_id(cache(), src);
-}
-
-void agent::write_synthetic_id(const std::shared_ptr<agent>& src,FILE* dest)
-{
-	isk::Object::write_synthetic_id(cache().size(), src, dest);
-}
-
-void agent::gc_all()	// XXX could go in header, but this *has* to exist enough to give a function pointer
-{
-	isk::Object::gc_all(cache());
-}
-
-void agent::load_all(FILE* src)
-{
-	size_t tmp;
-	ZAIMONI_FREAD_OR_DIE(size_t,tmp,src)
-	if (0==tmp) {
-		cache().clear();
-		return;
-	}
-	std::vector<std::shared_ptr<agent> > dest(tmp);
-	while(0 < tmp--) dest.push_back(std::shared_ptr<agent>(new agent(src)));
-	swap(dest,cache());
-}
-
-
-void agent::save_all(FILE* dest)
-{
-	gc_all();
-	isk::Object::init_synthetic_ids(cache());
-	size_t tmp = cache().size();
-	ZAIMONI_FWRITE_OR_DIE(size_t,tmp,dest)
-	for(auto i : cache()) i->save(dest);
-}
-
-void agent::update_all()
-{
-	std::vector<std::shared_ptr<agent> > staging;
-	for(auto i : cache()) {
-		agent* tmp = i.get();
-		if (!tmp) continue;
-		// just because it's going away doesn't mean it can't do things
-		// do not insert into cache() here, insert to staging instead
-	}
-	if (!staging.empty()) cache().insert(cache().end(),staging.begin(),staging.end());
 }
 
 }	// namespace iskandria
 
 #ifdef TEST_APP2
 // fast compile test
-// g++ -std=c++11 -otest.exe -Os -DTEST_APP2 -D__STDC_LIMIT_MACROS agent.cpp world_manager.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
+// g++ -std=c++11 -otest.exe -Os -DTEST_APP2 -D__STDC_LIMIT_MACROS agent.cpp -Llib\host.isk -lz_stdio_c -lz_stdio_log
 int main(int argc, char* argv[])
 {
-	iskandria::agent::world_setup();
 	return 0;
 }
 #endif

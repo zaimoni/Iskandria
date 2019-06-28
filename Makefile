@@ -15,6 +15,8 @@ clean:
 # dependencies
 include POSIX.dep
 
+include POSIX2.inc
+
 make_Zaimoni_STL:
 	cd Zaimoni.STL; make host_install
 
