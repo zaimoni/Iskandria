@@ -4,7 +4,7 @@
 // #define CONSTANTS_ISK_INTERVAL 1
 
 #ifdef CONSTANTS_ISK_INTERVAL
-#include "interval.hpp"
+#include "Zaimoni.STL/interval.hpp"
 #else
 #include <boost/numeric/interval.hpp>
 #include "Zaimoni.STL/augment.STL/cmath"

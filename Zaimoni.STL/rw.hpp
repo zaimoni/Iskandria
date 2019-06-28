@@ -13,13 +13,15 @@ struct rw_mode
 	// 0: not specified
 	// 1: fixed-size: begin/size()
 	// 2: fixed-size: operator[]/size()
+	// 3: T::save(FILE*) member
 	// --- unimplemented
-	// 3: variable-size: begin/end/size()
-	// 4: variable-size: operator[]/size()
+	// 4: variable-size: begin/end/size()
+	// 5: variable-size: operator[]/size()
 		group_write = 0,
 	// 0: not specified
 	// 1: fixed-size; begin/size()
 	// 2: fixed-size: operator[]
+	// 3: T(FILE*) constructor
 	// --- unimplemented
 		group_read = 0
 	};

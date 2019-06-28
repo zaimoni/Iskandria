@@ -144,6 +144,12 @@ typename std::enable_if<2==zaimoni::rw_mode<T>::group_read , void>::type read(T&
 }
 
 template<class T>
+typename std::enable_if<3 == zaimoni::rw_mode<T>::group_read, T>::type read(FILE* src)
+{
+	return T(src);
+}
+
+template<class T>
 void write_iterator_count(T iter, size_t i, FILE* dest)
 {
 	while(0<i)
@@ -167,6 +173,11 @@ typename std::enable_if<2==zaimoni::rw_mode<T>::group_write , void>::type write(
 	while(i < ub) write(src[i++],dest);
 }
 
+template<class T>
+typename std::enable_if<3 == zaimoni::rw_mode<T>::group_write, void>::type write(const T& src, FILE* dest)
+{
+	src.save(dest);
+}
 
 }	// namespace zaimoni
 

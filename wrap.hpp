@@ -79,7 +79,7 @@ private:
 			return;
 		}
 		std::vector<std::shared_ptr<Wrap> > dest(tmp);
-		while (0 < tmp--) dest.push_back(std::shared_ptr<Wrap>(zaimoni::read<T*>(src)));
+		while (0 < tmp--) dest.push_back(std::shared_ptr<Wrap>(new Wrap(zaimoni::read<T>(src))));
 		swap(dest, cache());
 	}
 
@@ -89,7 +89,7 @@ private:
 		isk::Object::init_synthetic_ids(cache());
 		size_t tmp = cache().size();
 		ZAIMONI_FWRITE_OR_DIE(size_t, tmp, dest)
-		for (auto i : cache()) zaimoni::write(*i,dest);
+		for (auto i : cache()) zaimoni::write(i->_x,dest);
 	}
 
 };
