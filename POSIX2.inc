@@ -77,8 +77,8 @@ matrix.test.exe: matrix.cpp $(MATRIX_HPP)
 	strip --strip-unneeded $@
 	$@
 
-minkowski.test.exe: minkowski.cpp minkowski.hpp $(OBJECT_HPP) $(CONSTANTS_HPP) $(COORD_CHART_HPP) world_manager.cpp world_manager.hpp
-	$(CXX) -ominkowski.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 minkowski.cpp angle.cpp taylor.cpp interval_shim.cpp world_manager.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+minkowski.test.exe: minkowski.cpp minkowski.hpp $(CONSTANTS_HPP) $(COORD_CHART_HPP)
+	$(CXX) -ominkowski.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 minkowski.cpp angle.cpp taylor.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	strip --strip-unneeded $@
 	$@
 
