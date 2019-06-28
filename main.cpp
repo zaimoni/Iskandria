@@ -10,7 +10,7 @@
 int main(int argc, char* argv[])
 {
 	// Order of world registration of game objects, is their order in the savefile.
-	iskandria::grid::cartesian_2d::world_setup();
+	isk::Wrap<iskandria::grid::cartesian_2d>::world_setup();
 	iskandria::minkowski::world_setup();
 
 	iskandria::agent::world_setup();
