@@ -8,7 +8,7 @@ minkowski.o: minkowski.hpp world_manager.hpp object.hpp constants.hpp coord_char
 constants.o: constants.hpp Zaimoni.STL/Logging.h test_driver.h interval_shim.hpp Zaimoni.STL/interval.hpp Zaimoni.STL/augment.STL/cmath Zaimoni.STL/_interval.hpp Zaimoni.STL/numeric_error.hpp Zaimoni.STL/augment.STL/type_traits Zaimoni.STL/Compiler.h Zaimoni.STL/bits/_interval_var.hpp
 interval_shim.o: interval_shim.hpp Zaimoni.STL/interval.hpp Zaimoni.STL/augment.STL/cmath Zaimoni.STL/Logging.h Zaimoni.STL/_interval.hpp Zaimoni.STL/numeric_error.hpp Zaimoni.STL/augment.STL/type_traits Zaimoni.STL/Compiler.h Zaimoni.STL/bits/_interval_var.hpp
 agent.o: agent.hpp civilization.hpp Zaimoni.STL/Compiler.h Zaimoni.STL/Pure.C/stdio_c.h Zaimoni.STL/rw.hpp
-craft.o: craft.hpp civilization.hpp world_manager.hpp object.hpp Zaimoni.STL/Logging.h Zaimoni.STL/Pure.C/stdio_c.h Zaimoni.STL/Compiler.h Zaimoni.STL/rw.hpp singleton.on.hpp singleton.off.hpp
+craft.o: craft.hpp civilization.hpp Zaimoni.STL/Compiler.h Zaimoni.STL/Pure.C/stdio_c.h Zaimoni.STL/rw.hpp
 input_manager.o: input_manager.hpp display_manager.hpp singleton.on.hpp singleton.off.hpp
 display_manager.o: display_manager.hpp singleton.on.hpp singleton.off.hpp
 world_manager.o: world_manager.hpp singleton.on.hpp singleton.off.hpp

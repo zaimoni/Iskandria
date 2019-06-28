@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	iskandria::minkowski::world_setup();
 
 	isk::Wrap<iskandria::agent>::world_setup();
-	iskandria::craft::world_setup();
+	isk::Wrap<iskandria::craft>::world_setup();
 
 	// start the game engine
 	isk::GameManager::get().run();

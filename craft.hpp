@@ -3,7 +3,10 @@
 #ifndef CRAFT_HPP
 #define CRAFT_HPP
 
-#include "object.hpp"
+#include "Zaimoni.STL/rw.hpp"
+
+#include <stddef.h>
+#include <stdio.h>
 
 namespace iskandria {
 
@@ -44,7 +47,7 @@ struct craft_model
 	size_t desc_len;
 };
 
-class craft final : public isk::Object
+class craft final
 {
 public:
 	static const craft_model* models;	// may need to allow external configuration to manage RAM loading.
@@ -52,29 +55,26 @@ public:
 private:
 	size_t _model_index;
 
-	craft(FILE* src);
 public:
 	craft() = default;
+	craft(FILE* src);
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(craft);
+	void save(FILE* dest) const;
 
 	const craft_model& type() const {return models[_model_index];}
-
-	static std::weak_ptr<craft> track(std::shared_ptr<craft> src);
-
-	// this has to integrate with the world manager
-	static void world_setup();
-	static std::weak_ptr<craft> read_synthetic_id(FILE* src);
-	static void write_synthetic_id(const std::shared_ptr<craft>& src,FILE* dest);
-private:
-	void save(FILE* dest);
-	static void update_all();
-	static void gc_all();
-	static void load_all(FILE* src);
-	static void save_all(FILE* dest);
-
-	static std::vector<std::shared_ptr<craft> >& cache();
 };
 
 }	// namespace iskandria
+
+namespace zaimoni {
+	template<>
+	struct rw_mode<iskandria::craft>
+	{
+		enum {
+			group_write = 3,
+			group_read = 3
+		};
+	};
+}
 
 #endif
