@@ -5,6 +5,7 @@
 #include "minkowski.hpp"
 #include "agent.hpp"
 #include "craft.hpp"
+#include "wrap.hpp"
 
 int main(int argc, char* argv[])
 {
