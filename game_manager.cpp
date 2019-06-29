@@ -20,6 +20,8 @@ ISK_SINGLETON_BODY(GameManager)
 // Windows: holding off on timeBeginPeriod(1), timeEndPeriod(1) calls
 GameManager::GameManager()
 :	game_over(false),
+	is_paused(false),
+	was_paused(false),
   	frame_time_ms(1000/30)
 {
 	start_logfile("stderr.txt");	// XXX configuration target
@@ -49,10 +51,13 @@ void GameManager::run()
 	while(!game_over)
 		{	// XXX mockup for a fast-twitch game
 		t1.delta();
-		io.getInput();
-		cosmos.update();
-		cosmos.draw();
-		gui.swapBuffers();
+		was_paused = is_paused;
+		io.getInput();						// has to be able to unset is_paused
+		if (!is_paused) cosmos.update();	// has to be able to set is_paused
+		if (!is_paused || was_paused != is_paused) {
+			cosmos.draw();
+			gui.swapBuffers();
+		}
 		delta = t1.split();
 		if (delta<frameTime_ms()) {
 			usleep(1000*(frameTime_ms()-delta));
