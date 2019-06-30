@@ -60,13 +60,20 @@ protected:
 	static typename std::enable_if<std::is_base_of<Object,Derived>::value, void>::type gc_all(std::vector<std::shared_ptr<Derived> >& _cache)
 	{
 		std::vector<std::shared_ptr<Derived> > dest(_cache.size());
+		size_t n = 0;
 		for(auto i : _cache) {
 			const Derived* const tmp = i.get();
 			if (!tmp) continue;
-			if (tmp->gc_this()) continue;
-			dest.push_back(i);
+			if (tmp->gc_this()) {
+				if (i.unique()) continue;
+				i->gc_this(false);	// not allowed to GC multiple-owner objects
+			}
+			dest[n++] = i;
 		}
-		dest.shrink_to_fit();	// XXX non-binding request
+		if (n < dest.size()) {
+			dest.resize(n);
+			dest.shrink_to_fit();	// XXX non-binding request
+		}
 		swap(_cache,dest);
 	}
 
