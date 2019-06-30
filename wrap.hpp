@@ -24,7 +24,15 @@ public:
 	static std::weak_ptr<Wrap> track(const std::shared_ptr<Wrap>& src)
 	{
 		if (!src.get()) return std::weak_ptr<Wrap>();
-		cache().push_back(src);
+		{
+		const auto& _cache = cache();
+		auto& _staged = staging();
+		auto c_end = _cache.end();
+		auto s_end = _staged.end();
+		if (   s_end == std::find(_staged, _staged.begin(), s_end, src)
+			&& c_end == std::find(_cache, _cache.begin(), c_end, src))
+			_staged.push_back(src);
+		}
 		return src;
 	}
 
@@ -54,31 +62,58 @@ private:
 		return ooao;
 	}
 
+	static std::vector<std::shared_ptr<Wrap> >& staging()
+	{
+		static std::vector<std::shared_ptr<Wrap> > ooao;
+		return ooao;
+	}
+
+	static void take_live()
+	{
+		auto& staged = staging();
+		if (!staged.empty()) {
+			{
+			auto& _cache = cache();
+			_cache.insert(_cache.end(), staged.begin(), staged.end());
+			}
+			typename std::remove_reference<decltype(staged)>::type discard;
+			swap(staged, discard);
+		}
+	}
+
 	// save
 
 	static void update_all()
 	{
-		std::vector<std::shared_ptr<Wrap> > staging;
+		take_live();
 		for (auto i : cache()) {
 			Wrap* tmp = i.get();
 			if (!tmp) continue;
 			// just because it's going away doesn't mean it can't do things
 			// do not insert into cache() here, insert to staging instead
 		}
-		if (!staging.empty()) cache().insert(cache().end(), staging.begin(), staging.end());
+		take_live();
 	}
 
 	static void gc_all() { isk::Object::gc_all(cache()); }
 
 	static void load_all(FILE* src)
 	{
+		{
+		typename std::remove_reference<decltype(staging())>::type discard;
+		swap(staging(), discard);
+		}
+		auto& _cache = cache();
+		{
+		typename std::remove_reference<decltype(staging())>::type discard;
+		swap(_cache, discard);
+		}
+
 		size_t tmp;
 		ZAIMONI_FREAD_OR_DIE(size_t, tmp, src)
-		if (0 == tmp) {
-			cache().clear();
-			return;
-		}
-		std::vector<std::shared_ptr<Wrap> > dest(tmp);
+		if (0 == tmp) return;
+
+		std::vector<std::shared_ptr<Wrap> > dest;
 		while (0 < tmp--) dest.push_back(std::shared_ptr<Wrap>(new Wrap(zaimoni::read<T>(src))));
 		swap(dest, cache());
 	}
@@ -86,10 +121,13 @@ private:
 	static void save_all(FILE* dest)
 	{
 		gc_all();
-		isk::Object::init_synthetic_ids(cache());
-		size_t tmp = cache().size();
+		take_live();
+		auto& _cache = cache();
+
+		isk::Object::init_synthetic_ids(_cache);
+		size_t tmp = _cache.size();
 		ZAIMONI_FWRITE_OR_DIE(size_t, tmp, dest)
-		for (auto i : cache()) zaimoni::write(i->_x,dest);
+		for (auto& i : _cache) zaimoni::write(i->_x,dest);
 	}
 
 };
