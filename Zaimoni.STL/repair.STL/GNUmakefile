@@ -12,7 +12,7 @@ CXXFLAGS := $(CFLAGS)
 # GNU targets we know about
 all: algorithm type_traits
 clean:
-	rm -f algorithm stl_diagnose.hpp
+	rm -f algorithm stl_diagnose.hpp type_traits
 
 
 # rules

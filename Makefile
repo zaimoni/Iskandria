@@ -22,11 +22,11 @@ make_Zaimoni_STL:
 
 Iskandria.exe : make_Zaimoni_STL $(OBJECTS_ISKANDRIA_LINK_PRIORITY)
 	g++ $(LINK_FLAGS) -oIskandria.exe $(OBJECTS_ISKANDRIA) -lz_logging -lz_format_util -lz_stdio_c -lz_stdio_log -lz_clock  -lsfml-graphics -lsfml-window -lsfml-system -lwinmm
-	strip --preserve-dates --strip-unneeded Iskandria.exe
+	-strip --preserve-dates --strip-unneeded Iskandria.exe
 
 # inference rules
 # processing details
 .cpp.o:
 	$(CXX) $(CFLAGS) $(CXXFLAGS) $(ARCH_FLAGS) $(OTHER_INCLUDEDIR) $(C_MACROS) $(CXX_MACROS) \
 	 -o $*.o -c -xc++ -pipe $<
-	strip --preserve-dates --strip-unneeded $*.o
+	-strip --preserve-dates --strip-unneeded $*.o
