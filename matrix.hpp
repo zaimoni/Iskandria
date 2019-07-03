@@ -542,7 +542,6 @@ matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1
 }	// namespace math
 
 // savefile support
-template<>
 template<class T,size_t N>
 struct rw_mode<zaimoni::math::vector<T,N> >
 {
@@ -552,7 +551,6 @@ struct rw_mode<zaimoni::math::vector<T,N> >
 	};
 };
 
-template<>
 template<class T,size_t N>
 struct rw_mode<zaimoni::math::covector<T,N> >
 {

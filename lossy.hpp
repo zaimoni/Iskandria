@@ -12,7 +12,6 @@ namespace zaimoni {
 namespace math {
 
 // testing indicates Boost's numeric interval Does The Wrong Thing here (crashes sin by div-by-zero)
-template<>
 template<class T>
 struct static_cache<ISK_INTERVAL<T> >
 {
@@ -77,7 +76,6 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double, ISK_INTERVAL<long double
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
 
 // extend numerical error support to boost::numeric::interval
-template<>
 template<class T>
 struct numerical<ISK_INTERVAL<T> >
 {
@@ -115,7 +113,6 @@ struct fp_compare
 	}
 };
 
-template<>
 template<class T>
 struct fp_compare<ISK_INTERVAL<T> >
 {

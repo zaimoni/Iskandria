@@ -51,7 +51,6 @@ namespace zaimoni {
 		static bool unequal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return lhs.upper() < rhs.lower() || rhs.upper() < lhs.lower(); }
 	};
 
-	template<>
 	template<class T>
 	struct type_traits_arithmetic_aux<ISK_INTERVAL<T> > {
 		static constexpr is_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(0); }	// could use kronecker delta for this

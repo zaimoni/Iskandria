@@ -172,7 +172,6 @@ public:
 	}
 };
 
-template<>
 template<class T>
 class fp_stats<ISK_INTERVAL<T> >
 {
@@ -481,7 +480,6 @@ private:
 	}
 };
 
-template<>
 template<class T,class U>
 struct is_series_product<power_term<T,U> >
 {
