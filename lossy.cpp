@@ -18,8 +18,8 @@ int main(int argc, char* argv[])
 
 	double lhs = 2.0;
 	double rhs = 2.0;
-	boost::numeric::interval<double> lhs_2 = 2.0;
-	boost::numeric::interval<double> rhs_2 = 2.0;
+	ISK_INTERVAL<double> lhs_2 = 2.0;
+	ISK_INTERVAL<double> rhs_2 = 2.0;
 
 	zaimoni::math::lossy<double>::sum(lhs,rhs);
 	zaimoni::math::lossy<double>::product(lhs,rhs);

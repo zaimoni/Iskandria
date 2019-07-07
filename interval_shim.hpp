@@ -1,6 +1,13 @@
 #ifndef INTERVAL_SHIM_HPP
 #define INTERVAL_SHIM_HPP
 
+// evade boost library hard crash
+#ifdef __GNUC__
+#ifndef __i386__
+#define CONSTANTS_ISK_INTERVAL 1
+#endif
+#endif
+
 // #define CONSTANTS_ISK_INTERVAL 1
 
 #ifdef CONSTANTS_ISK_INTERVAL

@@ -51,7 +51,6 @@ namespace zaimoni {
 
 // we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, double, 0> : public virtual fp_API
 	{
@@ -90,7 +89,6 @@ namespace zaimoni {
 		virtual fp_API* _eval() const { return 0; }
 	};
 
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, double, 1> : public _interface_of<Derived, double, 0>
 	{
@@ -99,7 +97,6 @@ namespace zaimoni {
 	};
 #pragma end_copy
 #pragma substitute float for double in interface_of
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, float, 0> : public virtual fp_API
 	{
@@ -138,7 +135,6 @@ namespace zaimoni {
 		virtual fp_API* _eval() const { return 0; }
 	};
 
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, float, 1> : public _interface_of<Derived, float, 0>
 	{
@@ -147,7 +143,6 @@ namespace zaimoni {
 	};
 #pragma end_substitute
 #pragma substitute long double for double in interface_of
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, long double, 0> : public virtual fp_API
 	{
@@ -186,7 +181,6 @@ namespace zaimoni {
 		virtual fp_API* _eval() const { return 0; }
 	};
 
-	template<>
 	template<class Derived>
 	struct _interface_of<Derived, long double, 1> : public _interface_of<Derived, long double, 0>
 	{

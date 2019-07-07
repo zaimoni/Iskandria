@@ -396,6 +396,7 @@ public:
 				ret = test;
 			} else return 0;
 		}
+		return ret;
 	}
 	virtual sum* clone() const { return new sum(*this); }
 	std::string to_s() const {

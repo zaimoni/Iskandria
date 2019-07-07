@@ -284,11 +284,11 @@ public:
 	constexpr interval(const interval& src) = default;
 	interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
 	interval(const T& l, const T& u) : _lb(l), _ub(u) {}
-	template<class T1> constexpr interval(const interval<T1> &src) : _lb(src._lb), _ub(src._ub) {}
+	template<class T1> constexpr interval(const interval<T1> &src) : _lb(src.lower()), _ub(src.upper()) {}
 
 	interval& operator=(const interval& src) = default;
 	interval& operator=(const T& src) { _lb = src; _ub = src; return *this; }
-	template<class T1> interval& operator=(const interval<T1> &src) { _lb = src._lb; _ub = src._ub; return *this; }
+	template<class T1> interval& operator=(const interval<T1> &src) { _lb = src.lower(); _ub = src.upper(); return *this; }
 
 	void assign(const T& l, const T& u) { _lb = l; _ub = u; }
 

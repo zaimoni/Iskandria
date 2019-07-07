@@ -20,14 +20,12 @@ namespace linear {
 
 template<intmax_t a_1_numerator, intmax_t a_1_denominator, intmax_t a_0> struct map;
 
-template<>
 template<intmax_t a_1_divisor>
 struct map<1, a_1_divisor, 0>
 {
 	template<class DomainRange> static DomainRange eval(const DomainRange& x) {return x/int_as<a_1_divisor,DomainRange>();}	// XXX want integer math for integer types, but overprecise overrides for boost::numeric::interval
 };
 
-template<>
 template<intmax_t a_0>
 struct map<1,1, a_0>
 {
@@ -115,14 +113,14 @@ int main(int argc, char* argv[])
 	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
 
 	INC_INFORM("sin(0): ");
-	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
+	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
 	INC_INFORM("cos(0): ");
-	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<0,boost::numeric::interval<long double> >()));
+	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
 
 	INC_INFORM("sin(1): ");
-	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<1,boost::numeric::interval<long double> >()));
+	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
 	INC_INFORM("cos(1): ");
-	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<1,boost::numeric::interval<long double> >()));
+	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

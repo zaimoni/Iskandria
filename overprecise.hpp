@@ -425,7 +425,7 @@ struct power_term : public std::pair<T,U>
 			power()--;
 			return base();
 			}
-		int_as<1,T>();
+		return int_as<1,T>();
 	}
 	// not so safe
 	bool iter_eval(T& ret)

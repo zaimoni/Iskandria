@@ -76,6 +76,7 @@ zaimoni::circle::angle& zaimoni::circle::angle::operator*=(const interval& rhs)
 	ub *= rhs;
 	_theta.assign(lb.lower(), ub.upper());
 	_standard_form();
+	return *this;
 }
 
 zaimoni::circle::angle& zaimoni::circle::angle::operator*=(typename const_param<interval::base_type>::type rhs)

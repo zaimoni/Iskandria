@@ -134,14 +134,12 @@ namespace zaimoni {
 	};
 
 	// top-levels: _C_SHARP_, _R_SHARP_
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_C_SHARP_, OP> : public virtual fp_API {
 		enum { API_code = 1 };
 		virtual int allow_infinity() const { return 1; }
 	};
 
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_R_SHARP_, OP> : public virtual fp_API {
 		enum { API_code = 1 };
@@ -149,7 +147,6 @@ namespace zaimoni {
 	};
 
 	// subspace relations
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_C_, OP> : public _type<_type_spec::_C_SHARP_, OP> {
 		enum {API_code = 0};
@@ -162,17 +159,14 @@ namespace zaimoni {
 		virtual bool is_finite() const { return true; };
 	};
 
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_R_, OP> : public _type<_type_spec::_C_, OP>, public _type<_type_spec::_R_SHARP_, OP> {
 		virtual int allow_infinity() const override { return 0; }
 	};
 
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_Q_, OP> : public _type<_type_spec::_R_, OP> {};
 
-	template<>
 	template<_type_spec::operation OP>
 	struct _type<_type_spec::_Z_, OP> : public _type<_type_spec::_Q_, OP> {};
 
@@ -182,13 +176,11 @@ namespace zaimoni {
 	template<class Derived, class T, int API_CODE>
 	struct _interface_of {};	// must override to do anything useful
 
-	template<>
 	template<class Derived, class T>
 	struct _interface_of<Derived, std::shared_ptr<T>, 0>
 	{
 	};
 
-	template<>
 	template<class Derived, class T>
 	struct _interface_of<Derived, std::shared_ptr<T>, 1> : public _infinite<Derived>
 	{
