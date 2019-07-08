@@ -11,7 +11,8 @@ namespace isk {
 
 class textmenu {
 private:
-	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry;
+	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, sf::Event::TextEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry;
+	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, sf::Event::TextEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry2;
 
 	// the natural triple here is:
 	// text label (possibly multiple lines)
