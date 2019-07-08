@@ -5,21 +5,20 @@
 #include <SFML/Graphics/Text.hpp>
 #include <vector>
 #include <functional>
+#include <memory>
 
-namespace iskandria {
+namespace isk {
 
 class textmenu {
 private:
-//	static std::vector<std::function<bool(char)> > _handlers;
+	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry;
 
 	// the natural triple here is:
 	// text label (possibly multiple lines)
 	// action keycode (framework leakage?)
 	// action function
-	// The last part must *NOT* reach the savefile as-is.
-	std::vector<
-		std::tuple<std::vector<std::string>, sf::Event::KeyEvent, std::function<bool(void)>, std::vector<std::unique_ptr<sf::Text> > >
-	> entries;
+	// The last part must *NOT* reach the savefile as-is.  Simplest if this is not wrapped as a game object but instead handled by the input manager.
+	std::vector<menu_entry> entries;
 	// when installed to the input manager:
 	// * show the bounding rectangle of the text if and only if if mouse is within the bounding rectangle of the text
 	// * ultra-high z-index (above main game render)
@@ -29,7 +28,15 @@ public:
 	textmenu() = default;
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(textmenu);
 
-	bool add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler);
+	void add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler);
+	void add_entry(const std::string& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler) {
+		std::vector<std::string> working;
+		working.push_back(label);
+		add_entry(working, hotkey, handler);
+	}
+	void add_entry(const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler) {
+		add_entry(std::vector<std::string>(), hotkey, handler);
+	};
 };
 
 }
