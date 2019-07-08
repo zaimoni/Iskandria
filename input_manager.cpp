@@ -1,9 +1,8 @@
 // input_manager.cpp
 
 #include "input_manager.hpp"
-
 #include "display_manager.hpp"
-
+#include "game_manager.hpp"
 #include "singleton.on.hpp"
 
 namespace isk {
@@ -31,7 +30,9 @@ void InputManager::getInput()
 	while(DisplayManager::get().getWindow()->pollEvent(e)) {
 		switch(e.type)
 		{
-//		case sf::Event::Closed: break;
+		case sf::Event::Closed:
+			GameManager::quit_handler();
+			break;
 //		case sf::Event::Resized: break;
 //		case sf::Event::LostFocus: break;         
 //		case sf::Event::GainedFocus: break;       

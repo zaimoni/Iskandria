@@ -44,7 +44,6 @@ void GameManager::run()
 	// * Configuring the input manager for New game/load game/save game
 
 	char buf[11];
-	int i = 10;
 	zaimoni::Clock t0;
 	zaimoni::Clock t1(t0);
 	long delta = t1.split();
@@ -63,11 +62,16 @@ void GameManager::run()
 			usleep(1000*(frameTime_ms()-delta));
 			t1.delta();
 		}
-		if (0>= --i) game_over = true;
 		}
 	inc_log("total runtime: ");
 	inc_log(z_umaxtoa(t0.delta(),buf,10));
 	add_log(" ms");	// assumes Windows
+}
+
+bool GameManager::quit_handler()
+{
+	GameManager::get().set_gameOver();
+	return true;
 }
 
 }	// namespace isk

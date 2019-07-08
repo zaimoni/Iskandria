@@ -6,6 +6,7 @@
 #include "agent.hpp"
 #include "craft.hpp"
 #include "wrap.hpp"
+#include "text_menu.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -14,6 +15,8 @@ int main(int argc, char* argv[])
 	isk::Wrap<iskandria::minkowski>::world_setup();
 	isk::Wrap<iskandria::agent>::world_setup();
 	isk::Wrap<iskandria::craft>::world_setup();
+
+	// \todo configure the game start menu and install to the input manager (possibly natural singleton?)
 
 	// start the game engine
 	isk::GameManager::get().run();

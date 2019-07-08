@@ -25,6 +25,8 @@ public:
 	bool isPaused() const { return is_paused; }
 
 	int frameTime_ms() const {return frame_time_ms;}	// XXX setter to be feature-complete
+
+	static bool quit_handler();
 };
 
 }	// namespace isk
