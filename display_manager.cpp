@@ -6,6 +6,8 @@
 
 #include "singleton.on.hpp"
 
+#include "Zaimoni.STL/Logging.h"
+
 /*
 8 // De f a u l t s f o r SFML window .
 9 const int WINDOW_HORIZONTAL_PIXELS_DEFAULT = 1024;
@@ -50,6 +52,14 @@ DisplayManager::~DisplayManager()
 		_font = 0;
 	}
 }
+
+void DisplayManager::resize(int w, int h) {
+	_width_pixels = w;
+	_height_pixels = h;
+	// \todo any other triggered calculations e.g. character-based stats
+	// \todo schedule but do not actually reflow
+}
+
 
 void DisplayManager::swapBuffers()
 {

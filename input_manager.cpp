@@ -33,7 +33,9 @@ void InputManager::getInput()
 		case sf::Event::Closed:
 			GameManager::quit_handler();
 			break;
-//		case sf::Event::Resized: break;
+		case sf::Event::Resized:
+			DisplayManager::get().resize(e.size.width, e.size.height);
+			break;
 //		case sf::Event::LostFocus: break;         
 //		case sf::Event::GainedFocus: break;       
 //		case sf::Event::TextEntered: break;     

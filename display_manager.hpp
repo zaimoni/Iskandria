@@ -31,8 +31,9 @@ public:
 	sf::RenderWindow* getWindow() const { return _window; };
 	int width_pixel() const { return _width_pixels;};
 	int height_pixel() const { return _height_pixels;};
+	void resize(int w, int h);
 
-	// character support; likely to need all of this for subwindows as well
+	// character support; likely to need all of this for subwindows as well (should be driven by font size)
 	int width_char() const { return _width_chars;};
 	int height_char() const { return _height_chars;};
 
