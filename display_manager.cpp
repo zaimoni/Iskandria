@@ -37,8 +37,10 @@ DisplayManager::DisplayManager()
 {
 	// \todo load starting dimensions from configuration?
 	_window = new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria"),
-	_css_root->width(1024);
-	_css_root->height(768);
+	_css_root->min_width(1024);
+	_css_root->max_width(1024);
+	_css_root->min_height(768);
+	_css_root->max_height(768);
 	_font = new sf::Font();
 //	two parts to configuring...system font location, and system font
 // 	for now, hardcode Courier on a default Windows system install
