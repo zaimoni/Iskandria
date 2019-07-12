@@ -11,8 +11,7 @@ namespace isk {
 
 class textmenu {
 private:
-	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, sf::Event::TextEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry;
-	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, sf::Event::TextEvent, std::function<bool(void)>, std::vector<std::shared_ptr<sf::Text> > > menu_entry2;
+	typedef std::tuple < std::vector<std::string>, sf::Event::KeyEvent, sf::Event::TextEvent, std::function<bool(void)> > menu_entry;
 
 	// the natural triple here is:
 	// text label (possibly multiple lines)
@@ -20,6 +19,7 @@ private:
 	// action function
 	// The last part must *NOT* reach the savefile as-is.  Simplest if this is not wrapped as a game object but instead handled by the input manager.
 	std::vector<menu_entry> entries;
+//	css::box subclass containing wrapped sf::Text instances: actual menu display
 	// when installed to the input manager:
 	// * show the bounding rectangle of the text if and only if if mouse is within the bounding rectangle of the text
 	// * ultra-high z-index (above main game render)
