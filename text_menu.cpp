@@ -8,4 +8,8 @@ void textmenu::add_entry(const std::vector<std::string>& label, const sf::Event:
 	entries.push_back(menu_entry(label, hotkey, nop, handler));
 }
 
+void textmenu::draw() const
+{
+}
+
 }

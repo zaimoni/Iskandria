@@ -63,6 +63,11 @@ void InputManager::getInput()
 
 }
 
+void InputManager::draw() const
+{
+	for (auto& x : menus) x.draw();
+}
+
 }	// namespace isk
 
 #ifdef TEST_APP2
