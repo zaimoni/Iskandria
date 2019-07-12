@@ -32,9 +32,13 @@ DisplayManager::DisplayManager()
 	_width_pixels(1024),
 	_height_pixels(768),
 	_width_chars(80),
-	_height_chars(24)
+	_height_chars(24),
+	_css_root(new css::box(true))
 {
+	// \todo load starting dimensions from configuration?
 	_window = new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria"),
+	_css_root->width(1024);
+	_css_root->height(768);
 	_font = new sf::Font();
 //	two parts to configuring...system font location, and system font
 // 	for now, hardcode Courier on a default Windows system install
@@ -56,6 +60,8 @@ DisplayManager::~DisplayManager()
 void DisplayManager::resize(int w, int h) {
 	_width_pixels = w;
 	_height_pixels = h;
+	_css_root->width(w);
+	_css_root->height(h);
 	// \todo any other triggered calculations e.g. character-based stats
 	// \todo schedule but do not actually reflow
 }

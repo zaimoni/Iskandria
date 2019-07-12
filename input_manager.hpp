@@ -20,7 +20,7 @@ public:
 	void getInput();
 
 	void install(const textmenu& src) { menus.push_back(src); }
-	void install(textmenu& src) { menus.push_back(std::move(src)); }
+	void install(textmenu&& src) { menus.push_back(std::move(src)); }
 };
 
 }	// namespace isk
