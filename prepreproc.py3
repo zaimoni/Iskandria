@@ -6,9 +6,35 @@
 # won't work for C# as-is, would work for languages where # is a one-line comment
 
 from sys import argv;
+from string import ascii_letters,digits;
 
+command_start = '#pragma '	# C preprocessor must not error on unrecognized pragmas
 copy_buffers = {}
 for_loops = []
+
+def exec_substitute(in_substitute):
+	global copy_buffers
+	for x in copy_buffers[in_substitute[2]]:
+		print(x.replace(in_substitute[0],in_substitute[1]))
+
+# we rely on $ not being in the source code character set in C-like languages
+def var_replace(var,value,src):
+	n = src.find(var)
+	if -1>=n:
+		return src
+	skip = len(var)
+	working = src
+	ret = ''
+	while -1<n:
+		ret += working[:n]
+		working = working[n:]
+		test = working[skip:skip+1]
+		if not test or test in ascii_letters or test in digits:
+			ret += working[:skip]
+		else:
+			ret += value
+		working = working[skip:]
+		n = working.find(var)		
 
 if __name__ == "__main__":
 	src = open(argv[1],'r')		# likely parameter
@@ -17,20 +43,21 @@ if __name__ == "__main__":
 	in_substitute = ()
 	for line in src:
 		# these two denotate a read-only variable (the "master" from which pre-preprocessing is done)
-		if line.startswith('#pragma start_copy '):
-			if in_copy or in_substitute:
+		if line.startswith(command_start+'start_copy '):
+			if in_copy or in_substitute or for_loops:
 				continue
 			in_copy = line[19:].strip()
 			print(line.rstrip())
 			continue
-		elif line.startswith('#pragma end_copy'):
+		elif line.startswith(command_start+'end_copy'):
 			if in_substitute or not in_copy:
 				continue
 			in_copy = ''
 			print(line.rstrip())
 			continue
-		elif line.startswith('#pragma for '):
-			# \todo build out parsing of a shell-style for loop
+		elif line.startswith(command_start+'for '):
+			if in_copy or in_substitute:	# ok to nest for loops
+				continue
 			working = line[12:].strip()
 			n = working.find(' in ')
 			if -1>=n:
@@ -45,13 +72,14 @@ if __name__ == "__main__":
 			else:
 				words = for_prelist.split(',')
 				# \todo strip leading/trailing whitespace for safety
-				for_loops.append((for_var,tuple(words)))	# \todo fix
+				for_loops.append((for_var,tuple(words)))
 			continue
-		elif line.startswith('#pragma done'):
+		elif line.startswith(command_start+'done'):
 			if for_loops:
 				for_loops = for_loops[:-1]
 			continue
-		elif line.startswith('#pragma substitute '):
+		# this designates a block of text that is pre-preprocessed and thus is expected to be ovewritten
+		elif line.startswith(command_start+'substitute '):
 			# reserved keywords: for, in
 			working = line[19:].strip()
 			n = working.find(' for ')
@@ -69,11 +97,10 @@ if __name__ == "__main__":
 			in_substitute = (source,target,buffer)
 			print(line.rstrip())
 			continue
-		elif line.startswith('#pragma end_substitute'):
+		elif line.startswith(command_start+'end_substitute'):
 			if in_copy or not in_substitute:
 				continue
-			for x in copy_buffers[in_substitute[2]]:
-				print(x.replace(in_substitute[0],in_substitute[1]))
+			exec_substitute(in_substitute)
 			in_substitute = ()
 			print(line.rstrip())
 			continue
