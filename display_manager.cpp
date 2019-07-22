@@ -62,8 +62,10 @@ DisplayManager::~DisplayManager()
 void DisplayManager::resize(int w, int h) {
 	_width_pixels = w;
 	_height_pixels = h;
-	_css_root->width(w);
-	_css_root->height(h);
+	_css_root->min_width(w);
+	_css_root->max_width(w);
+	_css_root->min_height(h);
+	_css_root->max_height(h);
 	// \todo any other triggered calculations e.g. character-based stats
 	// \todo schedule but do not actually reflow
 }
