@@ -12,10 +12,33 @@ command_start = '#pragma '	# C preprocessor must not error on unrecognized pragm
 copy_buffers = {}
 for_loops = []
 
+def sim_substitute(src,dest,lines):
+	ret = []
+	if src!=dest:
+		for x in lines:
+			ret.append(x.replace(src,dest))
+	else:
+		for x in lines:
+			ret.append(x)
+	return ret
+
 def exec_substitute(in_substitute):
 	global copy_buffers
-	for x in copy_buffers[in_substitute[2]]:
-		print(x.replace(in_substitute[0],in_substitute[1]))
+	for x in sim_substitute(in_substitute[0],in_substitute[1],copy_buffers[in_substitute[2]]):
+		print(x)
+
+def sim_loop_substitute(in_substitute,loops):
+	if loops:
+		ret = []
+		var_name = '$'+loops[-1][0]
+		for var_value in loops[-1][1]:
+			src = var_replace(var_name,var_value,in_substitute[0])
+			dest = var_replace(var_name,var_value,in_substitute[1])
+			for x in sim_loop_substitute((src,dest,in_substitute[2]),loops[:-1]):
+				ret.append(x)
+		return ret
+	else:
+		return sim_substitute(in_substitute)
 
 # we rely on $ not being in the source code character set in C-like languages
 def var_replace(var,value,src):
