@@ -12,6 +12,26 @@ command_start = '#pragma '	# C preprocessor must not error on unrecognized pragm
 copy_buffers = {}
 for_loops = []
 
+# we rely on $ not being in the source code character set in C-like languages
+def var_replace(var,value,src):
+	n = src.find(var)
+	if -1>=n:
+		return src
+	skip = len(var)
+	working = src
+	ret = ''
+	while -1<n:
+		ret += working[:n]
+		working = working[n:]
+		test = working[skip:skip+1]
+		if test and (test in ascii_letters or test in digits):
+			ret += working[:skip]
+		else:
+			ret += value
+		working = working[skip:]
+		n = working.find(var)
+	return ret
+
 def sim_substitute(src,dest,lines):
 	ret = []
 	if src!=dest:
@@ -28,6 +48,7 @@ def exec_substitute(in_substitute):
 		print(x)
 
 def sim_loop_substitute(in_substitute,loops):
+	global copy_buffers
 	if loops:
 		ret = []
 		var_name = '$'+loops[-1][0]
@@ -38,7 +59,7 @@ def sim_loop_substitute(in_substitute,loops):
 				ret.append(x)
 		return ret
 	else:
-		return sim_substitute(in_substitute[0],in_substitute[1],in_substitute[2])
+		return sim_substitute(in_substitute[0],in_substitute[1],copy_buffers[in_substitute[2]])
 
 def exec_loop_substitute(in_substitute,loops):
 	global copy_buffers
@@ -55,25 +76,6 @@ def exec_loop_substitute(in_substitute,loops):
 		working = working[len(in_substitute[2]):]
 	for x in working:
 		print(x)
-
-# we rely on $ not being in the source code character set in C-like languages
-def var_replace(var,value,src):
-	n = src.find(var)
-	if -1>=n:
-		return src
-	skip = len(var)
-	working = src
-	ret = ''
-	while -1<n:
-		ret += working[:n]
-		working = working[n:]
-		test = working[skip:skip+1]
-		if not test or test in ascii_letters or test in digits:
-			ret += working[:skip]
-		else:
-			ret += value
-		working = working[skip:]
-		n = working.find(var)		
 
 if __name__ == "__main__":
 	src = open(argv[1],'r')		# likely parameter
@@ -141,7 +143,10 @@ if __name__ == "__main__":
 		elif line.startswith(command_start+'end_substitute'):
 			if in_copy or not in_substitute:
 				continue
-			exec_substitute(in_substitute)
+			if for_loops:
+				exec_loop_substitute(in_substitute,for_loops)
+			else:
+				exec_substitute(in_substitute)
 			in_substitute = ()
 			print(line.rstrip())
 			continue

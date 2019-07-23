@@ -97,8 +97,7 @@ namespace zaimoni {
 	};
 #pragma end_copy
 #pragma for F in float,long double
-#pragma done
-#pragma substitute float for double in interface_of
+#pragma substitute $F for double in interface_of
 	template<class Derived>
 	struct _interface_of<Derived, float, 0> : public virtual fp_API
 	{
@@ -143,8 +142,6 @@ namespace zaimoni {
 		virtual bool is_inf() const { return std::isinf(static_cast<const Derived*>(this)->value()); };
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
-#pragma end_substitute
-#pragma substitute long double for double in interface_of
 	template<class Derived>
 	struct _interface_of<Derived, long double, 0> : public virtual fp_API
 	{
@@ -190,6 +187,7 @@ namespace zaimoni {
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
 #pragma end_substitute
+#pragma done
 
 }	// namespace zaimoni
 
