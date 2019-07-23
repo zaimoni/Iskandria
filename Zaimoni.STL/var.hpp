@@ -96,6 +96,8 @@ namespace zaimoni {
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
 #pragma end_copy
+#pragma for F in float,long double
+#pragma done
 #pragma substitute float for double in interface_of
 	template<class Derived>
 	struct _interface_of<Derived, float, 0> : public virtual fp_API
