@@ -33,7 +33,7 @@ DisplayManager::DisplayManager()
 	_height_pixels(768),
 	_width_chars(80),
 	_height_chars(24),
-	_css_root(new css::box(true))
+	_css_root(new css::box_dynamic(true))
 {
 	// \todo load starting dimensions from configuration?
 	_window = new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria"),

@@ -24,29 +24,28 @@ public:
 		WIDTH,
 		HEIGHT,	// highest index for auto flagging
 	};
-private:
+protected:
 	enum {
 		REFLOW = HEIGHT + 1
 	};
 
+	unsigned char _auto;	// bitmap
+private:
 	std::pair<int, int> _origin;	// (x,y) i.e. (left,top)
 	std::pair<int, int> _size;
 	std::pair<int, int> _size_min;
 	std::pair<int, int> _size_max;
 	int _margin[4];
 	int _padding[4];
-	unsigned char _auto;	// bitmap
 	std::weak_ptr<box> _parent;
 	std::shared_ptr<box> _self;
-	std::vector<std::shared_ptr<box> > _contents;
 protected:
+	box(bool bootstrap = false);
 	box(const box& src) = default;
 	box(box&& src) = default;
 	box& operator=(const box& src) = default;
 	box& operator=(box&& src) = default;
 public:
-	// have to allow public default-construction because the top-level box isn't tied to content
-	box(bool bootstrap = false);
 	virtual ~box() = default;
 
 	// auto values
@@ -68,6 +67,28 @@ public:
 	void min_height(int h);
 	void max_width(int w);
 	void max_height(int h);
+
+protected:
+	void set_parent(std::shared_ptr<box>& src) {
+		if (src) {
+			src->_parent = _self;
+			src->_self = src;
+		}
+	}
+};
+
+class box_dynamic : public box
+{
+private:
+	std::vector<std::shared_ptr<box> > _contents;
+public:
+	// have to allow public default-construction because the top-level box isn't tied to content
+	box_dynamic(bool bootstrap = false) : box(bootstrap) {}
+	box_dynamic(const box_dynamic& src) = default;
+	box_dynamic(box_dynamic&& src) = default;
+	box_dynamic& operator=(const box_dynamic& src) = default;
+	box_dynamic& operator=(box_dynamic&& src) = default;
+	~box_dynamic() = default;
 
 	// content management
 	void append(std::shared_ptr<box>& src);

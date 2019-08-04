@@ -59,10 +59,9 @@ void box::max_height(int h) {
 }
 
 // content management
-void box::append(std::shared_ptr<box>& src) {
+void box_dynamic::append(std::shared_ptr<box>& src) {
 	if (src) {
-		src->_parent = _self;
-		src->_self = src;
+		set_parent(src);
 		_contents.push_back(src);
 		_auto |= (1ULL << REFLOW);
 	}
@@ -75,7 +74,7 @@ void box::append(std::shared_ptr<box>& src) {
 // g++ -std=c++11 -otest.exe -Os -DTEST_APP2 cssbox.cpp
 int main(int argc, char* argv[])
 {
-	css::box test;
+	css::box_dynamic test;
 	return 0;
 }
 #endif

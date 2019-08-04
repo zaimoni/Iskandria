@@ -27,7 +27,7 @@ private:
 	int _height_pixels;
 	int _width_chars;
 	int _height_chars;
-	std::shared_ptr<css::box> _css_root;
+	std::shared_ptr<css::box_dynamic> _css_root;
 public:
 	void swapBuffers();
 	sf::RenderWindow* getWindow() const { return _window; };
