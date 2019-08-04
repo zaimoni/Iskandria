@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # designed for Python 3.7.0, may work with other versions
-# (C)2019 Kenneth Boyd, license: MIT.txt
+# (C)2019 Kenneth Boyd
 
-# this implements a simplistic pre-preprocessor exploiting the requirement that C++ compilers not error on unrecognized #pragma directives
-# won't work for C# as-is, would work for languages where # is a one-line comment
+# this implements a simplistic pre-preprocessor
 
 from sys import argv;
 from string import ascii_letters,digits;
 
 command_start = '#pragma '	# C preprocessor must not error on unrecognized pragmas
+len_command_start = len(command_start)
 copy_buffers = {}
 for_loops = []
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 		if line.startswith(command_start+'start_copy '):
 			if in_copy or in_substitute or for_loops:
 				continue
-			in_copy = line[19:].strip()
+			in_copy = line[len_command_start+11:].strip()
 			print(line.rstrip())
 			continue
 		elif line.startswith(command_start+'end_copy'):
@@ -99,8 +99,7 @@ if __name__ == "__main__":
 		elif line.startswith(command_start+'for '):
 			if in_copy or in_substitute:	# ok to nest for loops
 				continue
-			print(line.rstrip())
-			working = line[12:].strip()
+			working = line[len_command_start+4:].strip()
 			n = working.find(' in ')
 			if -1>=n:
 				continue
@@ -108,6 +107,7 @@ if __name__ == "__main__":
 			for_prelist = working[n+4:].strip()
 			if not for_prelist:
 				continue
+			print(line.rstrip())
 			n = for_prelist.find(',')
 			if -1>=n:
 				for_loops.append((for_var,(for_prelist)))
@@ -124,7 +124,7 @@ if __name__ == "__main__":
 		# this designates a block of text that is pre-preprocessed and thus is expected to be ovewritten
 		elif line.startswith(command_start+'substitute '):
 			# reserved keywords: for, in
-			working = line[19:].strip()
+			working = line[len_command_start+11:].strip()
 			n = working.find(' for ')
 			if -1>=n:
 				continue
