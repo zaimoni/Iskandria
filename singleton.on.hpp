@@ -17,6 +17,17 @@ private:	\
 public:	\
 	static T& get()
 
+#define ISK_SINGLETON_HEADER_DEFAULT_DESTRUCTOR(T)	\
+private:	\
+	T();	\
+	T(const T& src) = delete;	\
+	T(T&& src) = delete;	\
+	void operator=(const T& src) = delete;	\
+	void operator=(T&& src) = delete;	\
+	~T() = default;	\
+public:	\
+	static T& get()
+
 #define ISK_SINGLETON_BODY(T)	\
 T& T::get() 	\
 {	\

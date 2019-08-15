@@ -26,37 +26,23 @@ namespace isk {
 ISK_SINGLETON_BODY(DisplayManager)
 
 DisplayManager::DisplayManager()
-:	_font(0),
-	_window(0),
-    _background(sf::Color::Black),
+:	_background(sf::Color::Black),
 	_width_pixels(1024),
 	_height_pixels(768),
 	_width_chars(80),
 	_height_chars(24),
+	_font(new sf::Font()),
 	_css_root(new css::box_dynamic(true))
 {
 	// \todo load starting dimensions from configuration?
-	_window = new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria"),
+	_window = decltype(_window)(new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria")),
 	_css_root->min_width(1024);
 	_css_root->max_width(1024);
 	_css_root->min_height(768);
 	_css_root->max_height(768);
-	_font = new sf::Font();
 //	two parts to configuring...system font location, and system font
 // 	for now, hardcode Courier on a default Windows system install
 	if (!_font->loadFromFile("c:\\Windows\\Fonts\\cour.ttf")) throw std::bad_alloc();	// XXX
-}
-
-DisplayManager::~DisplayManager()
-{
-	if (_window) {
-		free(_window);
-		_window = 0;
-	}
-	if (_font) {
-		free(_font);
-		_font = 0;
-	}
 }
 
 void DisplayManager::resize(int w, int h) {
@@ -69,7 +55,6 @@ void DisplayManager::resize(int w, int h) {
 	// \todo any other triggered calculations e.g. character-based stats
 	// \todo schedule but do not actually reflow
 }
-
 
 void DisplayManager::swapBuffers()
 {

@@ -20,6 +20,10 @@ public:
 	wrap& operator=(const wrap& src) = default;
 	wrap& operator=(wrap&& src) = default;
 
+	wrap& operator=(const std::shared_ptr<T>& src) { _x = src; return *this; };
+	wrap& operator=(std::shared_ptr<T>&& src) { _x = src; return *this; };
+	wrap& operator=(T* const src) { _x = decltype(_x)(src); return *this; };
+
 	auto natural_dimensions() const { return _x->getLocalBounds(); }
 };
 

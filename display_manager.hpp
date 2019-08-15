@@ -18,19 +18,19 @@ namespace isk {
 
 class DisplayManager
 {
-ISK_SINGLETON_HEADER(DisplayManager);
+ISK_SINGLETON_HEADER_DEFAULT_DESTRUCTOR(DisplayManager);
 private:
-	sf::Font* _font;
-	sf::RenderWindow* _window;
 	sf::Color _background;
 	int _width_pixels;
 	int _height_pixels;
 	int _width_chars;
 	int _height_chars;
+	std::shared_ptr<sf::Font> _font;
+	std::shared_ptr<sf::RenderWindow> _window;
 	std::shared_ptr<css::box_dynamic> _css_root;
 public:
 	void swapBuffers();
-	sf::RenderWindow* getWindow() const { return _window; };
+	auto getWindow() const { return _window; };
 	int width_pixel() const { return _width_pixels;};
 	int height_pixel() const { return _height_pixels;};
 	void resize(int w, int h);
