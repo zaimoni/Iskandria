@@ -5,29 +5,46 @@
 namespace css {
 
 box::box(bool bootstrap)
-: _origin(0,0),_size(0,0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
+: _auto((1ULL << (HEIGHT + 1)) - 1),_auto_recalc(0),_origin(0,0),_size(0,0), _size_min(0, 0),
+  _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
-	_auto = (1ULL << (HEIGHT+1))-1;
 	if (bootstrap) _self = std::shared_ptr<box>(this);
 }
 
 void box::set_auto(auto_legal src) {
-	if (!is_auto(src)) _auto |= (1ULL << src) | (1ULL << REFLOW);
+	if (!is_auto(src)) {
+		_auto |= (1ULL << src) | (1ULL << REFLOW);
+		_auto_recalc |= (1ULL << src);
+	}
 }
 
 void box::width(int w) {
 	if (0 > w) throw std::runtime_error("negative width");
-	_size.first = w;
 	_auto &= ~(1ULL << WIDTH);
-	_auto |= (1ULL << REFLOW);
+	_width(w);
+}
+
+void box::_width(int w) {
+	if (_size.first != w) {
+		_size.first = w;
+		_auto_recalc |= (1ULL << WIDTH);
+		_auto |= (1ULL << REFLOW);
+	}
 }
 
 void box::height(int h) {
 	if (0 > h) throw std::runtime_error("negative height");
-	_size.second = h;
 	_auto &= ~(1ULL << HEIGHT);
-	_auto |= (1ULL << REFLOW);
+	_height(h);
+}
+
+void box::_height(int h) {
+	if (_size.second != h) {
+		_size.second = h;
+		_auto_recalc |= (1ULL << HEIGHT);
+		_auto |= (1ULL << REFLOW);
+	}
 }
 
 void box::min_width(int w) {

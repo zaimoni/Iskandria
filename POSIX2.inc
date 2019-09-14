@@ -32,6 +32,11 @@ cssbox.test.exe: cssbox.cpp cssbox.hpp
 	-strip --strip-unneeded $@
 	$@
 
+cssSFML.test.exe: css_SFML.cpp css_SFML.hpp cssbox.hpp
+	$(CXX) -ocssSFML.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 css_SFML.cpp cssbox.cpp $(LINK_FLAGS) -lsfml-graphics -lsfml-system -lz_stdio_c $(TESTDRIVER_LIBS)
+	-strip --strip-unneeded $@
+	$@
+
 conic.test.exe: conic.cpp conic.hpp interval_shim.hpp $(INTERVAL_HPP)
 	$(CXX) -oconic.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 conic.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	-strip --strip-unneeded $@
@@ -92,4 +97,4 @@ taylor.test.exe: taylor.cpp $(TAYLOR_HPP) $(CYCLIC_FN_HPP)
 	-strip --strip-unneeded $@
 	$@
 
-check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe kepler_orbit.test.exe cssbox.test.exe
+check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe kepler_orbit.test.exe cssbox.test.exe cssSFML.test.exe

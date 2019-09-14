@@ -30,6 +30,7 @@ protected:
 	};
 
 	unsigned char _auto;	// bitmap
+	unsigned char _auto_recalc;	// margin or height/width
 private:
 	std::pair<int, int> _origin;	// (x,y) i.e. (left,top)
 	std::pair<int, int> _size;
@@ -75,6 +76,9 @@ protected:
 			src->_self = src;
 		}
 	}
+
+	void _width(int w);
+	void _height(int h);
 };
 
 class box_dynamic : public box
