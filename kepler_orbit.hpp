@@ -124,6 +124,11 @@ public:
 	interval period_squared() const { return square(2.0 * interval_shim::pi) * pow(_orbit.a(), 3) / _m.GM(); }	// dimension time^2
 	angle mean_anomaly(const interval& t) { return mean_anomaly_scale() * t; }
 
+	// circular orbits (parabolic orbit values are twice this)
+	interval circular_velocity_squared_from_radius(const interval& r) { return _m.GM() / r; }
+	interval circular_radius_from_velocity_squared(const interval& v2) { return _m.GM() / v2; }
+	// angular velocity omega in radians is v/r
+
 private:
 	static conic _from_perihelion_aphelion(const interval& barycentric_perihelion, const interval& barycentric_aphelion) {
 		interval major = (barycentric_perihelion + barycentric_aphelion) / 2.0;
