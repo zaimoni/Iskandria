@@ -5,10 +5,6 @@
 
 #include <cmath>	// do not need augmentations here
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 // note that CODATA estimates are released the year after their name (they are named after the cutoff point which is usually late December)
 // so e.g. wikipedia commentary on the changes is under CODATA 2019
 #ifndef CODATA_VERSION
@@ -44,26 +40,29 @@ fundamental_constants::fundamental_constants()
 	G(6.67400e-11, 6.67460e-11),	// CODATA 2018; m^3 kg^-1 s^-2
 	k(1.380649e-23),	//	CODATA 2018 (actually 2019)
 	h_bar(interval(6.62607015e-34)/interval(2.0*interval_shim::pi)),	// CODATA 2019 (h definition)
+#elif CODATA_VERSION==2010
+	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
+	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
+	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
 #else
-//	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
-G(6.67377e-11, 6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
-//	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
-k(1.38064773e-23, 1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
-//	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
-h_bar(1.054571787e-34, 1.054571813e-34),	// CODATA 2014; J s i.e. m^2 kg s^-1
+	G(6.67377e-11, 6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
+	k(1.38064773e-23, 1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
+	h_bar(1.054571787e-34, 1.054571813e-34),	// CODATA 2014; J s i.e. m^2 kg s^-1
 #endif
 	// atomic units
 #if CODATA_VERSION==2018
 	amu_mass(1.66053906560e-27, 1.66053906760e-27),	// CODATA 2018; kg 1.660 539 066 60 e-27    0.000 000 000 50 e-27
 	Q_e(1.602176634e-19)	// CODATA 2019 (definition); C
+#elif CODATA_VERSION==2010
+	amu_mass(1.660538775e-27, 1.660539018e-27),	// 2010 CODATA: 1.660 538 921 e-27       0.000 000 073 e-27
+	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C	// should fix this
 #else
-//	amu_mass(1.660538775e-27, 1.660539018e-27),	// 2010 CODATA: 1.660 538 921 e-27       0.000 000 073 e-27
 	amu_mass(1.660539000e-27, 1.660539080e-27),	// 2014 CODATA: 1.660 539 040 e - 27       0.000 000 020 e - 27
 	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C
 #endif
 #if 0
 	m_e(9.10938345e-31, 9.10938367e-31),	// CODATA 2014; kg
-	mu_0(4e-7*M_PI),	// CODATA 2014; Ampere definition implies 4pi*10^-7 H/m i.e. N A^-2
+	mu_0(4e-7*interval_shim::pi),	// CODATA 2014; Ampere definition implies 4pi*10^-7 H/m i.e. N A^-2
 	epsilon_0(1.0/(mu_0*square(c)))			// mu_0*epsilon_0 = c^-2 from Maxwell equations; F/m; F := s^4 A^2 m^-2 kg^-1; alternately s^2/H
 	// in CODATA 2018/2019, epsilon_0 is computed from the fine structure constant as the other quantities are defined
 	// i.e. classical electrostatic/electrodynamic problems may be cleaner in CODATA 2014 than CODATA 2018
