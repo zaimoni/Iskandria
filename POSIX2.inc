@@ -57,6 +57,11 @@ dicounter.test.exe: dicounter.cpp dicounter.hpp $(LOGGING_H)
 	-strip --strip-unneeded $@
 	$@
 
+heat_engine.test.exe: heat_engine.cpp mass.cpp constants.cpp interval_shim.cpp  heat_engine.hpp $(MASS_HPP)
+	$(CXX) -oheat_engine.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 heat_engine.cpp mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
+	-strip --strip-unneeded $@
+	$@
+
 int_range.test.exe: int_range.cpp $(INT_RANGE_HPP)
 	$(CXX) -oint_range.test.exe $(TESTDRIVER_FLAGS) int_range.cpp $(LINK_FLAGS) $(TESTDRIVER_LIBS)
 	-strip --strip-unneeded $@
@@ -77,7 +82,7 @@ lossy.test.exe: lossy.cpp $(LOSSY_HPPH)
 	-strip --strip-unneeded $@
 	$@
 
-mass.test.exe: mass.cpp interval_shim.cpp $(MASS_HPP)
+mass.test.exe: mass.cpp constants.cpp interval_shim.cpp $(MASS_HPP)
 	$(CXX) -omass.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP2 mass.cpp constants.cpp interval_shim.cpp $(LINK_FLAGS) -lz_stdio_c $(TESTDRIVER_LIBS)
 	-strip --strip-unneeded $@
 	$@
@@ -97,4 +102,4 @@ taylor.test.exe: taylor.cpp $(TAYLOR_HPP) $(CYCLIC_FN_HPP)
 	-strip --strip-unneeded $@
 	$@
 
-check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe kepler_orbit.test.exe cssbox.test.exe cssSFML.test.exe
+check: angle.test.exe constants.exe cyclic_fn.test.exe dicounter.test.exe int_range.test.exe interval.test.exe lossy.test.exe mass.test.exe matrix.test.exe minkowski.test.exe taylor.test.exe kepler_orbit.test.exe cssbox.test.exe cssSFML.test.exe heat_engine.test.exe
