@@ -14,7 +14,7 @@ box::box(bool bootstrap)
 
 void box::set_auto(auto_legal src) {
 	if (!is_auto(src)) {
-		_auto |= (1ULL << src) | (1ULL << REFLOW);
+		_auto |= (1ULL << src);
 		_auto_recalc |= (1ULL << src);
 	}
 }
@@ -28,8 +28,9 @@ void box::width(int w) {
 void box::_width(int w) {
 	if (_size.first != w) {
 		_size.first = w;
-		_auto_recalc |= (1ULL << WIDTH);
-		_auto |= (1ULL << REFLOW);
+		schedule_reflow();
+		auto parent(_parent.lock());
+		if (parent) parent->_auto |= (1ULL << REFLOW);
 	}
 }
 
@@ -42,8 +43,9 @@ void box::height(int h) {
 void box::_height(int h) {
 	if (_size.second != h) {
 		_size.second = h;
-		_auto_recalc |= (1ULL << HEIGHT);
-		_auto |= (1ULL << REFLOW);
+		schedule_reflow();
+		auto parent(_parent.lock());
+		if (parent) parent->_auto |= (1ULL << REFLOW);
 	}
 }
 
@@ -83,6 +85,12 @@ void box_dynamic::append(std::shared_ptr<box>& src) {
 		_auto |= (1ULL << REFLOW);
 	}
 }
+
+int box::need_recalc() const { return 0; }
+void box::recalc(int code) {}
+
+void box::schedule_reflow() {}
+void box_dynamic::schedule_reflow() { _auto |= (1ULL << REFLOW); }
 
 }	// namespace css
 

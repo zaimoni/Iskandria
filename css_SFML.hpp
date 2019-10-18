@@ -26,14 +26,40 @@ public:
 
 	auto natural_dimensions() const { return _x->getLocalBounds(); }
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
+
+	virtual int need_recalc() const {
+		if (!_x) return 0;	// reject NULL;
+		int ret = assign_bootstrap_code();
+		if (0 < ret) return ret;
+		return 0;
+	}
+	virtual void recalc(int code) {
+		if (0 >= code) return;	// do not process errors or no-op
+		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
+		{
+		case 1:
+			physical_width_height();
+			return;
+		default: return;	// not handled is like error
+		}
+	};
 private:
+	int assign_bootstrap_code() const {
+		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
+			if ((_auto_recalc & (1ULL << HEIGHT)) || (_auto_recalc & (1ULL << WIDTH))) return 1;
+		}
+		return 0;
+	}
+	void physical_width_height() {
+		auto natural = _x->getLocalBounds();
+		if (0 <= natural.width) _width((int)(natural.width + 0.5));
+		if (0 <= natural.height) _height((int)(natural.height + 0.5));
+		_auto_recalc &= ~((1ULL << HEIGHT) | (1ULL << WIDTH));
+	}
 	void assign_bootstrap() {
 		if (!_x) return;	// reject NULL;
-		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
-			auto natural = _x->getLocalBounds();
-			if (0 <= natural.width) _width((int)(natural.width + 0.5));
-			if (0 <= natural.height) _height((int)(natural.height + 0.5));
-		} else {
+		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) physical_width_height();
+		else {
 			// XXX should also handle auto, fixed and fixed, auto here
 			// but must delegate fixed,fixed
 			// probably should check for min/max width,height here as well

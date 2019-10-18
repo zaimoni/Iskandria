@@ -29,7 +29,7 @@ protected:
 		REFLOW = HEIGHT + 1
 	};
 
-	unsigned char _auto;	// bitmap
+	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
 private:
 	std::pair<int, int> _origin;	// (x,y) i.e. (left,top)
@@ -69,7 +69,12 @@ public:
 	void max_width(int w);
 	void max_height(int h);
 
+	// layout recalculation (unsure about access control here)
+	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
+	virtual void recalc(int code);
+	void recalc() { recalc(need_recalc()); };
 protected:
+	virtual void schedule_reflow();
 	void set_parent(std::shared_ptr<box>& src) {
 		if (src) {
 			src->_parent = _self;
@@ -96,6 +101,9 @@ public:
 
 	// content management
 	void append(std::shared_ptr<box>& src);
+
+protected:
+	virtual void schedule_reflow();
 };
 
 }	// namespace css
