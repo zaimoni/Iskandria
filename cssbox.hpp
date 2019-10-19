@@ -70,9 +70,18 @@ public:
 	void max_height(int h);
 
 	// layout recalculation (unsure about access control here)
+	virtual bool flush();
 	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
-	virtual void recalc(int code);
-	void recalc() { recalc(need_recalc()); };
+	void recalc() {
+		flush();
+		int code = need_recalc();
+		while (0 < code) {
+			recalc(code);
+			code = need_recalc();
+		}
+	};
+
+	virtual void draw() const;
 protected:
 	virtual void schedule_reflow();
 	void set_parent(std::shared_ptr<box>& src) {
@@ -84,6 +93,9 @@ protected:
 
 	void _width(int w);
 	void _height(int h);
+
+private:
+	virtual void recalc(int code);
 };
 
 class box_dynamic : public box
@@ -102,8 +114,13 @@ public:
 	// content management
 	void append(std::shared_ptr<box>& src);
 
+	virtual void draw() const;
 protected:
 	virtual void schedule_reflow();
+private:
+	virtual bool flush();
+	virtual int need_recalc() const;
+	virtual void recalc(int code);
 };
 
 }	// namespace css

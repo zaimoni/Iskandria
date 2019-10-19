@@ -3,9 +3,8 @@
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Text.hpp>
-#include <vector>
+#include "cssbox.hpp"
 #include <functional>
-#include <memory>
 
 namespace isk {
 
@@ -19,7 +18,7 @@ private:
 	// action function
 	// The last part must *NOT* reach the savefile as-is.  Simplest if this is not wrapped as a game object but instead handled by the input manager.
 	std::vector<menu_entry> entries;
-//	css::box subclass containing wrapped sf::Text instances: actual menu display
+	std::shared_ptr<css::box_dynamic> _gui_top;	// actual menu display
 	// when installed to the input manager:
 	// * show the bounding rectangle of the text if and only if if mouse is within the bounding rectangle of the text
 	// * ultra-high z-index (above main game render)

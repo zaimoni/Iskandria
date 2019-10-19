@@ -32,8 +32,8 @@ cssbox.test.exe: cssbox.cpp cssbox.hpp
 	-strip --strip-unneeded $@
 	$@
 
-cssSFML.test.exe: css_SFML.cpp css_SFML.hpp cssbox.hpp
-	$(CXX) -ocssSFML.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 css_SFML.cpp cssbox.cpp $(LINK_FLAGS) -lsfml-graphics -lsfml-system -lz_stdio_c $(TESTDRIVER_LIBS)
+cssSFML.test.exe:  css_SFML.cpp cssbox.cpp display_manager.cpp css_SFML.hpp cssbox.hpp display_manager.hpp
+	$(CXX) -ocssSFML.test.exe $(TESTDRIVER_FLAGS) -DTEST_APP3 css_SFML.cpp cssbox.cpp display_manager.cpp $(LINK_FLAGS) -lsfml-graphics -lsfml-window -lsfml-system -lz_stdio_c $(TESTDRIVER_LIBS)
 	-strip --strip-unneeded $@
 	$@
 

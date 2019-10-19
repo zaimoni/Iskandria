@@ -86,8 +86,57 @@ void box_dynamic::append(std::shared_ptr<box>& src) {
 	}
 }
 
+bool box::flush() { return false; }
 int box::need_recalc() const { return 0; }
 void box::recalc(int code) {}
+
+bool box_dynamic::flush() {
+	auto i = _contents.size();
+	while(0 < i) {
+		if (   !_contents[--i] 	// null.
+			||  _contents[  i]->flush()) {	// should remove
+			_contents.erase(_contents.begin() + i);
+//			continue;
+		}
+	}
+	return _contents.empty();
+}
+
+int box_dynamic::need_recalc() const
+{
+	// check contents first;
+	if (!_contents.empty()) {	// self-recalc check
+		auto i = _contents.size();
+		do {
+			if (0 < _contents[--i]->need_recalc()) return i + 1;
+		} while (0 < i);
+	}
+	// \todo: actually reposition contents
+	return 0;
+}
+
+void box_dynamic::recalc(int code)
+{
+	if (0 >= code) return;
+	if (_contents.size() >= code) {
+		// self-recalc entry
+		_contents[code - 1]->recalc();
+		return;
+	}
+}
+
+
+void box::draw() const {}
+void box_dynamic::draw() const
+{
+	if (_contents.empty()) return;
+	// We will need to be *much* smarter about this; anything that is off-screen or completely hidden by higher z-index need not be done here
+	for(auto& x : _contents) {
+		if (!x) continue;
+		x->draw();
+	}
+}
+
 
 void box::schedule_reflow() {}
 void box_dynamic::schedule_reflow() { _auto |= (1ULL << REFLOW); }

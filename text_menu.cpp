@@ -10,6 +10,10 @@ void textmenu::add_entry(const std::vector<std::string>& label, const sf::Event:
 
 void textmenu::draw() const
 {
+	if (!_gui_top) {
+		// bootstrap this
+		// once this is working we'll want a non-default destructor (to remove this from the display)
+	}
 }
 
 }

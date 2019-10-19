@@ -2,6 +2,7 @@
 #define CSS_SFML_HPP 1
 
 #include "cssbox.hpp"
+#include "display_manager.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
 
@@ -27,22 +28,9 @@ public:
 	auto natural_dimensions() const { return _x->getLocalBounds(); }
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
 
-	virtual int need_recalc() const {
-		if (!_x) return 0;	// reject NULL;
-		int ret = assign_bootstrap_code();
-		if (0 < ret) return ret;
-		return 0;
+	virtual void draw() const {
+		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}
-	virtual void recalc(int code) {
-		if (0 >= code) return;	// do not process errors or no-op
-		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
-		{
-		case 1:
-			physical_width_height();
-			return;
-		default: return;	// not handled is like error
-		}
-	};
 private:
 	int assign_bootstrap_code() const {
 		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
@@ -65,6 +53,25 @@ private:
 			// probably should check for min/max width,height here as well
 		}
 	}
+
+	virtual bool flush() { return !_x; }
+
+	virtual int need_recalc() const {
+		if (!_x) return 0;	// reject NULL;
+		int ret = assign_bootstrap_code();
+		if (0 < ret) return ret;
+		return 0;
+	}
+	virtual void recalc(int code) {
+		if (0 >= code) return;	// do not process errors or no-op
+		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
+		{
+		case 1:
+			physical_width_height();
+			return;
+		default: return;	// not handled is like error
+		}
+	};
 };
 
 }	// namespace css
