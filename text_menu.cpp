@@ -5,6 +5,14 @@
 
 namespace isk {
 
+textmenu::~textmenu()
+{
+	if (_gui_top && !_gui_top.unique()) {
+		DisplayManager::get().remove(_gui_top);
+	}
+}
+
+
 void textmenu::add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler)
 {
 	static const sf::Event::TextEvent nop = { 0 };

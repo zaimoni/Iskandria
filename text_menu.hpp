@@ -26,7 +26,11 @@ private:
 	// * there is a bounding rectangle if and only if there is a text label
 public:
 	textmenu() = default;
-	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(textmenu);
+	textmenu(const textmenu& src) = default;
+	textmenu(textmenu&& src) = default;
+	~textmenu();
+	textmenu& operator=(const textmenu& src) = default;
+	textmenu& operator=(textmenu&& src) = default;
 
 	void add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler);
 	void add_entry(const std::string& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler) {

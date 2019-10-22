@@ -97,6 +97,7 @@ public:
 	// layout recalculation (unsure about access control here)
 	std::shared_ptr<box> parent() const { return _parent.lock(); }
 	auto origin() const { return _origin; }
+	virtual void remove(std::shared_ptr<box> gone);
 
 	virtual bool flush();
 	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
@@ -133,6 +134,7 @@ public:
 
 	// content management
 	void append(std::shared_ptr<box> src);
+	virtual void remove(std::shared_ptr<box> gone);
 
 	virtual void draw() const;
 	virtual void screen_coords(std::pair<int, int> logical_origin);

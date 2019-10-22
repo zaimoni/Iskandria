@@ -37,6 +37,7 @@ public:
 	void resize(int w, int h);
 
 	void append(std::shared_ptr<css::box> src) { _css_root->append(src); };
+	void remove(std::shared_ptr<css::box> src) { _css_root->remove(src); };
 	void draw() {
 		_css_root->recalc();
 		_css_root->screen_coords(std::pair<int, int>(0, 0));

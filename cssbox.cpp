@@ -109,6 +109,15 @@ void box::set_parent(std::shared_ptr<box>& src) {
 	}
 }
 
+void box::remove(std::shared_ptr<box> gone) {}
+void box_dynamic::remove(std::shared_ptr<box> gone) {
+	size_t ub = _contents.size();
+	do {
+		if (_contents[ub] == gone) _contents.erase(_contents.begin() + ub);
+		else _contents[ub]->remove(gone);
+	} while(0<ub);
+}
+
 void box_dynamic::append(std::shared_ptr<box> src) {
 	if (src) {
 		bool resize_ok = parent() ? true : false;
