@@ -12,6 +12,19 @@ textmenu::~textmenu()
 	}
 }
 
+bool textmenu::handle(const sf::Event::KeyEvent& hotkey)
+{
+	for (const auto& entry : entries) {
+		const auto& test = std::get<1>(entry);	// HMM...why no == operator for a struct?
+		if (hotkey.code != test.code) continue;
+		if (hotkey.shift != test.shift) continue;
+		if (hotkey.alt != test.alt) continue;
+		if (hotkey.control != test.control) continue;
+		if (hotkey.system != test.system) continue;
+		return std::get<3>(entry)();
+	}
+	return false;
+}
 
 void textmenu::add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler)
 {

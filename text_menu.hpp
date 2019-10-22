@@ -42,6 +42,7 @@ public:
 		add_entry(std::vector<std::string>(), hotkey, handler);
 	};
 
+	bool handle(const sf::Event::KeyEvent& hotkey);
 	void draw() const;
 };
 

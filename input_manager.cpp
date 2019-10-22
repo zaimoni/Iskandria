@@ -35,12 +35,26 @@ void InputManager::getInput()
 			break;
 		case sf::Event::Resized:
 			DisplayManager::get().resize(e.size.width, e.size.height);
+			// \todo request reflowing
 			break;
 //		case sf::Event::LostFocus: break;         
 //		case sf::Event::GainedFocus: break;       
-//		case sf::Event::TextEntered: break;     
-//		case sf::Event::KeyPressed: break;     
-//		case sf::Event::KeyReleased: break;
+//		case sf::Event::TextEntered: break;	// implement this once we know what the KeyReleased one does
+//		case sf::Event::KeyPressed: break;	// usually ignore this one
+		case sf::Event::KeyReleased:
+			{
+			size_t ub = menus.size();
+			while (0 < ub) {
+				if (menus[--ub].handle(e.key)) {
+					ub = 0;	// done
+					if (GameManager::get().gameOver()) return;	// hard-stop
+					// \todo handlers must have a way to cause the menu to self-destruct (and possibly all menus above them)
+					// \todo do menus need a modal option that lets them block lower menus, or is this subsumed by pause?
+				}
+				if (GameManager::get().isPaused()) break;	// the unpause menu will be the very top menu
+			}
+			}
+			break;
 //		case sf::Event::MouseWheelMoved: break;
 //		case sf::Event::MouseWheelScrolled: break;
 //		case sf::Event::MouseButtonPressed: break;
