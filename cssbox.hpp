@@ -112,7 +112,7 @@ public:
 	~box_dynamic() = default;
 
 	// content management
-	void append(std::shared_ptr<box>& src);
+	void append(std::shared_ptr<box> src);
 
 	virtual void draw() const;
 protected:

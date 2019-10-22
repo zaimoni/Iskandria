@@ -5,7 +5,7 @@
 namespace css {
 
 box::box(bool bootstrap)
-: _auto((1ULL << (HEIGHT + 1)) - 1),_auto_recalc(0),_origin(0,0),_size(0,0), _size_min(0, 0),
+: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))),_auto_recalc(0),_origin(0,0),_size(0,0), _size_min(0, 0),
   _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
@@ -78,7 +78,7 @@ void box::max_height(int h) {
 }
 
 // content management
-void box_dynamic::append(std::shared_ptr<box>& src) {
+void box_dynamic::append(std::shared_ptr<box> src) {
 	if (src) {
 		set_parent(src);
 		_contents.push_back(src);

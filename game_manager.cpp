@@ -54,8 +54,9 @@ void GameManager::run()
 		io.getInput();						// has to be able to unset is_paused
 		if (!is_paused) cosmos.update();	// has to be able to set is_paused
 		if (!is_paused || was_paused != is_paused) {
-			cosmos.draw();
+			cosmos.draw();	// in-game UI
 			io.draw();	// fourth-wall breaking UI
+			gui.draw();	// actually do it
 			gui.swapBuffers();
 		}
 		delta = t1.split();

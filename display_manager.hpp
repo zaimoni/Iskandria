@@ -30,10 +30,14 @@ private:
 	std::shared_ptr<css::box_dynamic> _css_root;
 public:
 	void swapBuffers();
+	auto getFont() const { return _font; };
 	auto getWindow() const { return _window; };
 	int width_pixel() const { return _width_pixels;};
 	int height_pixel() const { return _height_pixels;};
 	void resize(int w, int h);
+
+	void append(std::shared_ptr<css::box> src) { _css_root->append(src); };
+	void draw() { _css_root->draw(); }
 
 	// character support; likely to need all of this for subwindows as well (should be driven by font size)
 	int width_char() const { return _width_chars;};
