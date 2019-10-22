@@ -31,6 +31,11 @@ public:
 	virtual void draw() const {
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}
+
+	virtual void screen_coords(std::pair<int, int> logical_origin) {
+		box::screen_coords(logical_origin);
+		_x->setPosition(_screen.first, _screen.second);
+	}
 private:
 	int assign_bootstrap_code() const {
 		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
@@ -62,7 +67,7 @@ private:
 		if (0 < ret) return ret;
 		return 0;
 	}
-	virtual void recalc(int code) {
+	virtual void _recalc(int code) {
 		if (0 >= code) return;	// do not process errors or no-op
 		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
 		{

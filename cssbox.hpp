@@ -31,8 +31,9 @@ protected:
 
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
+	std::pair<int, int> _origin;	// (x,y) i.e. (left,top): relative to container
+	std::pair<int, int> _screen;	// (x,y) i.e. (left,top): global
 private:
-	std::pair<int, int> _origin;	// (x,y) i.e. (left,top)
 	std::pair<int, int> _size;
 	std::pair<int, int> _size_min;
 	std::pair<int, int> _size_max;
@@ -54,7 +55,7 @@ public:
 	void set_auto(auto_legal src);
 
 	// width/height
-	std::pair<int, int> size() const { return _size; }
+	auto size() const { return _size; }
 	int width() const { return _size.first; }
 	int height() const { return _size.second; }
 	int min_width() const { return _size_min.first; }
@@ -69,33 +70,52 @@ public:
 	void max_width(int w);
 	void max_height(int h);
 
-	// layout recalculation (unsure about access control here)
-	virtual bool flush();
-	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
-	void recalc() {
-		flush();
-		int code = need_recalc();
-		while (0 < code) {
-			recalc(code);
-			code = need_recalc();
-		}
-	};
-
-	virtual void draw() const;
-protected:
-	virtual void schedule_reflow();
-	void set_parent(std::shared_ptr<box>& src) {
-		if (src) {
-			src->_parent = _self;
-			src->_self = src;
-		}
+	// padding, margin
+	template<int src> int padding() const {
+		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		return _padding[src];
 	}
 
+	template<int src> int margin() const {
+		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		return _margin[src];
+	}
+	template<int src> void _set_margin(int x) {
+		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		_auto_recalc &= ~(1ULL << src);
+		_margin[src] = x;
+	}
+	template<int src> void set_margin(int x) {
+		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		_auto &= ~(1ULL << src);
+		_set_margin<src>(x);
+	}
+
+	int full_width() const { return width() + padding<LEFT>() + padding<RIGHT>(); }
+	int full_height() const { return height() + padding<TOP>() + padding<BOTTOM>(); }
+
+	// layout recalculation (unsure about access control here)
+	std::shared_ptr<box> parent() const { return _parent.lock(); }
+	auto origin() const { return _origin; }
+
+	virtual bool flush();
+	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
+	void recalc();
+
+	virtual void draw() const;
+	virtual void set_origin(std::pair<int, int> logical_origin);
+	virtual void screen_coords(std::pair<int, int> logical_origin);
+
+	void horizontal_centering(int ub, std::pair<int, int> origin);
+	void vertical_centering(int ub, std::pair<int, int> origin);
+protected:
+	virtual void schedule_reflow();
+	void set_parent(std::shared_ptr<box>& src);
 	void _width(int w);
 	void _height(int h);
 
 private:
-	virtual void recalc(int code);
+	virtual void _recalc(int code);
 };
 
 class box_dynamic : public box
@@ -115,12 +135,13 @@ public:
 	void append(std::shared_ptr<box> src);
 
 	virtual void draw() const;
+	virtual void screen_coords(std::pair<int, int> logical_origin);
 protected:
 	virtual void schedule_reflow();
 private:
 	virtual bool flush();
 	virtual int need_recalc() const;
-	virtual void recalc(int code);
+	virtual void _recalc(int code);
 };
 
 }	// namespace css
