@@ -44,7 +44,7 @@ void textmenu::draw() const
 			for (const auto& line : lines) {
 				if (line.empty()) continue;
 				std::unique_ptr<css::wrap<sf::Text> > span(new css::wrap<sf::Text>());
-				*span = new sf::Text(line, *DisplayManager::get().getFont());
+				*span = new sf::Text(line, *DisplayManager::get().getFont(), DisplayManager::get().charHeight());
 				// CSS styles desired: clear:left (implicit line break) on first text node generated for each line
 				// would like to use HTML for italics/bold/... but that requires parsing
 				working->append(std::shared_ptr<css::box>(span.release()));

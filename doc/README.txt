@@ -16,4 +16,7 @@ There is a dependency on the Boost library.  We only need the headers.
 * This project originated, and uses, the Boost License.
 
 Files that are not Boost are to be itemized below:
-(list intentionally empty)
+
+fonts/unifont....ttf: GPLv3; master website https://savannah.gnu.org/projects/unifont/ .
+Assumption is that the fonts are precompiled binaries.
+

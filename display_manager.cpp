@@ -41,8 +41,8 @@ DisplayManager::DisplayManager()
 	_css_root->min_height(768);
 	_css_root->max_height(768);
 //	two parts to configuring...system font location, and system font
-// 	for now, hardcode Courier on a default Windows system install
-	if (!_font->loadFromFile("c:\\Windows\\Fonts\\cour.ttf")) throw std::bad_alloc();	// XXX
+	if (!_font->loadFromFile("fonts\\unifont.ttf")) throw std::bad_alloc();	// Unifont: rasterized
+//	if (!_font->loadFromFile("c:\\Windows\\Fonts\\cour.ttf")) throw std::bad_alloc();	// Courier on a default Windows system install
 }
 
 void DisplayManager::resize(int w, int h) {

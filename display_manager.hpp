@@ -23,6 +23,7 @@ private:
 	sf::Color _background;
 	int _width_pixels;
 	int _height_pixels;
+	// we should compute the pixel width from a sample character, then store that for charWidth() and calculate width_char().
 	int _width_chars;
 	int _height_chars;
 	std::shared_ptr<sf::Font> _font;
@@ -51,7 +52,7 @@ public:
 //	int drawCh(int x, int y, char ch, sf::Color color);
 
 	float charWidth() const { return (float)(_width_pixels)/(float)(_width_chars);};
-	float charHeight() const { return (float)(_height_pixels)/(float)(_height_chars);};
+	float charHeight() const { return (float)(_height_pixels)/(float)(_height_chars);};	// 32 for an 80x24 sectioning
 };
 
 #include "singleton.off.hpp"
