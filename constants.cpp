@@ -351,7 +351,7 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(geo_mass_squared," kg^2\n");
 
 	const fundamental_constants::interval geo_temperature = square(SI_units().c)/SI_units().k*sqrt(geo_mass_squared);
-	STRING_LITERAL_TO_STDOUT("\nGeometrized temperature unit squared\n");
+	STRING_LITERAL_TO_STDOUT("\nGeometrized temperature unit\n");
 	INTERVAL_TO_STDOUT(geo_temperature," K\n");
 
 	fundamental_constants test_geometrization;
