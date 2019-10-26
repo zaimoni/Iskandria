@@ -139,6 +139,35 @@ void box::recalc() {
 	_auto &= ~(1ULL << REFLOW);	// cancel reflow, we're stable
 }
 
+// used by the outermost dynamic box i.e. top window
+void box_dynamic::force_size(int w, int h)
+{
+	if (0 > w) throw std::runtime_error("negative width");
+	if (0 > h) throw std::runtime_error("negative height");
+	// lock down both min and max dimensions
+	const int w_delta = w - width();
+	const int h_delta = h - height();
+	if (0 == w_delta && 0 == h_delta) return;
+	min_width(w);
+	max_width(w);
+	min_height(h);
+	max_height(h);
+	// scan contents for issues.  Non-const so can delete, but shouldn't do a deep check
+	bool need_reflow = false;
+	auto i = _contents.size();
+	while (0 < i) {
+		auto& x = _contents[--i];
+		if (!x) {	// null
+			_contents.erase(_contents.begin() + i);
+			continue;
+		}
+		if (0 != w_delta && x->request_horz_margins()) need_reflow = true;
+		if (0 != h_delta && x->request_vert_margins()) need_reflow = true;
+		// other checks go here
+	}
+	if (need_reflow) recalc();
+}
+
 bool box_dynamic::flush() {
 	auto i = _contents.size();
 	while(0 < i) {
@@ -228,6 +257,34 @@ void box::vertical_centering(const int ub, const std::pair<int, int> local_origi
 	_set_margin<TOP>(0);
 	_set_margin<BOTTOM>(0);
 	set_origin(local_origin);
+}
+
+bool box::request_horz_margins()
+{
+	bool ret = false;
+	if (_auto & (1ULL << LEFT)) {
+		_auto_recalc |= (1ULL << LEFT);
+		ret = true;
+	}
+	if (_auto & (1ULL << RIGHT)) {
+		_auto_recalc |= (1ULL << RIGHT);
+		ret = true;
+	}
+	return ret;
+}
+
+bool box::request_vert_margins()
+{
+	bool ret = false;
+	if (_auto & (1ULL << TOP)) {
+		_auto_recalc |= (1ULL << TOP);
+		ret = true;
+	}
+	if (_auto & (1ULL << BOTTOM)) {
+		_auto_recalc |= (1ULL << BOTTOM);
+		ret = true;
+	}
+	return ret;
 }
 
 void box_dynamic::_recalc(int code)

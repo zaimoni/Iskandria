@@ -48,10 +48,7 @@ DisplayManager::DisplayManager()
 void DisplayManager::resize(int w, int h) {
 	_width_pixels = w;	// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
 	_height_pixels = h;
-	_css_root->min_width(w);
-	_css_root->max_width(w);
-	_css_root->min_height(h);
-	_css_root->max_height(h);
+	_css_root->force_size(w, h);
 	// \todo any other triggered calculations e.g. character-based stats
 	// \todo schedule but do not actually reflow
 }

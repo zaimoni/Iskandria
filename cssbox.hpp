@@ -109,6 +109,7 @@ public:
 	virtual int need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const = 0;
 #endif
+	virtual void force_size(int w, int h) {};	// should be abstract
 
 	void recalc();
 	virtual void set_origin(std::pair<int, int> logical_origin);
@@ -116,6 +117,8 @@ public:
 
 	void horizontal_centering(int ub, std::pair<int, int> origin);
 	void vertical_centering(int ub, std::pair<int, int> origin);
+	bool request_horz_margins();
+	bool request_vert_margins();
 protected:
 	virtual void schedule_reflow();
 	void set_parent(std::shared_ptr<box>& src);
@@ -149,6 +152,7 @@ public:
 
 	virtual void draw() const;
 	virtual void screen_coords(std::pair<int, int> logical_origin);
+	virtual void force_size(int w, int h);
 protected:
 	virtual void schedule_reflow();
 private:
