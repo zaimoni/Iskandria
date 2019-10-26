@@ -2,11 +2,15 @@
 #include <string.h>
 #include <limits>
 #include "Zaimoni.STL/Logging.h"
+#if MULTITHREAD_DRAW
 #include "Zaimoni.STL/ref_inc.hpp"
+#endif
 
 namespace css {
 
+#if MULTITHREAD_DRAW
 unsigned int box::_recalc_fakelock = 0;
+#endif
 
 box::box(bool bootstrap)
 : _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))),_auto_recalc(0),_origin(0,0), _screen(0, 0),_size(0,0), _size_min(0, 0),
@@ -136,8 +140,10 @@ void box_dynamic::append(std::shared_ptr<box> src) {
 }
 
 void box::recalc() {
+#if MULTITHREAD_DRAW
 	zaimoni::ref_semaphore<unsigned int> lock(_recalc_fakelock);
 	if (!lock.locked() && !_parent.lock()) return;
+#endif
 
 	flush();
 	int code;
