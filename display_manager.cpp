@@ -30,7 +30,6 @@ DisplayManager::DisplayManager()
 	_width_pixels(DESIGN_WIDTH),
 	_height_pixels(DESIGN_HEIGHT),
 	_width_chars(80),
-	_height_chars(24),
 	_font(new sf::Font()),
 	_css_root(new css::box_dynamic(true))
 {
@@ -50,7 +49,6 @@ void DisplayManager::resize(int w, int h) {
 	_height_pixels = h;
 	_css_root->force_size(w, h);
 	// \todo any other triggered calculations e.g. character-based stats
-	// \todo schedule but do not actually reflow
 }
 
 void DisplayManager::swapBuffers()

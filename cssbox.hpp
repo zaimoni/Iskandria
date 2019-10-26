@@ -41,6 +41,7 @@ private:
 	int _padding[4];
 	std::weak_ptr<box> _parent;
 	std::shared_ptr<box> _self;
+	static unsigned int _recalc_fakelock;
 protected:
 	box(bool bootstrap = false);
 	box(const box& src) = default;

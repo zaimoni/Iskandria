@@ -25,14 +25,15 @@ private:
 	int _height_pixels;
 	// we should compute the pixel width from a sample character, then store that for charWidth() and calculate width_char().
 	int _width_chars;
-	int _height_chars;
 	std::shared_ptr<sf::Font> _font;
 	std::shared_ptr<sf::RenderWindow> _window;
 	std::shared_ptr<css::box_dynamic> _css_root;
+	unsigned int _recalc_fakelock;
 public:
 	enum {
 		DESIGN_WIDTH = 1024,
-		DESIGN_HEIGHT = 768
+		DESIGN_HEIGHT = 768,
+		DESIGN_HEIGHT_CHAR = DESIGN_HEIGHT/(DESIGN_HEIGHT/24)
 	};
 
 	void swapBuffers();
@@ -57,12 +58,12 @@ public:
 
 	// character support; likely to need all of this for subwindows as well (should be driven by font size)
 	int width_char() const { return _width_chars;};
-	int height_char() const { return _height_chars;};
+	int height_char() const { return DESIGN_HEIGHT_CHAR;};
 
 //	int drawCh(int x, int y, char ch, sf::Color color);
 
 	float charWidth() const { return (float)(_width_pixels)/(float)(_width_chars);};
-	float charHeight() const { return (float)(_height_pixels)/(float)(_height_chars);};	// 32 for an 80x24 sectioning
+	float charHeight() const { return (float)(_height_pixels)/ DESIGN_HEIGHT_CHAR;};
 };
 
 #include "singleton.off.hpp"
