@@ -34,7 +34,9 @@ public:
 
 	virtual void screen_coords(std::pair<int, int> logical_origin) {
 		box::screen_coords(logical_origin);
-		_x->setPosition(_screen.first, _screen.second);
+		const auto scale = isk::DisplayManager::get().inverseScale();
+		_x->setScale(scale.first, scale.second);
+		_x->setPosition(_screen.first * scale.first, _screen.second * scale.second);
 	}
 private:
 	int assign_bootstrap_code() const {

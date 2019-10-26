@@ -27,8 +27,8 @@ ISK_SINGLETON_BODY(DisplayManager)
 
 DisplayManager::DisplayManager()
 :	_background(sf::Color::Black),
-	_width_pixels(1024),
-	_height_pixels(768),
+	_width_pixels(DESIGN_WIDTH),
+	_height_pixels(DESIGN_HEIGHT),
 	_width_chars(80),
 	_height_chars(24),
 	_font(new sf::Font()),
@@ -36,17 +36,17 @@ DisplayManager::DisplayManager()
 {
 	// \todo load starting dimensions from configuration?
 	_window = decltype(_window)(new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria")),
-	_css_root->min_width(1024);
-	_css_root->max_width(1024);
-	_css_root->min_height(768);
-	_css_root->max_height(768);
+	_css_root->min_width(DESIGN_WIDTH);
+	_css_root->max_width(DESIGN_WIDTH);
+	_css_root->min_height(DESIGN_HEIGHT);
+	_css_root->max_height(DESIGN_HEIGHT);
 //	two parts to configuring...system font location, and system font
 	if (!_font->loadFromFile("fonts\\unifont.ttf")) throw std::bad_alloc();	// Unifont: rasterized
 //	if (!_font->loadFromFile("c:\\Windows\\Fonts\\cour.ttf")) throw std::bad_alloc();	// Courier on a default Windows system install
 }
 
 void DisplayManager::resize(int w, int h) {
-	_width_pixels = w;
+	_width_pixels = w;	// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
 	_height_pixels = h;
 	_css_root->min_width(w);
 	_css_root->max_width(w);

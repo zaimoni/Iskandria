@@ -36,6 +36,7 @@ void InputManager::getInput()
 		case sf::Event::Resized:
 			DisplayManager::get().resize(e.size.width, e.size.height);
 			// \todo request reflowing
+			// note that this does *not* change the coordinates SFML reports to us, we have to convert to physical pixels from logical pixels
 			break;
 //		case sf::Event::LostFocus: break;         
 //		case sf::Event::GainedFocus: break;       

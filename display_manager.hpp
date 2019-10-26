@@ -30,12 +30,22 @@ private:
 	std::shared_ptr<sf::RenderWindow> _window;
 	std::shared_ptr<css::box_dynamic> _css_root;
 public:
+	enum {
+		DESIGN_WIDTH = 1024,
+		DESIGN_HEIGHT = 768
+	};
+
 	void swapBuffers();
 	auto getFont() const { return _font; };
 	auto getWindow() const { return _window; };
 	int width_pixel() const { return _width_pixels;};
 	int height_pixel() const { return _height_pixels;};
 	void resize(int w, int h);
+
+	// makes physical pixels look logical
+	std::pair<float, float> inverseScale() const { return std::pair<float, float>((float)DESIGN_WIDTH / _width_pixels, (float)DESIGN_HEIGHT / _height_pixels); };
+	// makes logical pixels look physical
+	std::pair<float, float> scale() const { return std::pair<float, float>(_width_pixels/(float)DESIGN_WIDTH, _height_pixels/(float)DESIGN_HEIGHT); };
 
 	void append(std::shared_ptr<css::box> src) { _css_root->append(src); };
 	void remove(std::shared_ptr<css::box> src) { _css_root->remove(src); };

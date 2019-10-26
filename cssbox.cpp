@@ -136,6 +136,7 @@ void box::recalc() {
 	flush();
 	int code;
 	while (0 < (code = need_recalc())) _recalc(code);
+	_auto &= ~(1ULL << REFLOW);	// cancel reflow, we're stable
 }
 
 bool box_dynamic::flush() {
