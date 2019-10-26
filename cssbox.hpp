@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#define MULTITHREAD_DRAW 1
+
 namespace css {
 
 class box {

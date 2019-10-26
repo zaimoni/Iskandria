@@ -32,7 +32,7 @@ void InputManager::getInput()
 		{
 		case sf::Event::Closed:
 			GameManager::quit_handler();
-			break;
+			return;
 		case sf::Event::Resized:
 			DisplayManager::get().resize(e.size.width, e.size.height);
 			// \todo request reflowing
