@@ -99,11 +99,18 @@ public:
 	auto origin() const { return _origin; }
 	virtual void remove(std::shared_ptr<box> gone);
 
-	virtual bool flush();
-	virtual int need_recalc() const;	// return value is C error code convention; 0 no-action, negative error, positive action code
-	void recalc();
+	// these should be abstract, but bringing up a new implementation may need waiving that
+#ifdef PROTOTYPING_CSS
+	virtual bool flush() { return false; };
+	virtual int need_recalc() const { return 0; };	// return value is C error code convention; 0 no-action, negative error, positive action code
+	virtual void draw() const {};
+#else
+	virtual bool flush() = 0;
+	virtual int need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
+	virtual void draw() const = 0;
+#endif
 
-	virtual void draw() const;
+	void recalc();
 	virtual void set_origin(std::pair<int, int> logical_origin);
 	virtual void screen_coords(std::pair<int, int> logical_origin);
 
@@ -116,7 +123,11 @@ protected:
 	void _height(int h);
 
 private:
-	virtual void _recalc(int code);
+#ifdef PROTOTYPING_CSS
+	virtual void _recalc(int code) {};
+#else
+	virtual void _recalc(int code) = 0;
+#endif
 };
 
 class box_dynamic : public box

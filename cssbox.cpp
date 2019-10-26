@@ -132,10 +132,6 @@ void box_dynamic::append(std::shared_ptr<box> src) {
 	}
 }
 
-bool box::flush() { return false; }
-int box::need_recalc() const { return 0; }
-void box::_recalc(int code) {}
-
 void box::recalc() {
 	flush();
 	int code;
@@ -270,8 +266,6 @@ void box_dynamic::_recalc(int code)
 	}
 }
 
-
-void box::draw() const {}
 void box_dynamic::draw() const
 {
 	if (_contents.empty()) return;
