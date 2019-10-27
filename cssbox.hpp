@@ -35,6 +35,13 @@ public:
 		CF_BOTH_INHERIT
 	};
 	static_assert(3 == CF_BOTH_INHERIT, "3!=CF_BOTH_INHERIT");
+	enum position_legal {
+		POS_STATIC = 0,
+		POS_RELATIVE,
+		POS_ABSOLUTE,
+		POS_FIXED,
+		POS_INHERIT	// for formal completeness, not obviously useful
+	};
 protected:
 	enum {
 		REFLOW = HEIGHT + 1
@@ -42,7 +49,7 @@ protected:
 
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
-	unsigned char _clear_float;	// clear, float encodings
+	unsigned char _clear_float;	// clear, float encodings; also position property encoding
 	std::pair<int, int> _origin;	// (x,y) i.e. (left,top): relative to container
 	std::pair<int, int> _screen;	// (x,y) i.e. (left,top): global
 private:
@@ -103,8 +110,24 @@ public:
 		_set_margin<src>(x);
 	}
 
+	// will include border once we're tracking it
 	int full_width() const { return width() + padding<LEFT>() + padding<RIGHT>(); }
 	int full_height() const { return height() + padding<TOP>() + padding<BOTTOM>(); }
+	int outer_width() const { return width() + padding<LEFT>() + padding<RIGHT>() + margin<LEFT>() + margin<RIGHT>(); }
+	int outer_height() const { return height() + padding<TOP>() + padding<BOTTOM>() + margin<TOP>() + margin<BOTTOM>(); }
+
+	auto full_anchor() const { return std::pair<int, int>(_origin.first - padding<LEFT>(), _origin.second - padding<TOP>()); }
+	auto outer_anchor() const { return std::pair<int, int>(_origin.first - padding<LEFT>() - margin<LEFT>(), _origin.second - padding<TOP>() - margin<TOP>()); }
+
+	// clear/float
+	clear_float_legal CSS_clear() const { return (clear_float_legal)(_clear_float & 3U); }
+	void set_clear(clear_float_legal src) { _clear_float &= ~3U; _clear_float |= src; }
+	clear_float_legal CSS_float() const;
+	void set_float(clear_float_legal src) { _clear_float &= ~(3U << 2); _clear_float |= (src << 2); }
+
+	// position attribute
+	position_legal position() const;
+	void set_position(position_legal src) { _clear_float &= ~(7U << 4); _clear_float |= (src << 4); }
 
 	// layout recalculation (unsure about access control here)
 	std::shared_ptr<box> parent() const { return _parent.lock(); }

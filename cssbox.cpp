@@ -106,6 +106,22 @@ void box_dynamic::screen_coords(std::pair<int, int> logical_origin) {
 	for (auto& x : _contents) x->screen_coords(_screen);
 }
 
+box::clear_float_legal box::CSS_float() const {
+	auto ret = (clear_float_legal)((_clear_float >> 2) & 3U);
+	if (CF_BOTH_INHERIT > ret) return ret;
+	auto host = parent();
+	if (host) return host->CSS_float();
+	return CF_NONE;	// default
+}
+
+box::position_legal box::position() const {
+	auto ret = (position_legal)((_clear_float >> 4) & 7U);
+	if (POS_INHERIT > ret) return ret;
+	auto host = parent();
+	if (host) return host->position();
+	return POS_STATIC;	// default
+}
+
 box_dynamic::~box_dynamic()
 {
 	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
