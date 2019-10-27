@@ -44,6 +44,11 @@ DisplayManager::DisplayManager()
 //	if (!_font->loadFromFile("c:\\Windows\\Fonts\\cour.ttf")) throw std::bad_alloc();	// Courier on a default Windows system install
 }
 
+DisplayManager::~DisplayManager()
+{
+	_css_root->disconnect();
+}
+
 void DisplayManager::resize(int w, int h) {
 	_width_pixels = w;	// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
 	_height_pixels = h;

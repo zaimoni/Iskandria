@@ -18,7 +18,7 @@ namespace isk {
 
 class DisplayManager
 {
-ISK_SINGLETON_HEADER_DEFAULT_DESTRUCTOR(DisplayManager);
+ISK_SINGLETON_HEADER(DisplayManager);
 private:
 	sf::Color _background;
 	int _width_pixels;
@@ -28,7 +28,6 @@ private:
 	std::shared_ptr<sf::Font> _font;
 	std::shared_ptr<sf::RenderWindow> _window;
 	std::shared_ptr<css::box_dynamic> _css_root;
-	unsigned int _recalc_fakelock;
 public:
 	enum {
 		DESIGN_WIDTH = 1024,

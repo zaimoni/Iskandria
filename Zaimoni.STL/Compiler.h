@@ -60,6 +60,14 @@
 	A& operator=(A&& src) = default
 #endif
 
+#ifndef ZAIMONI_DEFAULT_COPY_ASSIGN
+#define ZAIMONI_DEFAULT_COPY_ASSIGN(A)	\
+	A(const A& src) = default;	\
+	A(A&& src) = default;	\
+	A& operator=(const A& src) = default;	\
+	A& operator=(A&& src) = default
+#endif
+
 /* platform config copied from Boost */
 /* would prefer to use BOOST_PLATFORM, but strings aren't allowed in preprocessor tests */
 /* for now, detect Mac OS X by MACOSX pendng proper documentation */

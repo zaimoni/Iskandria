@@ -13,8 +13,8 @@ unsigned int box::_recalc_fakelock = 0;
 #endif
 
 box::box(bool bootstrap)
-: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))),_auto_recalc(0),_origin(0,0), _screen(0, 0),_size(0,0), _size_min(0, 0),
-  _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
+: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0, 0), _screen(0, 0), 
+  _size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
 	if (bootstrap) _self = std::shared_ptr<box>(this);
@@ -106,6 +106,11 @@ void box_dynamic::screen_coords(std::pair<int, int> logical_origin) {
 	for (auto& x : _contents) x->screen_coords(_screen);
 }
 
+box_dynamic::~box_dynamic()
+{
+	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
+}
+
 // content management
 void box::set_parent(std::shared_ptr<box>& src) {
 	if (src) {
@@ -123,6 +128,7 @@ void box_dynamic::remove(std::shared_ptr<box> gone) {
 		if (_contents[ub] == gone) _contents.erase(_contents.begin() + ub);
 		else _contents[ub]->remove(gone);
 	} while(0<ub);
+	gone->disconnect();
 }
 
 void box_dynamic::append(std::shared_ptr<box> src) {

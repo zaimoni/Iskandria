@@ -4,6 +4,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
+#include "Zaimoni.STL/Compiler.h"
 
 #define MULTITHREAD_DRAW 1
 
@@ -26,6 +27,14 @@ public:
 		WIDTH,
 		HEIGHT,	// highest index for auto flagging
 	};
+
+	enum clear_float_legal {
+		CF_NONE = 0,
+		CF_LEFT,
+		CF_RIGHT,
+		CF_BOTH_INHERIT
+	};
+	static_assert(3 == CF_BOTH_INHERIT, "3!=CF_BOTH_INHERIT");
 protected:
 	enum {
 		REFLOW = HEIGHT + 1
@@ -33,6 +42,7 @@ protected:
 
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
+	unsigned char _clear_float;	// clear, float encodings
 	std::pair<int, int> _origin;	// (x,y) i.e. (left,top): relative to container
 	std::pair<int, int> _screen;	// (x,y) i.e. (left,top): global
 private:
@@ -48,10 +58,7 @@ private:
 #endif
 protected:
 	box(bool bootstrap = false);
-	box(const box& src) = default;
-	box(box&& src) = default;
-	box& operator=(const box& src) = default;
-	box& operator=(box&& src) = default;
+	ZAIMONI_DEFAULT_COPY_ASSIGN(box);
 public:
 	virtual ~box() = default;
 
@@ -103,6 +110,7 @@ public:
 	std::shared_ptr<box> parent() const { return _parent.lock(); }
 	auto origin() const { return _origin; }
 	virtual void remove(std::shared_ptr<box> gone);
+	void disconnect() { _self.reset(); };
 
 	// these should be abstract, but bringing up a new implementation may need waiving that
 #ifdef PROTOTYPING_CSS
@@ -145,11 +153,8 @@ private:
 public:
 	// have to allow public default-construction because the top-level box isn't tied to content
 	box_dynamic(bool bootstrap = false) : box(bootstrap) {}
-	box_dynamic(const box_dynamic& src) = default;
-	box_dynamic(box_dynamic&& src) = default;
-	box_dynamic& operator=(const box_dynamic& src) = default;
-	box_dynamic& operator=(box_dynamic&& src) = default;
-	~box_dynamic() = default;
+	ZAIMONI_DEFAULT_COPY_ASSIGN(box_dynamic);
+	~box_dynamic();
 
 	// content management
 	void append(std::shared_ptr<box> src);
