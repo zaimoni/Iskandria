@@ -32,7 +32,7 @@ public:
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}
 
-	virtual void screen_coords(std::pair<int, int> logical_origin) {
+	virtual void screen_coords(point logical_origin) {
 		box::screen_coords(logical_origin);
 		const auto scale = isk::DisplayManager::get().inverseScale();
 		_x->setScale(scale.first, scale.second);

@@ -91,17 +91,17 @@ void box::max_height(int h) {
 	else if (h < _size.second) height(h);
 }
 
-void box::set_origin(const std::pair<int, int> logical_origin) {
+void box::set_origin(const point logical_origin) {
 	_origin.first = logical_origin.first + margin<LEFT>() + padding<LEFT>();
 	_origin.second = logical_origin.second + margin<TOP>() + padding<TOP>();
 }
 
-void box::screen_coords(const std::pair<int, int> logical_origin) {
+void box::screen_coords(const point logical_origin) {
 	_screen.first = _origin.first + logical_origin.first;
 	_screen.second = _origin.second + logical_origin.second;
 }
 
-void box_dynamic::screen_coords(std::pair<int, int> logical_origin) {
+void box_dynamic::screen_coords(point logical_origin) {
 	box::screen_coords(logical_origin);
 	for (auto& x : _contents) x->screen_coords(_screen);
 }
@@ -237,7 +237,7 @@ int box_dynamic::need_recalc() const
 	return 0;
 }
 
-void box::horizontal_centering(const int ub, const std::pair<int, int> local_origin)
+void box::horizontal_centering(const int ub, const point local_origin)
 {
 	int span = full_width();
 	int sides = 0;
@@ -265,7 +265,7 @@ void box::horizontal_centering(const int ub, const std::pair<int, int> local_ori
 	set_origin(local_origin);
 }
 
-void box::vertical_centering(const int ub, const std::pair<int, int> local_origin)
+void box::vertical_centering(const int ub, const point local_origin)
 {
 	int span = full_width();
 	int sides = 0;

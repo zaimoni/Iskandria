@@ -150,11 +150,11 @@ public:
 	virtual void force_size(int w, int h) {};	// should be abstract
 
 	void recalc();
-	virtual void set_origin(std::pair<int, int> logical_origin);
-	virtual void screen_coords(std::pair<int, int> logical_origin);
+	virtual void set_origin(point logical_origin);
+	virtual void screen_coords(point logical_origin);
 
-	void horizontal_centering(int ub, std::pair<int, int> origin);
-	void vertical_centering(int ub, std::pair<int, int> origin);
+	void horizontal_centering(int ub, point origin);
+	void vertical_centering(int ub, point origin);
 	bool request_horz_margins();
 	bool request_vert_margins();
 protected:
@@ -186,7 +186,7 @@ public:
 	virtual void remove(std::shared_ptr<box> gone);
 
 	virtual void draw() const;
-	virtual void screen_coords(std::pair<int, int> logical_origin);
+	virtual void screen_coords(point logical_origin);
 	virtual void force_size(int w, int h);
 protected:
 	virtual void schedule_reflow();
