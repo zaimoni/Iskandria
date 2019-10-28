@@ -19,6 +19,8 @@ class box {
 #undef HEIGHT
 #undef REFLOW
 public:
+	typedef std::pair<int, int> point;
+
 	enum auto_legal {
 		LEFT = 0,
 		TOP,
@@ -50,12 +52,12 @@ protected:
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
-	std::pair<int, int> _origin;	// (x,y) i.e. (left,top): relative to container
-	std::pair<int, int> _screen;	// (x,y) i.e. (left,top): global
+	point _origin;	// (x,y) i.e. (left,top): relative to container
+	point _screen;	// (x,y) i.e. (left,top): global
 private:
-	std::pair<int, int> _size;
-	std::pair<int, int> _size_min;
-	std::pair<int, int> _size_max;
+	point _size;
+	point _size_min;
+	point _size_max;
 	int _margin[4];
 	int _padding[4];
 	std::weak_ptr<box> _parent;
