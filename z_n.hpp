@@ -13,7 +13,7 @@ namespace math {
 template<uintmax_t n>
 class Z_
 {
-	ZAIMONI_STATIC_ASSERT(0<n);
+	static_assert(0<n);
 private:
 	typename min_unsigned<n>::type _x;
 public:

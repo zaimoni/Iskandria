@@ -18,7 +18,7 @@ template<class T>
 class int_range : public std::pair<T,T>
 {
 public:
-	ZAIMONI_STATIC_ASSERT(std::is_integral<T>::value);
+	static_assert(std::is_integral<T>::value);
 	typedef std::pair<T,T> super;
 
 	// container core types

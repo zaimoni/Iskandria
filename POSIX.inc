@@ -8,7 +8,7 @@ libdir = $(exec_prefix)/lib
 
 AR = ar
 CC = gcc -std=gnu11
-CXX = g++ -std=c++14
+CXX = g++ -std=c++17
 
 EXEEXT = exe
 OBJEXT = o

@@ -78,7 +78,7 @@ class vector : public matrix_CRTP<vector<T,N>, T>
 {
 private:
 	std::array<T,N> _x;
-	ZAIMONI_STATIC_ASSERT(0<N);
+	static_assert(0<N);
 public:
 	enum {
 		rows = N,
@@ -159,7 +159,7 @@ class covector : public matrix_CRTP<covector<T,N>, T>
 {
 private:
 	std::array<T,N> _x;
-	ZAIMONI_STATIC_ASSERT(0<N);
+	static_assert(0<N);
 public:
 	enum {
 		rows = 1,
@@ -240,8 +240,8 @@ template<class T, size_t N>
 class matrix_square : public matrix_CRTP<matrix_square<T,N>, T>
 {
 private:
-	ZAIMONI_STATIC_ASSERT(0<N);
-	ZAIMONI_STATIC_ASSERT((size_t)(-1)/N>=N);
+	static_assert(0<N);
+	static_assert((size_t)(-1)/N>=N);
 	std::array<T,N*N> _x;
 public:
 	typedef zaimoni::slice_array<T> row_type;
@@ -388,9 +388,9 @@ template<class T, size_t R, size_t C>
 class matrix : public matrix_CRTP<matrix<T,R,C>, T>
 {
 private:
-	ZAIMONI_STATIC_ASSERT(0<R);
-	ZAIMONI_STATIC_ASSERT(0<C);
-	ZAIMONI_STATIC_ASSERT((size_t)(-1)/R>=C);
+	static_assert(0<R);
+	static_assert(0<C);
+	static_assert((size_t)(-1)/R>=C);
 	std::array<T,R*C> _x;
 public:
 	typedef zaimoni::slice_array<T> row_type;

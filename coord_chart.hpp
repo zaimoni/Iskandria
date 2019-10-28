@@ -26,7 +26,7 @@ namespace math {
 template<class T,size_t N>
 struct Cartesian_vector
 {
-	ZAIMONI_STATIC_ASSERT(0<N);
+	static_assert(0<N);
 	typedef zaimoni::math::vector<T,N> coord_type;
 	static auto metric(const coord_type& lhs, const coord_type& rhs) {return zaimoni::math::Lesbegue<2>(lhs,rhs);}
 };
@@ -34,8 +34,8 @@ struct Cartesian_vector
 template<class T,size_t N,size_t negative_coord=1>
 struct Minkowski_vector
 {
-	ZAIMONI_STATIC_ASSERT(0<N);
-	ZAIMONI_STATIC_ASSERT(0<negative_coord);
+	static_assert(0<N);
+	static_assert(0<negative_coord);
 	typedef zaimoni::math::vector<T,N> coord_type;
 	static auto metric(const coord_type& lhs, const coord_type& rhs) {return zaimoni::math::Minkowski<negative_coord>(lhs,rhs);}
 };
@@ -44,7 +44,7 @@ struct Minkowski_vector
 template<size_t N>
 class spherical_vector
 {
-	ZAIMONI_STATIC_ASSERT(2<=N);
+	static_assert(2<=N);
 public:
 	typedef std::pair<ISK_INTERVAL<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
@@ -84,7 +84,7 @@ public:
 template<size_t N>
 class geocentric_vector
 {
-	ZAIMONI_STATIC_ASSERT(2<=N);
+	static_assert(2<=N);
 public:
 	typedef std::pair<ISK_INTERVAL<double>, vector<zaimoni::circle::angle,N-1> > coord_type;
 	// typename std::enable_if<std::is_same<boost::numeric::interval<double>, decltype(*T)> , void>		// doesn't work
