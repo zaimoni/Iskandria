@@ -65,7 +65,7 @@ public:
 		CF_RIGHT,
 		CF_BOTH_INHERIT
 	};
-	static_assert(3 == CF_BOTH_INHERIT, "3!=CF_BOTH_INHERIT");
+	static_assert(3 == CF_BOTH_INHERIT);
 	enum position_legal {
 		POS_STATIC = 0,
 		POS_RELATIVE,
@@ -174,7 +174,14 @@ public:
 	int outer_height() const { return height() + padding<TOP>() + padding<BOTTOM>() + margin<TOP>() + margin<BOTTOM>(); }
 
 	auto full_anchor() const { return _origin - padding<LEFT, TOP>(); }
+//	auto border_anchor() const {....}
 	auto outer_anchor() const { return _origin - padding<LEFT, TOP>() - margin<LEFT, TOP>(); }
+
+	// layout boxes
+#if POINT_IS_Z_VECTOR
+	auto inner_box() const { return rect(_origin, _origin + _size); }
+	auto outer_box() const { return rect(_origin - padding<LEFT,TOP>() - margin<LEFT,TOP>(), _origin + _size+ padding<RIGHT, BOTTOM>() + margin<RIGHT, BOTTOM>()); }
+#endif
 
 	// clear/float
 	clear_float_legal CSS_clear() const { return (clear_float_legal)(_clear_float & 3U); }

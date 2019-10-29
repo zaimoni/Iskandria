@@ -80,6 +80,7 @@ private:
 	std::array<T,N> _x;
 	static_assert(0<N);
 public:
+	typedef T coord_type;
 	enum {
 		rows = N,
 		cols = 1
@@ -162,6 +163,7 @@ private:
 	std::array<T,N> _x;
 	static_assert(0<N);
 public:
+	typedef T coord_type;
 	enum {
 		rows = 1,
 		cols = N
@@ -246,6 +248,7 @@ private:
 	static_assert((size_t)(-1)/N>=N);
 	std::array<T,N*N> _x;
 public:
+	typedef T coord_type;
 	typedef zaimoni::slice_array<T> row_type;
 	typedef zaimoni::slice_array<T> col_type;
 	typedef const zaimoni::slice_array<const T> const_row_type;
@@ -395,6 +398,7 @@ private:
 	static_assert((size_t)(-1)/R>=C);
 	std::array<T,R*C> _x;
 public:
+	typedef T coord_type;
 	typedef zaimoni::slice_array<T> row_type;
 	typedef zaimoni::slice_array<T> col_type;
 	typedef const zaimoni::slice_array<const T> const_row_type;
