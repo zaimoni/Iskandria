@@ -1,10 +1,12 @@
 #ifndef CSSBOX_HPP
 #define CSSBOX_HPP 1
+/* (C)2019 Kenneth Boyd, license: LICENSE_BOOST.txt */
 
 #include <utility>
 #include <memory>
 #include <vector>
 
+#include "Zaimoni.STL/c_bitmap.hpp"
 #define POINT_IS_Z_VECTOR 1
 #if POINT_IS_Z_VECTOR
 #include "matrix.hpp"
@@ -34,6 +36,39 @@ std::pair<T, T> operator-(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
 
 namespace css {
 
+// following CSS keywords are wildcards
+// initial: explicitly requests default value (does not require storage)
+// inherit: explicitly requests using parent's value (does require storage)
+// these two require being able to name any property, to route them correctly
+namespace property {
+	enum dir {
+		LEFT = 0,
+		TOP,
+		RIGHT,
+		BOTTOM	// highest index for margin, padding
+	};
+	enum {
+		DIR_COUNT = BOTTOM+1
+	};
+	enum {
+		MARGIN = 0,
+		WIDTH = MARGIN+ DIR_COUNT,
+		HEIGHT,	// last property for which auto is legal
+		PADDING,
+		MIN_WIDTH = PADDING + DIR_COUNT,
+		MAX_WIDTH = MIN_WIDTH + DIR_COUNT,
+		MIN_HEIGHT = MAX_WIDTH + DIR_COUNT,
+		MAX_HEIGHT = MIN_HEIGHT + DIR_COUNT,
+		CLEAR = PADDING+ DIR_COUNT,
+		FLOAT,
+		POSITION,
+		Z_INDEX
+	};
+	enum {
+		COUNT = Z_INDEX + 1
+	};
+}
+
 class box {
 #undef LEFT
 #undef TOP
@@ -49,14 +84,13 @@ public:
 #else
 	typedef std::pair<int, int> point;
 #endif
-
 	enum auto_legal {
 		LEFT = 0,
 		TOP,
 		RIGHT,
 		BOTTOM,	// highest index for margin, padding
 		WIDTH,
-		HEIGHT,	// highest index for auto flagging
+		HEIGHT	// highest index for auto flagging
 	};
 
 	enum clear_float_legal {
@@ -81,14 +115,15 @@ protected:
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _auto_recalc;	// margin or height/width
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
+	typename zaimoni::bitmap<css::property::COUNT>::type _inherited;
 	point _origin;	// (x,y) i.e. (left,top): relative to container
 	point _screen;	// (x,y) i.e. (left,top): global
 private:
 	point _size;
 	point _size_min;
 	point _size_max;
-	int _margin[4];
-	int _padding[4];
+	int _margin[css::property::DIR_COUNT];
+	int _padding[css::property::DIR_COUNT];
 	std::weak_ptr<box> _parent;
 	std::shared_ptr<box> _self;
 #if MULTITHREAD_DRAW

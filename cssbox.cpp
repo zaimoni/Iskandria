@@ -13,13 +13,13 @@ unsigned int box::_recalc_fakelock = 0;
 #endif
 
 box::box(bool bootstrap)
+: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _inherited(0),
 #if POINT_IS_Z_VECTOR
-	: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0), _screen(0),
-	_size(0), _size_min(0), _size_max(std::numeric_limits<int>::max()) {
+  _origin(0), _screen(0), _size(0), _size_min(0), _size_max(std::numeric_limits<int>::max())
 #else
-	: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0, 0), _screen(0, 0),
-	_size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
+  _origin(0, 0), _screen(0, 0), _size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max())
 #endif
+{
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
 	if (bootstrap) _self = std::shared_ptr<box>(this);
