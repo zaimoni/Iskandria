@@ -124,6 +124,7 @@ private:
 	point _size_max;
 	int _margin[css::property::DIR_COUNT];
 	int _padding[css::property::DIR_COUNT];
+	int _z_index;
 	std::weak_ptr<box> _parent;
 	std::shared_ptr<box> _self;
 #if MULTITHREAD_DRAW
@@ -227,6 +228,10 @@ public:
 	// position attribute
 	position_legal position() const;
 	void set_position(position_legal src) { _clear_float &= ~(7U << 4); _clear_float |= (src << 4); }
+
+	// z-index
+	int z_index() const { return _z_index; }
+	void z_index(int src) { _z_index = src; }
 
 	// layout recalculation (unsure about access control here)
 	std::shared_ptr<box> parent() const { return _parent.lock(); }
