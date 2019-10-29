@@ -13,8 +13,13 @@ unsigned int box::_recalc_fakelock = 0;
 #endif
 
 box::box(bool bootstrap)
-: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0, 0), _screen(0, 0), 
-  _size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
+#if POINT_IS_Z_VECTOR
+	: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0), _screen(0),
+	_size(0), _size_min(0), _size_max(std::numeric_limits<int>::max()) {
+#else
+	: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _origin(0, 0), _screen(0, 0),
+	_size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()) {
+#endif
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
 	if (bootstrap) _self = std::shared_ptr<box>(this);
@@ -33,10 +38,27 @@ void box::width(int w) {
 	_width(w);
 }
 
+// we intentionally choose implementation-reserved names
+#if POINT_IS_Z_VECTOR
+#define __width _size[0]
+#define __height _size[1]
+#define __min_width _size_min[0]
+#define __min_height _size_min[1]
+#define __max_width _size_max[0]
+#define __max_height _size_max[1]
+#else
+#define __width _size.first
+#define __height _size.second
+#define __min_width _size_min.first
+#define __min_height _size_min.second
+#define __max_width _size_max.first
+#define __max_height _size_max.second
+#endif
+
 void box::_width(int w) {
 	_auto_recalc &= ~(1ULL << WIDTH);
-	if (_size.first != w) {
-		_size.first = w;
+	if (__width != w) {
+		__width = w;
 		if ((_auto & (1ULL << LEFT))) _auto_recalc |= (1ULL << LEFT);
 		if ((_auto & (1ULL << RIGHT))) _auto_recalc |= (1ULL << RIGHT);
 		schedule_reflow();
@@ -53,8 +75,8 @@ void box::height(int h) {
 
 void box::_height(int h) {
 	_auto_recalc &= ~(1ULL << HEIGHT);
-	if (_size.second != h) {
-		_size.second = h;
+	if (__height != h) {
+		__height = h;
 		if ((_auto & (1ULL << TOP))) _auto_recalc |= (1ULL << TOP);
 		if ((_auto & (1ULL << BOTTOM))) _auto_recalc |= (1ULL << BOTTOM);
 		schedule_reflow();
@@ -65,40 +87,38 @@ void box::_height(int h) {
 
 void box::min_width(int w) {
 	if (0 > w) throw std::runtime_error("negative width");
-	_size_min.first = w;
-	if (w > _size_max.first) max_width(w);
-	else if (w > _size.first) width(w);
+	__min_width = w;
+	if (w > __max_width) max_width(w);
+	else if (w > __width) width(w);
 }
 
 void box::min_height(int h) {
 	if (0 > h) throw std::runtime_error("negative height");
-	_size_min.second = h;
-	if (h > _size_max.second) max_height(h);
-	else if (h > _size.second) height(h);
+	__min_height = h;
+	if (h > __max_height) max_height(h);
+	else if (h > __height) height(h);
 }
 
 void box::max_width(int w) {
 	if (0 > w) throw std::runtime_error("negative width");
-	_size_max.first = w;
-	if (w < _size_min.first) min_width(w);
-	else if (w < _size.first) width(w);
+	__max_width = w;
+	if (w < __min_width) min_width(w);
+	else if (w < __width) width(w);
 }
 
 void box::max_height(int h) {
 	if (0 > h) throw std::runtime_error("negative height");
-	_size_max.second = h;
-	if (h < _size_min.second) min_height(h);
-	else if (h < _size.second) height(h);
+	__max_height = h;
+	if (h < __min_height) min_height(h);
+	else if (h < __height) height(h);
 }
 
 void box::set_origin(const point logical_origin) {
-	_origin.first = logical_origin.first + margin<LEFT>() + padding<LEFT>();
-	_origin.second = logical_origin.second + margin<TOP>() + padding<TOP>();
+	_origin = logical_origin + margin<LEFT, TOP>() + padding<LEFT, TOP>();
 }
 
 void box::screen_coords(const point logical_origin) {
-	_screen.first = _origin.first + logical_origin.first;
-	_screen.second = _origin.second + logical_origin.second;
+	_screen = _origin + logical_origin;
 }
 
 void box_dynamic::screen_coords(point logical_origin) {
@@ -338,11 +358,11 @@ void box_dynamic::_recalc(int code)
 		if (1 == c_size) {
 			const auto _size = _contents[0]->size();
 			// usual strcmp coding: -1 less than lower bound, 1 greater than lower bound, 0 ok
-			const int width_bad = (min_width() <= _size.first) ? ((max_width() >= _size.first) ? 0 : 1) : -1;
-			const int height_bad = (min_height() <= _size.second) ? ((max_height() >= _size.second) ? 0 : 1) : -1;
+			const int width_bad = (min_width() <= __width) ? ((max_width() >= __width) ? 0 : 1) : -1;
+			const int height_bad = (min_height() <= __height) ? ((max_height() >= __height) ? 0 : 1) : -1;
 			if (!width_bad && !height_bad) {
-				_width(_size.first);
-				_height(_size.second);
+				_width(__width);
+				_height(__height);
 				return;
 			}
 		}

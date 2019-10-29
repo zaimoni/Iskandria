@@ -4,7 +4,31 @@
 #include <utility>
 #include <memory>
 #include <vector>
+
+#define POINT_IS_Z_VECTOR 1
+#if POINT_IS_Z_VECTOR
+#include "matrix.hpp"
+#include "Zaimoni.STL/GDI/box.hpp"
+#else
 #include "Zaimoni.STL/Compiler.h"
+
+// XXX These are not Rust-coherent
+template<class T>
+std::pair<T, T> operator+(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
+{
+	lhs.first += rhs.first;
+	lhs.second += rhs.second;
+	return rhs;
+}
+
+template<class T>
+std::pair<T, T> operator-(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
+{
+	lhs.first -= rhs.first;
+	lhs.second -= rhs.second;
+	return rhs;
+}
+#endif
 
 #define MULTITHREAD_DRAW 1
 
@@ -19,7 +43,12 @@ class box {
 #undef HEIGHT
 #undef REFLOW
 public:
+#if POINT_IS_Z_VECTOR
+	typedef zaimoni::math::vector<int, 2> point;
+	typedef zaimoni::gdi::box<point> rect;
+#else
 	typedef std::pair<int, int> point;
+#endif
 
 	enum auto_legal {
 		LEFT = 0,
@@ -77,12 +106,21 @@ public:
 
 	// width/height
 	auto size() const { return _size; }
+#if POINT_IS_Z_VECTOR
+	int width() const { return _size[0]; }
+	int height() const { return _size[1]; }
+	int min_width() const { return _size_min[0]; }
+	int min_height() const { return _size_min[1]; }
+	int max_width() const { return _size_max[0]; }
+	int max_height() const { return _size_max[1]; }
+#else
 	int width() const { return _size.first; }
 	int height() const { return _size.second; }
 	int min_width() const { return _size_min.first; }
 	int min_height() const { return _size_min.second; }
 	int max_width() const { return _size_max.first; }
 	int max_height() const { return _size_max.second; }
+#endif
 
 	void width(int w);
 	void height(int h);
@@ -93,21 +131,38 @@ public:
 
 	// padding, margin
 	template<int src> int padding() const {
-		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		static_assert(0 <= src && WIDTH > src);
 		return _padding[src];
 	}
 
+	template<int src, int src2> auto padding() const {
+		static_assert(0 <= src && WIDTH > src2 && src+1==src2);
+#if POINT_IS_Z_VECTOR
+		return point(_padding + src);
+#else
+		return point(_padding[src], _padding[src2]);
+#endif
+	}
+
 	template<int src> int margin() const {
-		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		static_assert(0 <= src && WIDTH > src);
 		return _margin[src];
 	}
+	template<int src, int src2> auto margin() const {
+		static_assert(0 <= src && WIDTH > src2&& src + 1 == src2);
+#if POINT_IS_Z_VECTOR
+		return point(_margin + src);
+#else
+		return point(_margin[src], _margin[src2]);
+#endif
+	}
 	template<int src> void _set_margin(int x) {
-		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		static_assert(0 <= src && WIDTH > src);
 		_auto_recalc &= ~(1ULL << src);
 		_margin[src] = x;
 	}
 	template<int src> void set_margin(int x) {
-		static_assert(0 <= src && WIDTH > src, "0 <= src && WIDTH > src");
+		static_assert(0 <= src && WIDTH > src);
 		_auto &= ~(1ULL << src);
 		_set_margin<src>(x);
 	}
@@ -118,8 +173,8 @@ public:
 	int outer_width() const { return width() + padding<LEFT>() + padding<RIGHT>() + margin<LEFT>() + margin<RIGHT>(); }
 	int outer_height() const { return height() + padding<TOP>() + padding<BOTTOM>() + margin<TOP>() + margin<BOTTOM>(); }
 
-	auto full_anchor() const { return std::pair<int, int>(_origin.first - padding<LEFT>(), _origin.second - padding<TOP>()); }
-	auto outer_anchor() const { return std::pair<int, int>(_origin.first - padding<LEFT>() - margin<LEFT>(), _origin.second - padding<TOP>() - margin<TOP>()); }
+	auto full_anchor() const { return _origin - padding<LEFT, TOP>(); }
+	auto outer_anchor() const { return _origin - padding<LEFT, TOP>() - margin<LEFT, TOP>(); }
 
 	// clear/float
 	clear_float_legal CSS_clear() const { return (clear_float_legal)(_clear_float & 3U); }

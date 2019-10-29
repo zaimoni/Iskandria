@@ -49,6 +49,16 @@ DisplayManager::~DisplayManager()
 	_css_root->disconnect();
 }
 
+void DisplayManager::draw() {
+	_css_root->recalc();
+#if POINT_IS_Z_VECTOR
+	_css_root->screen_coords(css::box::point(0));
+#else
+	_css_root->screen_coords(css::box::point(0, 0));
+#endif
+	_css_root->draw();
+}
+
 void DisplayManager::resize(int w, int h) {
 	_width_pixels = w;	// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
 	_height_pixels = h;
