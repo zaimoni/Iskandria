@@ -45,7 +45,7 @@ public:
 private:
 	int assign_bootstrap_code() const {
 		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
-			if ((_auto_recalc & (1ULL << HEIGHT)) || (_auto_recalc & (1ULL << WIDTH))) return 1;
+			if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return 1;
 		}
 		return 0;
 	}
@@ -53,7 +53,7 @@ private:
 		auto natural = _x->getLocalBounds();
 		if (0 <= natural.width) _width((int)(natural.width + 0.5));
 		if (0 <= natural.height) _height((int)(natural.height + 0.5));
-		_auto_recalc &= ~((1ULL << HEIGHT) | (1ULL << WIDTH));
+		_reflow &= ~((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH));
 	}
 	void assign_bootstrap() {
 		if (!_x) return;	// reject NULL;

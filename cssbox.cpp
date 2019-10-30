@@ -13,7 +13,7 @@ unsigned int box::_recalc_fakelock = 0;
 #endif
 
 box::box(bool bootstrap)
-: _auto((1ULL << (HEIGHT)) | (1ULL << (WIDTH))), _auto_recalc(0), _clear_float(0), _inherited(0),
+: _auto((1ULL << HEIGHT) | (1ULL << WIDTH)), _clear_float(0), _inherited(0), _reflow((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH)),
 #if POINT_IS_Z_VECTOR
   _origin(0), _screen(0), _size(0), _size_min(0), _size_max(std::numeric_limits<int>::max())
 #else
@@ -28,7 +28,7 @@ box::box(bool bootstrap)
 void box::set_auto(auto_legal src) {
 	if (!is_auto(src)) {
 		_auto |= (1ULL << src);
-		_auto_recalc |= (1ULL << src);
+		_reflow |= (1ULL << src);	// uses auto_legal::LEFT == css::property::MARGIN, etc.
 	}
 }
 
@@ -56,11 +56,11 @@ void box::width(int w) {
 #endif
 
 void box::_width(int w) {
-	_auto_recalc &= ~(1ULL << WIDTH);
+	_reflow &= ~(1ULL << css::property::WIDTH);
 	if (__width != w) {
 		__width = w;
-		if ((_auto & (1ULL << LEFT))) _auto_recalc |= (1ULL << LEFT);
-		if ((_auto & (1ULL << RIGHT))) _auto_recalc |= (1ULL << RIGHT);
+		if ((_auto & (1ULL << LEFT))) _reflow |= (1ULL << css::property::MARGIN + css::property::LEFT);
+		if ((_auto & (1ULL << RIGHT))) _reflow |= (1ULL << css::property::MARGIN + css::property::RIGHT);
 		schedule_reflow();
 		auto parent(_parent.lock());
 		if (parent) parent->_auto |= (1ULL << REFLOW);
@@ -74,11 +74,11 @@ void box::height(int h) {
 }
 
 void box::_height(int h) {
-	_auto_recalc &= ~(1ULL << HEIGHT);
+	_reflow &= ~(1ULL << css::property::HEIGHT);
 	if (__height != h) {
 		__height = h;
-		if ((_auto & (1ULL << TOP))) _auto_recalc |= (1ULL << TOP);
-		if ((_auto & (1ULL << BOTTOM))) _auto_recalc |= (1ULL << BOTTOM);
+		if ((_auto & (1ULL << TOP))) _reflow |= (1ULL << css::property::MARGIN + css::property::TOP);
+		if ((_auto & (1ULL << BOTTOM))) _reflow |= (1ULL << css::property::MARGIN + css::property::BOTTOM);
 		schedule_reflow();
 		auto parent(_parent.lock());
 		if (parent) parent->_auto |= (1ULL << REFLOW);
@@ -152,8 +152,8 @@ void box::set_parent(std::shared_ptr<box>& src) {
 	if (src) {
 		src->_parent = _self;
 		src->_self = src;
-		if (_auto & (1ULL << WIDTH)) _auto_recalc |= (1ULL << WIDTH);
-		if (_auto & (1ULL << HEIGHT)) _auto_recalc |= (1ULL << HEIGHT);
+		if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
+		if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
 	}
 }
 
@@ -172,11 +172,13 @@ void box_dynamic::append(std::shared_ptr<box> src) {
 		bool resize_ok = parent() ? true : false;
 		// absolute positioning will prevent resizing; possibly other cases
 		if (resize_ok) {
-			if (_auto & (1ULL << WIDTH)) _auto_recalc |= (1ULL << WIDTH);
-			if (_auto & (1ULL << HEIGHT)) _auto_recalc |= (1ULL << HEIGHT);
+			if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
+			if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
 		}
 		set_parent(src);
 		_contents.push_back(src);
+		size_t layout_calc = _contents.size();
+		if (!_redo_layout) _redo_layout = _contents.size();
 		_auto |= (1ULL << REFLOW);
 	}
 }
@@ -189,6 +191,7 @@ void box::recalc() {
 
 	flush();
 	int code;
+//	while (0 < (code = need_recalc())) _recalc(code);
 	while (0 < (code = need_recalc())) _recalc(code);
 	_auto &= ~(1ULL << REFLOW);	// cancel reflow, we're stable
 }
@@ -246,13 +249,13 @@ int box_dynamic::need_recalc() const
 	// \todo: actually reposition contents
 	// parallel: css_SFML.hpp
 	if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
-		if ((_auto_recalc & (1ULL << HEIGHT)) || (_auto_recalc & (1ULL << WIDTH))) return _contents.size()+1;
+		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return _contents.size()+1;
 	}
 	if (parent()) {	// can only resolve margins if we have a parent
-		if ((_auto & (1ULL << LEFT)) && (_auto_recalc & (1ULL << LEFT))) return _contents.size() + 2;
-		if ((_auto & (1ULL << RIGHT)) && (_auto_recalc & (1ULL << RIGHT))) return _contents.size() + 2;
-		if ((_auto & (1ULL << TOP)) && (_auto_recalc & (1ULL << TOP))) return _contents.size() + 3;
-		if ((_auto & (1ULL << BOTTOM)) && (_auto_recalc & (1ULL << BOTTOM))) return _contents.size() + 3;
+		if ((_auto & (1ULL << LEFT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::LEFT))) return _contents.size() + 2;
+		if ((_auto & (1ULL << RIGHT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::RIGHT))) return _contents.size() + 2;
+		if ((_auto & (1ULL << TOP)) && (_reflow & (1ULL << css::property::MARGIN + css::property::TOP))) return _contents.size() + 3;
+		if ((_auto & (1ULL << BOTTOM)) && (_reflow & (1ULL << css::property::MARGIN + css::property::BOTTOM))) return _contents.size() + 3;
 	}
 	return 0;
 }
@@ -317,11 +320,11 @@ bool box::request_horz_margins()
 {
 	bool ret = false;
 	if (_auto & (1ULL << LEFT)) {
-		_auto_recalc |= (1ULL << LEFT);
+		_reflow |= (1ULL << css::property::MARGIN + css::property::LEFT);
 		ret = true;
 	}
 	if (_auto & (1ULL << RIGHT)) {
-		_auto_recalc |= (1ULL << RIGHT);
+		_reflow |= (1ULL << css::property::MARGIN + css::property::RIGHT);
 		ret = true;
 	}
 	return ret;
@@ -331,11 +334,11 @@ bool box::request_vert_margins()
 {
 	bool ret = false;
 	if (_auto & (1ULL << TOP)) {
-		_auto_recalc |= (1ULL << TOP);
+		_reflow |= (1ULL << css::property::MARGIN + css::property::TOP);
 		ret = true;
 	}
 	if (_auto & (1ULL << BOTTOM)) {
-		_auto_recalc |= (1ULL << BOTTOM);
+		_reflow |= (1ULL << css::property::MARGIN + css::property::BOTTOM);
 		ret = true;
 	}
 	return ret;
@@ -348,6 +351,7 @@ void box_dynamic::_recalc(int code)
 	if (c_size >= code) {
 		// self-recalc entry
 		_contents[code - 1]->recalc();
+		if (!_redo_layout || _redo_layout > code) _redo_layout = code;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
 		return;
 	}
 	code -= c_size;	// rescale the code
@@ -367,7 +371,7 @@ void box_dynamic::_recalc(int code)
 			}
 		}
 		assert(0 && "unhandled resize request");
-		_auto_recalc &= ~((1ULL << WIDTH) | (1ULL << HEIGHT));	// do not infinite-loop
+		_reflow &= ~((1ULL << css::property::WIDTH) | (1ULL << css::property::HEIGHT));	// do not infinite-loop
 		break;
 	case 2:	// horizontal auto-center
 		horizontal_centering(parent()->width(), parent()->origin());

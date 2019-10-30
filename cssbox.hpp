@@ -92,6 +92,12 @@ public:
 		WIDTH,
 		HEIGHT	// highest index for auto flagging
 	};
+	static_assert(LEFT == css::property::MARGIN + css::property::LEFT);
+	static_assert(TOP  == css::property::MARGIN + css::property::TOP);
+	static_assert(RIGHT == css::property::MARGIN + css::property::RIGHT);
+	static_assert(BOTTOM == css::property::MARGIN + css::property::BOTTOM);
+	static_assert(WIDTH == css::property::WIDTH);
+	static_assert(HEIGHT == css::property::HEIGHT);
 
 	enum clear_float_legal {
 		CF_NONE = 0,
@@ -113,9 +119,9 @@ protected:
 	};
 
 	unsigned char _auto;	// bitmap: margins, width, height
-	unsigned char _auto_recalc;	// margin or height/width
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
 	typename zaimoni::bitmap<css::property::COUNT>::type _inherited;
+	typename zaimoni::bitmap<css::property::COUNT>::type _reflow;
 	point _origin;	// (x,y) i.e. (left,top): relative to container
 	point _screen;	// (x,y) i.e. (left,top): global
 private:
@@ -194,7 +200,7 @@ public:
 	}
 	template<int src> void _set_margin(int x) {
 		static_assert(0 <= src && WIDTH > src);
-		_auto_recalc &= ~(1ULL << src);
+		_reflow &= ~(1ULL << src);	// uses css::property::MARGIN == auto_legal::LEFT, etc.
 		_margin[src] = x;
 	}
 	template<int src> void set_margin(int x) {
@@ -277,9 +283,10 @@ class box_dynamic : public box
 {
 private:
 	std::vector<std::shared_ptr<box> > _contents;
+	size_t _redo_layout;	// the lowest index of a box that needs its position finalized
 public:
 	// have to allow public default-construction because the top-level box isn't tied to content
-	box_dynamic(bool bootstrap = false) : box(bootstrap) {}
+	box_dynamic(bool bootstrap = false) : box(bootstrap),_redo_layout(0) {}
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box_dynamic);
 	~box_dynamic();
 
