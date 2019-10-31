@@ -13,6 +13,7 @@ class wrap : public box
 {
 private:
 	std::shared_ptr<T> _x;
+	std::pair<float, float> _scale;
 public:
 	wrap() = default;
 	wrap(const wrap& src) = default;
@@ -35,7 +36,7 @@ public:
 	virtual void screen_coords(point logical_origin) {
 		box::screen_coords(logical_origin);
 		const auto scale = isk::DisplayManager::get().inverseScale();
-		_x->setScale(scale.first, scale.second);
+		_x->setScale(scale.first * _scale.first, scale.second * _scale.second);
 #if POINT_IS_Z_VECTOR
 		_x->setPosition(_screen[0] * scale.first, _screen[1] * scale.second);
 #else
@@ -44,25 +45,50 @@ public:
 	}
 private:
 	int assign_bootstrap_code() const {
-		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
-			if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return 1;
-		}
+		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return 1;
 		return 0;
 	}
 	void physical_width_height() {
 		auto natural = _x->getLocalBounds();
+		_scale.first = 1;
+		_scale.second = 1;
+		if (_auto & (1ULL << HEIGHT)) {
+			if (!(_auto & (1ULL << WIDTH)) && natural.width != width()) {
+				natural.height *= width();
+				natural.height /= natural.width;
+				_scale.first *= width();
+				_scale.first /= natural.width;
+				natural.width = width();
+				_scale.second = _scale.first;
+			}
+		} else if ((_auto & (1ULL << WIDTH))) {
+			if (natural.height != height()) {
+				natural.width *= height();
+				natural.width /= natural.height;
+				_scale.second *= height();
+				_scale.second /= natural.height;
+				natural.height = height();
+				_scale.first = _scale.second;
+			}
+		} else {
+			if (natural.width != width()) {
+				_scale.first *= width();
+				_scale.first /= natural.width;
+				natural.width = width();
+			}
+			if (natural.height != height()) {
+				_scale.second *= height();
+				_scale.second /= natural.height;
+				natural.height = height();
+			}
+		}
 		if (0 <= natural.width) _width((int)(natural.width + 0.5));
 		if (0 <= natural.height) _height((int)(natural.height + 0.5));
 		_reflow &= ~((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH));
 	}
 	void assign_bootstrap() {
 		if (!_x) return;	// reject NULL;
-		if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) physical_width_height();
-		else {
-			// XXX should also handle auto, fixed and fixed, auto here
-			// but must delegate fixed,fixed
-			// probably should check for min/max width,height here as well
-		}
+		physical_width_height();
 	}
 
 	virtual bool flush() { return !_x; }
