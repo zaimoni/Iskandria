@@ -114,10 +114,6 @@ public:
 		POS_INHERIT	// for formal completeness, not obviously useful
 	};
 protected:
-	enum {
-		REFLOW = HEIGHT + 1
-	};
-
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
 	typename zaimoni::bitmap<css::property::COUNT>::type _inherited;

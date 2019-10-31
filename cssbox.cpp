@@ -63,7 +63,7 @@ void box::_width(int w) {
 		if ((_auto & (1ULL << RIGHT))) _reflow |= (1ULL << css::property::MARGIN + css::property::RIGHT);
 		schedule_reflow();
 		auto parent(_parent.lock());
-		if (parent) parent->_auto |= (1ULL << REFLOW);
+		if (parent) parent->schedule_reflow();
 	}
 }
 
@@ -81,7 +81,7 @@ void box::_height(int h) {
 		if ((_auto & (1ULL << BOTTOM))) _reflow |= (1ULL << css::property::MARGIN + css::property::BOTTOM);
 		schedule_reflow();
 		auto parent(_parent.lock());
-		if (parent) parent->_auto |= (1ULL << REFLOW);
+		if (parent) parent->schedule_reflow();
 	}
 }
 
@@ -179,7 +179,6 @@ void box_dynamic::append(std::shared_ptr<box> src) {
 		_contents.push_back(src);
 		size_t layout_calc = _contents.size();
 		if (!_redo_layout) _redo_layout = _contents.size();
-		_auto |= (1ULL << REFLOW);
 	}
 }
 
@@ -193,7 +192,6 @@ void box::recalc() {
 	int code;
 //	while (0 < (code = need_recalc())) _recalc(code);
 	while (0 < (code = need_recalc())) _recalc(code);
-	_auto &= ~(1ULL << REFLOW);	// cancel reflow, we're stable
 }
 
 // used by the outermost dynamic box i.e. top window
@@ -394,7 +392,7 @@ void box_dynamic::draw() const
 
 
 void box::schedule_reflow() {}
-void box_dynamic::schedule_reflow() { _auto |= (1ULL << REFLOW); }
+void box_dynamic::schedule_reflow() { _redo_layout = 1; }
 
 }	// namespace css
 
