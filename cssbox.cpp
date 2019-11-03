@@ -12,7 +12,7 @@ namespace css {
 unsigned int box::_recalc_fakelock = 0;
 #endif
 
-box::box(bool bootstrap)
+box::box()
 : _auto((1ULL << HEIGHT) | (1ULL << WIDTH)), _clear_float(0), _inherited(0), _reflow((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH)),
 #if POINT_IS_Z_VECTOR
   _origin(0), _screen(0), _size(0), _size_min(0), _size_max(std::numeric_limits<int>::max())
@@ -22,7 +22,6 @@ box::box(bool bootstrap)
 {
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
-	if (bootstrap) _self = std::shared_ptr<box>(this);
 }
 
 void box::set_auto(auto_legal src) {
@@ -142,16 +141,20 @@ box::position_legal box::position() const {
 	return POS_STATIC;	// default
 }
 
+box_dynamic::box_dynamic(bool bootstrap) : _redo_layout(0) {
+	if (bootstrap) _self = decltype(_self)(this);
+}
+
 box_dynamic::~box_dynamic()
 {
 	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
 }
 
 // content management
-void box::set_parent(std::shared_ptr<box>& src) {
+void box_dynamic::set_parent(std::shared_ptr<box>& src) {
 	if (src) {
-		src->_parent = _self;
-		src->_self = src;
+		src->set_self();
+		src->set_parent(_self);
 		if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
 		if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
 	}

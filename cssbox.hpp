@@ -36,6 +36,8 @@ std::pair<T, T> operator-(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
 
 namespace css {
 
+class box_dynamic;
+
 // following CSS keywords are wildcards
 // initial: explicitly requests default value (does not require storage)
 // inherit: explicitly requests using parent's value (does require storage)
@@ -127,13 +129,12 @@ private:
 	int _margin[css::property::DIR_COUNT];
 	int _padding[css::property::DIR_COUNT];
 	int _z_index;
-	std::weak_ptr<box> _parent;
-	std::shared_ptr<box> _self;
+	std::weak_ptr<box_dynamic> _parent;
 #if MULTITHREAD_DRAW
 	static unsigned int _recalc_fakelock;
 #endif
 protected:
-	box(bool bootstrap = false);
+	box();
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box);
 public:
 	virtual ~box() = default;
@@ -236,22 +237,26 @@ public:
 	void z_index(int src) { _z_index = src; }
 
 	// layout recalculation (unsure about access control here)
-	std::shared_ptr<box> parent() const { return _parent.lock(); }
+	auto parent() const { return _parent.lock(); }
 	auto origin() const { return _origin; }
 	virtual void remove(std::shared_ptr<box> gone);
-	void disconnect() { _self.reset(); };
 
 	// these should be abstract, but bringing up a new implementation may need waiving that
 #ifdef PROTOTYPING_CSS
+	virtual void disconnect() {};
+	virtual void set_self() {};
 	virtual bool flush() { return false; };
 	virtual int need_recalc() const { return 0; };	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const {};
 #else
+	virtual void disconnect() = 0;
+	virtual void set_self() = 0;
 	virtual bool flush() = 0;
 	virtual int need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const = 0;
 #endif
 	virtual void force_size(int w, int h) {};	// should be abstract
+	void set_parent(std::shared_ptr<box_dynamic>& src) { _parent = src; };
 
 	void recalc();
 	virtual void set_origin(point logical_origin);
@@ -263,7 +268,6 @@ public:
 	bool request_vert_margins();
 protected:
 	virtual void schedule_reflow();
-	void set_parent(std::shared_ptr<box>& src);
 	void _width(int w);
 	void _height(int h);
 
@@ -279,26 +283,29 @@ class box_dynamic : public box
 {
 private:
 	std::vector<std::shared_ptr<box> > _contents;
+	std::shared_ptr<box_dynamic> _self;
 	size_t _redo_layout;	// the lowest index of a box that needs its position finalized
 public:
 	// have to allow public default-construction because the top-level box isn't tied to content
-	box_dynamic(bool bootstrap = false) : box(bootstrap),_redo_layout(0) {}
+	box_dynamic(bool bootstrap = false);
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box_dynamic);
 	~box_dynamic();
 
 	// content management
 	void append(std::shared_ptr<box> src);
 	virtual void remove(std::shared_ptr<box> gone);
+	void disconnect() { _self.reset(); };
+	void set_self() { _self = decltype(_self)(this); };
 
 	virtual void draw() const;
 	virtual void screen_coords(point logical_origin);
 	virtual void force_size(int w, int h);
-protected:
 	virtual void schedule_reflow();
 private:
 	virtual bool flush();
 	virtual int need_recalc() const;
 	virtual void _recalc(int code);
+	void set_parent(std::shared_ptr<box>& src);
 };
 
 }	// namespace css
