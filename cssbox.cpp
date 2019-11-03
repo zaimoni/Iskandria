@@ -127,19 +127,11 @@ void box_dynamic::screen_coords(point logical_origin) {
 }
 
 box::clear_float_legal box::CSS_float() const {
-	auto ret = (clear_float_legal)((_clear_float >> 2) & 3U);
-	if (CF_BOTH_INHERIT > ret) return ret;
-	auto host = parent();
-	if (host) return host->CSS_float();
-	return CF_NONE;	// default
+	return (clear_float_legal)((_clear_float >> 2) & 3U);
 }
 
 box::position_legal box::position() const {
-	auto ret = (position_legal)((_clear_float >> 4) & 7U);
-	if (POS_INHERIT > ret) return ret;
-	auto host = parent();
-	if (host) return host->position();
-	return POS_STATIC;	// default
+	return (position_legal)((_clear_float >> 4) & 7U);
 }
 
 box_dynamic::box_dynamic(bool bootstrap) : _redo_layout(0) {

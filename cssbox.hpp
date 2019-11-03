@@ -105,15 +105,15 @@ public:
 		CF_NONE = 0,
 		CF_LEFT,
 		CF_RIGHT,
-		CF_BOTH_INHERIT
+		CF_BOTH	// only for clear
 	};
-	static_assert(3 == CF_BOTH_INHERIT);
+	static_assert(3 == CF_BOTH);
 	enum position_legal {
 		POS_STATIC = 0,
 		POS_RELATIVE,
 		POS_ABSOLUTE,
 		POS_FIXED,
-		POS_INHERIT	// for formal completeness, not obviously useful
+		POS_STICKY
 	};
 protected:
 	unsigned char _auto;	// bitmap: margins, width, height
