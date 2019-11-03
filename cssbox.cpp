@@ -170,7 +170,7 @@ void box::set_parent(std::shared_ptr<box_dynamic>& src)
 		i = css::property::COUNT;
 		while (0 < i--) if (_inherited & (1ULL << i)) inherit(i, src);
 	}
-	// triggering auto properties with a loop looks reasonable here, but actually causes a hang
+	while (0 < i--) if (_auto & (1ULL << i)) _reflow |= (1ULL << i);	// trigger auto properties here
 }
 
 void box::remove(std::shared_ptr<box> gone) {}
@@ -206,7 +206,6 @@ void box::recalc() {
 
 	flush();
 	int code;
-//	while (0 < (code = need_recalc())) _recalc(code);
 	while (0 < (code = need_recalc())) _recalc(code);
 }
 
