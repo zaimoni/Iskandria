@@ -31,7 +31,7 @@ public:
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
 
 	void disconnect() { _self.reset(); };
-	void set_self() { _self = decltype(_self)(this); };
+	void set_self() { if (!_self) _self = decltype(_self)(this); };
 	virtual void draw() const {
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}

@@ -296,7 +296,7 @@ public:
 	void append(std::shared_ptr<box> src);
 	virtual void remove(std::shared_ptr<box> gone);
 	void disconnect() { _self.reset(); };
-	void set_self() { _self = decltype(_self)(this); };
+	void set_self() { if (!_self) _self = decltype(_self)(this); };
 
 	virtual void draw() const;
 	virtual void screen_coords(point logical_origin);
