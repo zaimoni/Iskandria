@@ -294,18 +294,18 @@ public:
 
 	// content management
 	void append(std::shared_ptr<box> src);
-	virtual void remove(std::shared_ptr<box> gone);
-	void disconnect() { _self.reset(); };
-	void set_self() { if (!_self) _self = decltype(_self)(this); };
+	void remove(std::shared_ptr<box> gone) override;
+	void disconnect() override { _self.reset(); };
+	void set_self() override { if (!_self) _self = decltype(_self)(this); };
 
-	virtual void draw() const;
-	virtual void screen_coords(point logical_origin);
-	virtual void force_size(int w, int h);
-	virtual void schedule_reflow();
+	void draw() const override;
+	void screen_coords(point logical_origin) override;
+	void force_size(int w, int h) override;
+	void schedule_reflow() override;
 private:
-	virtual bool flush();
-	virtual int need_recalc() const;
-	virtual void _recalc(int code);
+	bool flush() override;
+	int need_recalc() const override;
+	void _recalc(int code) override;
 	void set_parent(std::shared_ptr<box>& src);
 };
 

@@ -30,13 +30,13 @@ public:
 	auto natural_dimensions() const { return _x->getLocalBounds(); }
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
 
-	void disconnect() { _self.reset(); };
-	void set_self() { if (!_self) _self = decltype(_self)(this); };
-	virtual void draw() const {
+	void disconnect() override { _self.reset(); };
+	void set_self() override { if (!_self) _self = decltype(_self)(this); };
+	void draw() const override {
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}
 
-	virtual void screen_coords(point logical_origin) {
+	void screen_coords(point logical_origin) override {
 		box::screen_coords(logical_origin);
 		const auto scale = isk::DisplayManager::get().inverseScale();
 		_x->setScale(scale.first * _scale.first, scale.second * _scale.second);
@@ -94,15 +94,15 @@ private:
 		physical_width_height();
 	}
 
-	virtual bool flush() { return !_x; }
+	bool flush() override { return !_x; }
 
-	virtual int need_recalc() const {
+	int need_recalc() const override {
 		if (!_x) return 0;	// reject NULL;
 		int ret = assign_bootstrap_code();
 		if (0 < ret) return ret;
 		return 0;
 	}
-	virtual void _recalc(int code) {
+	void _recalc(int code) override {
 		if (0 >= code) return;	// do not process errors or no-op
 		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
 		{
