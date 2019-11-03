@@ -55,7 +55,7 @@ namespace property {
 	enum {
 		MARGIN = 0,
 		WIDTH = MARGIN+ DIR_COUNT,
-		HEIGHT,	// last property for which auto is legal
+		HEIGHT,	// last property for which auto is legal, historically
 		PADDING,
 		MIN_WIDTH = PADDING + DIR_COUNT,
 		MAX_WIDTH = MIN_WIDTH + DIR_COUNT,
@@ -256,7 +256,7 @@ public:
 	virtual void draw() const = 0;
 #endif
 	virtual void force_size(int w, int h) {};	// should be abstract
-	void set_parent(std::shared_ptr<box_dynamic>& src) { _parent = src; };
+	void set_parent(std::shared_ptr<box_dynamic>& src);
 
 	void recalc();
 	virtual void set_origin(point logical_origin);
@@ -277,6 +277,7 @@ private:
 #else
 	virtual void _recalc(int code) = 0;
 #endif
+	void inherit(int i, std::shared_ptr<box_dynamic> src) {};
 };
 
 class box_dynamic : public box

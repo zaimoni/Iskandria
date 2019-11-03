@@ -27,6 +27,7 @@ box::box()
 void box::set_auto(auto_legal src) {
 	if (!is_auto(src)) {
 		_auto |= (1ULL << src);
+		_inherited |= ~(1ULL << src);
 		_reflow |= (1ULL << src);	// uses auto_legal::LEFT == css::property::MARGIN, etc.
 	}
 }
@@ -158,6 +159,18 @@ void box_dynamic::set_parent(std::shared_ptr<box>& src) {
 		if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
 		if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
 	}
+}
+
+void box::set_parent(std::shared_ptr<box_dynamic>& src)
+{
+	_parent = src;
+	// trigger all inherited properties
+	int i;
+	if (_inherited) {
+		i = css::property::COUNT;
+		while (0 < i--) if (_inherited & (1ULL << i)) inherit(i, src);
+	}
+	// triggering auto properties with a loop looks reasonable here, but actually causes a hang
 }
 
 void box::remove(std::shared_ptr<box> gone) {}
