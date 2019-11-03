@@ -47,9 +47,9 @@ public:
 #endif
 	}
 private:
-	int assign_bootstrap_code() const {
-		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return 1;
-		return 0;
+	layout_op assign_bootstrap_code() const {
+		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return layout_op(1,0);
+		return layout_op(0,0);
 	}
 	void physical_width_height() {
 		auto natural = _x->getLocalBounds();
@@ -96,15 +96,15 @@ private:
 
 	bool flush() override { return !_x; }
 
-	int need_recalc() const override {
-		if (!_x) return 0;	// reject NULL;
-		int ret = assign_bootstrap_code();
-		if (0 < ret) return ret;
-		return 0;
+	layout_op need_recalc() const override {
+		if (!_x) return layout_op(0,0);	// reject NULL;
+		const auto ret = assign_bootstrap_code();
+		if (0 < ret.first) return ret;
+		return layout_op(0, 0);
 	}
-	void _recalc(int code) override {
-		if (0 >= code) return;	// do not process errors or no-op
-		switch (code)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
+	void _recalc(layout_op& code) override {
+		if (0 >= code.first) return;	// do not process errors or no-op
+		switch (code.first)	// arguably should have a private enum for legibility.  Backfit it when it's clear what's going on.
 		{
 		case 1:
 			physical_width_height();

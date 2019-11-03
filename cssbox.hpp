@@ -86,6 +86,7 @@ public:
 #else
 	typedef std::pair<int, int> point;
 #endif
+	typedef std::pair<int,size_t> layout_op;
 	enum auto_legal {
 		LEFT = 0,
 		TOP,
@@ -252,7 +253,7 @@ public:
 	virtual void disconnect() = 0;
 	virtual void set_self() = 0;
 	virtual bool flush() = 0;
-	virtual int need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
+	virtual layout_op need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const = 0;
 #endif
 	virtual void force_size(int w, int h) {};	// should be abstract
@@ -266,6 +267,8 @@ public:
 	void vertical_centering(int ub, point origin);
 	bool request_horz_margins();
 	bool request_vert_margins();
+	int need_horz_margins() const;
+	int need_vert_margins() const;
 protected:
 	virtual void schedule_reflow();
 	void _width(int w);
@@ -275,7 +278,7 @@ private:
 #ifdef PROTOTYPING_CSS
 	virtual void _recalc(int code) {};
 #else
-	virtual void _recalc(int code) = 0;
+	virtual void _recalc(layout_op& code) = 0;
 #endif
 	void inherit(int i, std::shared_ptr<box_dynamic> src) {};
 };
@@ -304,8 +307,8 @@ public:
 	void schedule_reflow() override;
 private:
 	bool flush() override;
-	int need_recalc() const override;
-	void _recalc(int code) override;
+	layout_op need_recalc() const override;
+	void _recalc(layout_op& code) override;
 	void set_parent(std::shared_ptr<box>& src);
 };
 

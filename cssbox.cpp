@@ -197,8 +197,8 @@ void box::recalc() {
 #endif
 
 	flush();
-	int code;
-	while (0 < (code = need_recalc())) _recalc(code);
+	std::pair<int, size_t> code;
+	while (0 < (code = need_recalc()).first) _recalc(code);
 }
 
 // used by the outermost dynamic box i.e. top window
@@ -242,27 +242,29 @@ bool box_dynamic::flush() {
 	return _contents.empty();
 }
 
-int box_dynamic::need_recalc() const
+css::box::layout_op box_dynamic::need_recalc() const
 {
 	// check contents first;
 	if (!_contents.empty()) {	// self-recalc check
 		auto i = _contents.size();
 		do {
-			if (0 < _contents[--i]->need_recalc()) return i + 1;
+			if (0 < _contents[--i]->need_recalc().first) return layout_op(1,i);
+		} while (0 < i);
+		i = _contents.size();
+		do {
+			if (_contents[--i]->need_horz_margins()) return layout_op(2, i);
+		} while (0 < i);
+		i = _contents.size();
+		do {
+			if (_contents[--i]->need_vert_margins()) return layout_op(3, i);
 		} while (0 < i);
 	}
 	// \todo: actually reposition contents
 	// parallel: css_SFML.hpp
 	if ((_auto & (1ULL << HEIGHT)) && (_auto & (1ULL << WIDTH))) {
-		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return _contents.size()+1;
+		if (_reflow & ((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH))) return layout_op(4,0);
 	}
-	if (parent()) {	// can only resolve margins if we have a parent
-		if ((_auto & (1ULL << LEFT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::LEFT))) return _contents.size() + 2;
-		if ((_auto & (1ULL << RIGHT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::RIGHT))) return _contents.size() + 2;
-		if ((_auto & (1ULL << TOP)) && (_reflow & (1ULL << css::property::MARGIN + css::property::TOP))) return _contents.size() + 3;
-		if ((_auto & (1ULL << BOTTOM)) && (_reflow & (1ULL << css::property::MARGIN + css::property::BOTTOM))) return _contents.size() + 3;
-	}
-	return 0;
+	return layout_op(0,0);
 }
 
 void box::horizontal_centering(const int ub, const point local_origin)
@@ -335,6 +337,14 @@ bool box::request_horz_margins()
 	return ret;
 }
 
+int box::need_horz_margins() const
+{
+	int ret = 0;
+	if ((_auto & (1ULL << LEFT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::LEFT))) ret += 1;
+	if ((_auto & (1ULL << RIGHT)) && (_reflow & (1ULL << css::property::MARGIN + css::property::RIGHT))) ret += 2;
+	return ret;
+}
+
 bool box::request_vert_margins()
 {
 	bool ret = false;
@@ -349,21 +359,55 @@ bool box::request_vert_margins()
 	return ret;
 }
 
-void box_dynamic::_recalc(int code)
+int box::need_vert_margins() const
 {
-	if (0 >= code) return;
-	const auto c_size = _contents.size();
-	if (c_size >= code) {
-		// self-recalc entry
-		_contents[code - 1]->recalc();
-		if (!_redo_layout || _redo_layout > code) _redo_layout = code;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+	int ret = 0;
+	if ((_auto & (1ULL << TOP)) && (_reflow & (1ULL << css::property::MARGIN + css::property::TOP))) ret += 1;
+	if ((_auto & (1ULL << BOTTOM)) && (_reflow & (1ULL << css::property::MARGIN + css::property::BOTTOM))) ret += 2;
+	return ret;
+}
+
+void box_dynamic::_recalc(layout_op& code)
+{
+	if (0 >= code.first) return;
+	if (1 == code.first) {
+		_contents[code.second]->recalc();
+		if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+		while (0 < code.second) {
+			if (0 < _contents[--code.second]->need_recalc().first) {
+				_contents[code.second]->recalc();
+				if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+			}
+		}
 		return;
 	}
-	code -= c_size;	// rescale the code
+	if (2 == code.first) {
+		_contents[code.second]->horizontal_centering(width(), origin());
+		if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+		while (0 < code.second) {
+			if (_contents[--code.second]->need_horz_margins()) {
+				_contents[code.second]->horizontal_centering(width(), origin());
+				if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+			}
+		}
+		return;
+	}
+	if (3 == code.first) {
+		_contents[code.second]->vertical_centering(height(), origin());
+		if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+		while (0 < code.second) {
+			if (_contents[--code.second]->need_vert_margins()) {
+				_contents[code.second]->vertical_centering(height(), origin());
+				if (!_redo_layout || _redo_layout > code.second) _redo_layout = code.second;	// \todo lock this update down to when it's needed (i.e. border-box actually changes)
+			}
+		}
+		return;
+	}
+	const auto c_size = _contents.size();
 	// parallel: css_SFML.hpp
-	switch (code)
+	switch(code.first)
 	{
-	case 1:	// size
+	case 4:	// size
 		if (1 == c_size) {
 			const auto _size = _contents[0]->size();
 			// usual strcmp coding: -1 less than lower bound, 1 greater than lower bound, 0 ok
@@ -377,12 +421,6 @@ void box_dynamic::_recalc(int code)
 		}
 		assert(0 && "unhandled resize request");
 		_reflow &= ~((1ULL << css::property::WIDTH) | (1ULL << css::property::HEIGHT));	// do not infinite-loop
-		break;
-	case 2:	// horizontal auto-center
-		horizontal_centering(parent()->width(), parent()->origin());
-		break;
-	case 3:	// vertical auto-center
-		vertical_centering(parent()->height(), parent()->origin());
 		break;
 	}
 }
