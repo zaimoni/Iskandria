@@ -12,6 +12,16 @@
 namespace zaimoni {
 namespace math {
 
+template<class T, class U>
+void clamp_lb(T& dest, const U& lb) {
+	if (lb > dest) dest = lb;
+}
+
+template<class T, class U>
+void clamp_ub(T& dest, const U& ub) {
+	if (ub < dest) dest = ub;
+}
+
 namespace pointwise {
 
 template<class IO_Iter,class I_Iter>
@@ -40,7 +50,6 @@ void in_place_difference(IO_Iter dest, I_Iter src, size_t n)
 		};
 }
 
-
 template<class IO_Iter,class T>
 void in_place_scalar_product(IO_Iter dest, const T src, size_t n)
 {
@@ -64,6 +73,31 @@ void in_place_scalar_quotient(IO_Iter dest, const T src, size_t n)
 		--n;
 		};
 }
+
+template<class IO_Iter, class I_Iter>
+void clamp_lb(IO_Iter dest, I_Iter src, size_t n)
+{
+	assert(0 < n);
+	assert(dest);
+	assert(src);
+	while (0 < n) {
+		zaimoni::math::clamp_lb(*(dest++), *(src++));
+		--n;
+	};
+}
+
+template<class IO_Iter, class I_Iter>
+void clamp_ub(IO_Iter dest, I_Iter src, size_t n)
+{
+	assert(0 < n);
+	assert(dest);
+	assert(src);
+	while (0 < n) {
+		zaimoni::math::clamp_ub(*(dest++), *(src++));
+		--n;
+	};
+}
+
 
 }	// namespace pointwise
 
@@ -108,6 +142,8 @@ public:
 		return _x.data()[n];
 	};
 	size_t size() const {return N;}
+	auto data() { return _x.data(); }
+	auto data() const { return _x.data(); }
 
 	// numerically simple operations
 	vector& operator+=(const vector& src) {
@@ -154,6 +190,18 @@ vector<T,N> operator/(vector<T,N> lhs, const T& rhs)
 {
 	lhs /= rhs;
 	return lhs;
+}
+
+template<class T, class U, size_t N>
+void clamp_lb(vector<T, N>& dest, const vector<U, N>& lb)
+{
+	zaimoni::math::pointwise::clamp_lb(dest.data(), lb.data(), N);
+}
+
+template<class T, class U, size_t N>
+void clamp_ub(vector<T, N>& dest, const vector<U, N>& ub)
+{
+	zaimoni::math::pointwise::clamp_ub(dest.data(), ub.data(), N);
 }
 
 template<class T,size_t N>

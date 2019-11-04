@@ -8,18 +8,10 @@
 #include "Zaimoni.STL/ref_inc.hpp"
 #endif
 
-// these might belong in a numerical support library
-template<class T, class U>
-void clamp_lb(T& dest, const U& lb) {
-	if (lb > dest) dest = lb;
-}
-
-template<class T, class U>
-void clamp_ub(T& dest, const U& ub) {
-	if (ub < dest) dest = ub;
-}
-
 namespace css {
+
+using zaimoni::math::clamp_lb;
+using zaimoni::math::clamp_ub;
 
 #if MULTITHREAD_DRAW
 unsigned int box::_recalc_fakelock = 0;
@@ -488,7 +480,6 @@ bool box_dynamic::reflow()
 	std::map<int, std::vector<rect> > used;	// rectangles representing already-used space
 	std::map<int, std::vector<rect> > float_left_used;	// rectangles representing already-used space
 	std::map<int, std::vector<rect> > float_right_used;	// rectangles representing already-used space
-	std::map<int, std::vector<rect> > absolute_used;	// rectangles representing already-used space by absolute-positioned elements
 
 	for(auto& x : _contents) {
 		if (x->has_no_box()) continue;
@@ -500,13 +491,9 @@ bool box_dynamic::reflow()
 			work_bounds[z_index] = reset_bounds;
 		}
 		if (!x->can_reflow()) {
-			if (!absolute_used.count(z_index)) absolute_used[z_index] = std::vector<rect>();
 			auto test = x->clickable_box();
-			absolute_used[z_index].push_back(test);
-			if (flowed_hull.tl_c()[0] > test.tl_c()[0]) flowed_hull.tl_c()[0] = test.tl_c()[0];
-			if (flowed_hull.tl_c()[1] > test.tl_c()[1]) flowed_hull.tl_c()[1] = test.tl_c()[1];
-			if (flowed_hull.br_c()[0] < test.br_c()[0]) flowed_hull.br_c()[0] = test.br_c()[0];
-			if (flowed_hull.br_c()[1] < test.br_c()[1]) flowed_hull.br_c()[1] = test.br_c()[1];
+			clamp_ub(flowed_hull.tl_c(), test.tl_c());
+			clamp_lb(flowed_hull.br_c(), test.br_c());
 			continue;
 		}
 		if (!used.count(z_index)) used[z_index] = std::vector<rect>();
@@ -562,10 +549,8 @@ bool box_dynamic::reflow()
 			rects.push_back(test);
 			bounds.first = test.br_c()[0];
 		}
-		clamp_ub(flowed_hull.tl_c()[0], test.tl_c()[0]);
-		clamp_ub(flowed_hull.tl_c()[1], test.tl_c()[1]);
-		clamp_lb(flowed_hull.br_c()[0], test.br_c()[0]);
-		clamp_lb(flowed_hull.br_c()[1], test.br_c()[1]);
+		clamp_ub(flowed_hull.tl_c(), test.tl_c());
+		clamp_lb(flowed_hull.br_c(), test.br_c());
 		if (CF_RIGHT == x_clear || CF_BOTH == x_clear) {
 			// need to block off entire area to right
 			assert(0 && "unhandled operation");
