@@ -19,6 +19,14 @@ int main(int argc, char* argv[])
 
 	// configure the game start menu and install to the input manager (possibly natural singleton?)  function target here
 	isk::textmenu start_game;
+
+#if 0
+	sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::T, false, false, false, false };
+	start_game.add_entry("T)est", hotkey, isk::GameManager::quit_handler);	// eventually provides access to various test drivers
+	hotkey.shift = true;
+	start_game.add_entry(hotkey, isk::GameManager::quit_handler);
+#endif
+
 	sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::Q, false, false, false, false };
 	start_game.add_entry("Q)uit", hotkey, isk::GameManager::quit_handler);
 	hotkey.shift = true;

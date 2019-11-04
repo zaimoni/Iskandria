@@ -112,9 +112,12 @@ public:
 	enum position_legal {
 		POS_STATIC = 0,
 		POS_RELATIVE,
-		POS_ABSOLUTE,
+		POS_STICKY,
 		POS_FIXED,
-		POS_STICKY
+		POS_ABSOLUTE
+	};
+	enum {
+		POS_MIN_NOFLOW = POS_FIXED
 	};
 protected:
 	unsigned char _auto;	// bitmap: margins, width, height
@@ -146,6 +149,7 @@ public:
 
 	// width/height
 	auto size() const { return _size; }
+	auto max_size() const { return _size_max; }
 #if POINT_IS_Z_VECTOR
 	int width() const { return _size[0]; }
 	int height() const { return _size[1]; }
@@ -168,6 +172,10 @@ public:
 	void min_height(int h);
 	void max_width(int w);
 	void max_height(int h);
+
+	// for reflowing
+	int effective_max_width() const;
+	int effective_max_height() const;
 
 	// padding, margin
 	template<int src> int padding() const {
@@ -220,6 +228,7 @@ public:
 	// layout boxes
 #if POINT_IS_Z_VECTOR
 	auto inner_box() const { return rect(_origin, _origin + _size); }
+	auto clickable_box() const { return rect(_origin - padding<LEFT, TOP>(), _origin + _size + padding<RIGHT, BOTTOM>()); }
 	auto outer_box() const { return rect(_origin - padding<LEFT,TOP>() - margin<LEFT,TOP>(), _origin + _size+ padding<RIGHT, BOTTOM>() + margin<RIGHT, BOTTOM>()); }
 #endif
 
@@ -258,6 +267,9 @@ public:
 #endif
 	virtual void force_size(int w, int h) {};	// should be abstract
 	void set_parent(std::shared_ptr<box_dynamic>& src);
+
+	bool can_reflow() const;
+	bool has_no_box() const;
 
 	void recalc();
 	virtual void set_origin(point logical_origin);
@@ -310,6 +322,7 @@ private:
 	layout_op need_recalc() const override;
 	void _recalc(layout_op& code) override;
 	void set_parent(std::shared_ptr<box>& src);
+	bool reflow();
 };
 
 }	// namespace css

@@ -1,6 +1,8 @@
 #include "cssbox.hpp"
 #include <string.h>
 #include <limits>
+#include <map>
+
 #include "Zaimoni.STL/Logging.h"
 #if MULTITHREAD_DRAW
 #include "Zaimoni.STL/ref_inc.hpp"
@@ -113,6 +115,27 @@ void box::max_height(int h) {
 	else if (h < __height) height(h);
 }
 
+int box::effective_max_width() const
+{
+	auto ret = max_width();
+	if (auto mother = parent()) {
+		auto test = mother->width();
+		if (0 < test && ret > test) ret = test;
+	}
+	return ret;
+}
+
+int box::effective_max_height() const
+{
+	auto ret = max_height();
+	if (auto mother = parent()) {
+		auto test = mother->height();
+		if (0 < test && ret > test) ret = test;
+	}
+	return ret;
+}
+
+
 void box::set_origin(const point logical_origin) {
 	_origin = logical_origin + margin<LEFT, TOP>() + padding<LEFT, TOP>();
 }
@@ -163,6 +186,20 @@ void box::set_parent(std::shared_ptr<box_dynamic>& src)
 		while (0 < i--) if (_inherited & (1ULL << i)) inherit(i, src);
 	}
 	while (0 < i--) if (_auto & (1ULL << i)) _reflow |= (1ULL << i);	// trigger auto properties here
+}
+
+bool box::has_no_box() const
+{
+	// \todo display:none has no box
+	if (0 >= width() || 0 >= height()) return true;
+	return false;
+}
+
+bool box::can_reflow() const
+{
+	if (has_no_box()) return false;	// might be able to pre-condition this test
+	if (POS_MIN_NOFLOW <= position()) return false;
+	return true;
 }
 
 void box::remove(std::shared_ptr<box> gone) {}
@@ -408,17 +445,7 @@ void box_dynamic::_recalc(layout_op& code)
 	switch(code.first)
 	{
 	case 4:	// size
-		if (1 == c_size) {
-			const auto _size = _contents[0]->size();
-			// usual strcmp coding: -1 less than lower bound, 1 greater than lower bound, 0 ok
-			const int width_bad = (min_width() <= __width) ? ((max_width() >= __width) ? 0 : 1) : -1;
-			const int height_bad = (min_height() <= __height) ? ((max_height() >= __height) ? 0 : 1) : -1;
-			if (!width_bad && !height_bad) {
-				_width(__width);
-				_height(__height);
-				return;
-			}
-		}
+		if (reflow()) return;
 		assert(0 && "unhandled resize request");
 		_reflow &= ~((1ULL << css::property::WIDTH) | (1ULL << css::property::HEIGHT));	// do not infinite-loop
 		break;
@@ -430,9 +457,102 @@ void box_dynamic::draw() const
 	if (_contents.empty()) return;
 	// We will need to be *much* smarter about this; anything that is off-screen or completely hidden by higher z-index need not be done here
 	for(auto& x : _contents) {
-		if (!x) continue;
 		x->draw();
 	}
+}
+
+
+bool box_dynamic::reflow()
+{
+	if (_contents.empty()) return true;
+
+	bool layout_changed = false;
+	rect flowed_hull(point(0), point(0));
+
+	// one key for each z-index
+	std::map<int, rect> workspace;			// bounding rectangles on where things could go
+	std::map<int, std::pair<int,int> > work_bounds;			// bounding rectangles on where things could go
+	const std::pair<int, int> reset_bounds(0, effective_max_width());
+	const int reset_delta = reset_bounds.second - reset_bounds.first;
+	std::map<int, std::vector<rect> > used;	// rectangles representing already-used space
+	std::map<int, std::vector<rect> > float_left_used;	// rectangles representing already-used space
+	std::map<int, std::vector<rect> > float_right_used;	// rectangles representing already-used space
+	std::map<int, std::vector<rect> > absolute_used;	// rectangles representing already-used space by absolute-positioned elements
+
+	for(auto& x : _contents) {
+		if (x->has_no_box()) continue;
+		const auto z_index = x->z_index();
+		// handle z-index setup
+		if (!workspace.count(z_index)) {
+			auto tmp = rect(point(0), max_size());
+			workspace[z_index] = tmp;
+			work_bounds[z_index] = reset_bounds;
+		}
+		if (!x->can_reflow()) {
+			if (!absolute_used.count(z_index)) absolute_used[z_index] = std::vector<rect>();
+			auto test = x->clickable_box();
+			absolute_used[z_index].push_back(test);
+			if (flowed_hull.tl_c()[0] > test.tl_c()[0]) flowed_hull.tl_c()[0] = test.tl_c()[0];
+			if (flowed_hull.tl_c()[1] > test.tl_c()[1]) flowed_hull.tl_c()[1] = test.tl_c()[1];
+			if (flowed_hull.br_c()[0] < test.br_c()[0]) flowed_hull.br_c()[0] = test.br_c()[0];
+			if (flowed_hull.br_c()[1] < test.br_c()[1]) flowed_hull.br_c()[1] = test.br_c()[1];
+			continue;
+		}
+		if (!used.count(z_index)) used[z_index] = std::vector<rect>();
+		if (!float_left_used.count(z_index)) float_left_used[z_index] = std::vector<rect>();
+		if (!float_right_used.count(z_index)) float_right_used[z_index] = std::vector<rect>();
+		auto& rects = used[z_index];
+		auto& float_left_rects = float_left_used[z_index];
+		auto& float_right_rects = float_right_used[z_index];
+		auto& remain = workspace[z_index];
+		auto& bounds = work_bounds[z_index];
+		const int delta = bounds.second - bounds.first;
+		const bool right_aligned = (CF_RIGHT == x->CSS_float());
+		point snap_to;
+		snap_to[0] = right_aligned ? bounds.second : bounds.first;
+		snap_to[1] = remain.tl_c()[1];
+		auto test = x->outer_box();
+		const auto test_width = test.br_c()[0] - test.tl_c()[0];
+		if (reset_delta > delta && delta < test_width) {
+			// need to sink down
+			assert(0 && "unhandled operation");
+		}
+		point other_corner(test.tl_c());
+		if (right_aligned) {
+			other_corner[0] = test.br_c()[0];
+			other_corner[1] = test.tl_c()[1];
+		}
+		const auto shift = snap_to - other_corner;
+		if (shift[0] || shift[1]) {
+			x->set_origin(shift + x->origin());
+			test = x->outer_box();
+			layout_changed = true;
+		}
+		if (right_aligned) {
+			float_right_rects.push_back(test);
+			bounds.second = test.tl_c()[0];
+		} else if (CF_LEFT == x->CSS_float()) {
+			float_left_rects.push_back(test);
+			bounds.first = test.br_c()[0];
+		} else {
+			rects.push_back(test);
+			bounds.first = test.br_c()[0];
+		}
+		if (flowed_hull.tl_c()[0] > test.tl_c()[0]) flowed_hull.tl_c()[0] = test.tl_c()[0];
+		if (flowed_hull.tl_c()[1] > test.tl_c()[1]) flowed_hull.tl_c()[1] = test.tl_c()[1];
+		if (flowed_hull.br_c()[0] < test.br_c()[0]) flowed_hull.br_c()[0] = test.br_c()[0];
+		if (flowed_hull.br_c()[1] < test.br_c()[1]) flowed_hull.br_c()[1] = test.br_c()[1];
+	}
+	if (0 > flowed_hull.tl_c()[0]) flowed_hull.tl_c()[0] = 0;
+	if (0 > flowed_hull.tl_c()[1]) flowed_hull.tl_c()[1] = 0;
+	if (reset_bounds.second < flowed_hull.br_c()[0]) flowed_hull.br_c()[0] = reset_bounds.second;
+	{
+	auto tmp = effective_max_height();
+	if (tmp < flowed_hull.br_c()[1]) flowed_hull.br_c()[1] = tmp;
+	}
+	_width(flowed_hull.br_c()[0]);
+	_height(flowed_hull.br_c()[1]);
+	return true;
 }
 
 
