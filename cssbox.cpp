@@ -8,6 +8,17 @@
 #include "Zaimoni.STL/ref_inc.hpp"
 #endif
 
+// these might belong in a numerical support library
+template<class T, class U>
+void clamp_lb(T& dest, const U& lb) {
+	if (lb > dest) dest = lb;
+}
+
+template<class T, class U>
+void clamp_ub(T& dest, const U& ub) {
+	if (ub < dest) dest = ub;
+}
+
 namespace css {
 
 #if MULTITHREAD_DRAW
@@ -507,6 +518,7 @@ bool box_dynamic::reflow()
 		auto& remain = workspace[z_index];
 		auto& bounds = work_bounds[z_index];
 		const int delta = bounds.second - bounds.first;
+		const auto x_clear = x->CSS_clear();
 		const bool right_aligned = (CF_RIGHT == x->CSS_float());
 		point snap_to;
 		snap_to[0] = right_aligned ? bounds.second : bounds.first;
@@ -516,6 +528,18 @@ bool box_dynamic::reflow()
 		if (reset_delta > delta && delta < test_width) {
 			// need to sink down
 			assert(0 && "unhandled operation");
+		}
+		if (CF_LEFT == x_clear || CF_BOTH == x_clear) {
+			if (0 < bounds.first) {
+				// need to sink down
+				assert(0 && "unhandled operation");
+			}
+		}
+		if (CF_RIGHT == x_clear || CF_BOTH == x_clear) {
+			if (reset_bounds.second > bounds.second) {
+				// need to sink down
+				assert(0 && "unhandled operation");
+			}
 		}
 		point other_corner(test.tl_c());
 		if (right_aligned) {
@@ -538,18 +562,20 @@ bool box_dynamic::reflow()
 			rects.push_back(test);
 			bounds.first = test.br_c()[0];
 		}
-		if (flowed_hull.tl_c()[0] > test.tl_c()[0]) flowed_hull.tl_c()[0] = test.tl_c()[0];
-		if (flowed_hull.tl_c()[1] > test.tl_c()[1]) flowed_hull.tl_c()[1] = test.tl_c()[1];
-		if (flowed_hull.br_c()[0] < test.br_c()[0]) flowed_hull.br_c()[0] = test.br_c()[0];
-		if (flowed_hull.br_c()[1] < test.br_c()[1]) flowed_hull.br_c()[1] = test.br_c()[1];
+		clamp_ub(flowed_hull.tl_c()[0], test.tl_c()[0]);
+		clamp_ub(flowed_hull.tl_c()[1], test.tl_c()[1]);
+		clamp_lb(flowed_hull.br_c()[0], test.br_c()[0]);
+		clamp_lb(flowed_hull.br_c()[1], test.br_c()[1]);
+		if (CF_RIGHT == x_clear || CF_BOTH == x_clear) {
+			// need to block off entire area to right
+			assert(0 && "unhandled operation");
+		}
 	}
-	if (0 > flowed_hull.tl_c()[0]) flowed_hull.tl_c()[0] = 0;
-	if (0 > flowed_hull.tl_c()[1]) flowed_hull.tl_c()[1] = 0;
-	if (reset_bounds.second < flowed_hull.br_c()[0]) flowed_hull.br_c()[0] = reset_bounds.second;
-	{
-	auto tmp = effective_max_height();
-	if (tmp < flowed_hull.br_c()[1]) flowed_hull.br_c()[1] = tmp;
-	}
+	clamp_lb(flowed_hull.tl_c()[0], 0);
+	clamp_lb(flowed_hull.tl_c()[1], 0);
+	clamp_ub(flowed_hull.br_c()[0], reset_bounds.second);
+	clamp_ub(flowed_hull.br_c()[1], effective_max_height());
+
 	_width(flowed_hull.br_c()[0]);
 	_height(flowed_hull.br_c()[1]);
 	return true;
