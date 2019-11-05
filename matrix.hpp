@@ -24,6 +24,19 @@ void clamp_ub(T& dest, const U& ub) {
 
 namespace pointwise {
 
+template<class I_Iter, class OP>
+bool all(I_Iter lhs, I_Iter rhs, size_t n, OP rel)
+{
+	assert(0 < n);
+	assert(lhs);
+	assert(rhs);
+	while (0 < n) {
+		if (!rel(*(lhs++), *(rhs++))) return false;
+		--n;
+	};
+	return true;
+}
+
 template<class IO_Iter,class I_Iter>
 void in_place_sum(IO_Iter dest, I_Iter src, size_t n)
 {
@@ -202,6 +215,12 @@ template<class T, class U, size_t N>
 void clamp_ub(vector<T, N>& dest, const vector<U, N>& ub)
 {
 	zaimoni::math::pointwise::clamp_ub(dest.data(), ub.data(), N);
+}
+
+template<class T, size_t N, class OP>
+bool pointwise_test(const vector<T, N>& lhs, const vector<T, N>& rhs, OP rel)
+{
+	return zaimoni::math::pointwise::all(lhs.data(), rhs.data(), N, rel);
 }
 
 template<class T,size_t N>

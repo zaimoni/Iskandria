@@ -470,8 +470,8 @@ static int _interval_compare(int x_lb, int x_ub, int y_lb, int y_ub)
 	if (x_ub <= y_lb) return -3;	// disjoint
 	if (y_ub <= x_lb) return 3;		// disjoint
 	// at this point: x_ub > y_lb, y_ub > x_lb: we have some sort of intersection
-	if (x_lb < y_lb && x_ub <= y_lb) return -2;	// clean difference: lhs < rhs
-	if (y_lb < x_lb && y_ub <= x_lb) return 2;	// clean difference: lhs > rhs
+	if (x_lb <= y_lb && x_ub < y_ub) return -2;	// clean difference: lhs < rhs
+	if (y_lb <= x_lb && y_ub < x_ub) return  2;	// clean difference: lhs > rhs
 
 	if (x_lb == y_lb && x_ub == y_ub) return 0;	// equal
 	if (x_lb <= y_lb && y_ub <= x_ub) return -1;	// lhs contains rhs
@@ -488,6 +488,15 @@ static bool _intersects(const css::box::rect& lhs, const css::box::rect& rhs, st
 		if (3 == codes[ub] || -3 == codes[ub]) return false;
 	} while (0 < ub);
 	return true;
+}
+
+static void _relative_geometry(const css::box::rect& lhs, const css::box::rect& rhs, std::array<int, 2>& codes)
+{
+	size_t ub = 2;
+	do {
+		--ub;
+		codes[ub] = _interval_compare(lhs.tl_c()[ub], lhs.br_c()[ub], rhs.tl_c()[ub], rhs.br_c()[ub]);
+	} while (0 < ub);
 }
 
 // comparison order for the codes is as follows:
@@ -541,26 +550,32 @@ static std::vector<css::box::rect> _set_difference(const css::box::rect& lhs, co
 				auto safe_2(test);
 				safe_1.tl_c()[i] = rhs.br_c()[i];
 				safe_2.br_c()[i] = rhs.tl_c()[i];
+				assert(safe_1.tl_c()[i] < safe_1.br_c()[i]);
+				assert(safe_2.tl_c()[i] < safe_2.br_c()[i]);
 				ret.push_back(safe_1);
 				ret.push_back(safe_2);
 				test.tl_c()[i] = rhs.tl_c()[i];
 				test.br_c()[i] = rhs.br_c()[i];
+				assert(test.tl_c()[i] < test.br_c()[i]);
 				}
 				break;
 			case -2:	// 2-way split
 				{
 				auto safe(test);
 				safe.br_c()[i] = rhs.tl_c()[i];
+				assert(safe.tl_c()[i] < safe.br_c()[i]);
 				ret.push_back(safe);
-				test.tl_c()[i] = rhs.tl_c()[i];
+				test.tl_c()[i] = rhs.br_c()[i];
+				assert(test.tl_c()[i] < test.br_c()[i]);
 				}
 				break;
 			case  2:	// 2-way split
 				{
 				auto safe(test);
 				safe.tl_c()[i] = rhs.br_c()[i];
+				assert(safe.tl_c()[i] < safe.br_c()[i]);
 				ret.push_back(safe);
-				test.br_c()[i] = rhs.tl_c()[i];
+				assert(test.tl_c()[i] < test.br_c()[i]);
 				}
 				break;
 			case  1:
@@ -573,6 +588,86 @@ static std::vector<css::box::rect> _set_difference(const css::box::rect& lhs, co
 	}  while(0 < ub);
 	return ret;
 }
+
+static void _self_union(std::vector<css::box::rect>& x, css::box::rect src)
+{
+	if (x.empty()) {
+		x.push_back(src);
+		return;
+	}
+
+restart:
+	// This doesn't have to be "complete" for CSS processing -- the incoming rectangles are meant to be disjoint
+	size_t ub = x.size();
+	do {
+		auto& r = x[--ub];
+		std::array<int, 2> geometry;
+		_relative_geometry(r, src, geometry);
+		std::pair<std::array<int, 2>, std::pair<size_t,size_t> > r_contains_src;	// format: codes, count, missed coordinate
+		std::pair<std::array<int, 2>, std::pair<size_t, size_t> > r_eq_src;
+		std::pair<std::array<int, 2>, std::pair<size_t, size_t> > src_contains_r;
+		r_contains_src.second.first = 0;
+		r_eq_src.second.first = 0;
+		src_contains_r.second.first = 0;
+		bool disjoint = false;
+		size_t scan = 2;
+		do {
+			--scan;
+			if (-3 == geometry[scan] && r.br_c()[scan] < src.tl_c()[scan]) {
+				disjoint = true;
+				break;
+			}
+			if ( 3 == geometry[scan] && r.tl_c()[scan] > src.br_c()[scan]) {
+				disjoint = true;
+				break;
+			}
+
+			if (r_eq_src.first[scan] = (0 == geometry[scan])) r_eq_src.second.first++;
+			else r_eq_src.second.second = scan;
+			if (r_contains_src.first[scan] = (0 == geometry[scan] || 1 == geometry[scan])) r_contains_src.second.first++;
+			else r_contains_src.second.second = scan;
+			if (src_contains_r.first[scan] = (0 == geometry[scan] || -1 == geometry[scan])) src_contains_r.second.first++;
+			else src_contains_r.second.second = scan;
+		} while (0 < scan);
+		if (disjoint) continue;
+		if (2 == r_contains_src.second.first) return;	// consumed
+		if (2 == src_contains_r.second.first) {	// consumed
+			if (1 == x.size()) {
+				r = src;
+				return;
+			}
+			x.erase(x.begin() + ub);
+			goto restart;
+		}
+		if (1 == r_eq_src.second.first) {
+			if (-3 == geometry[r_eq_src.second.second] || -2 == geometry[r_eq_src.second.second]) {
+				// extends on this coordinate
+				if (1 == x.size()) {
+					r.br_c()[r_eq_src.second.second] = src.br_c()[r_eq_src.second.second];
+					return;
+				}
+				src.tl_c()[r_eq_src.second.second] = r.tl_c()[r_eq_src.second.second];
+				x.erase(x.begin() + ub);
+				goto restart;
+			}
+			if ( 3 == geometry[r_eq_src.second.second] || 2 == geometry[r_eq_src.second.second]) {
+				// extends on this coordinate
+				if (1 == x.size()) {
+					r.tl_c()[r_eq_src.second.second] = src.tl_c()[r_eq_src.second.second];
+					return;
+				}
+				src.br_c()[r_eq_src.second.second] = r.br_c()[r_eq_src.second.second];
+				x.erase(x.begin() + ub);
+				goto restart;
+			}
+		}
+		// other cases possible, especially in higher dimensions
+	} while (0 < ub);
+
+	// failover
+	x.push_back(src);
+}
+
 // end migration target
 
 bool box_dynamic::reflow()
@@ -581,6 +676,7 @@ bool box_dynamic::reflow()
 
 	bool layout_changed = false;
 	rect flowed_hull(point(0), point(0));
+	rect last_flowed(point(0), point(0));
 
 	const std::pair<int, int> reset_bounds(0, effective_max_width());
 	const int reset_delta = reset_bounds.second - reset_bounds.first;
@@ -589,15 +685,13 @@ bool box_dynamic::reflow()
 	std::map<int, std::vector<rect> > in_use;
 	std::map<int, std::vector<rect> > available;
 
-	std::map<int, rect> workspace;			// bounding rectangles on where things could go
 	std::map<int, std::pair<int,int> > work_bounds;			// bounding rectangles on where things could go
 
 	for(auto& x : _contents) {
 		if (x->has_no_box()) continue;
 		const auto z_index = x->z_index();
 		// handle z-index setup
-		if (!workspace.count(z_index)) {
-			workspace[z_index] = clean_rect;
+		if (!work_bounds.count(z_index)) {
 			work_bounds[z_index] = reset_bounds;
 		}
 		if (!x->can_reflow()) {
@@ -615,18 +709,21 @@ bool box_dynamic::reflow()
 
 		auto& live = in_use[z_index];
 		auto& vacuum = available[z_index];
-
-		auto& remain = workspace[z_index];
-		auto& bounds = work_bounds[z_index];
-		const int delta = bounds.second - bounds.first;
 		const auto x_clear = x->CSS_clear();
 		const auto x_float = x->CSS_float();
+		// we don't cleanly handle clear-left float-right or the inverse, just fail for now \todo non-debug mode should do something sensible
+		if (CF_LEFT == x_float && (CF_RIGHT == x_clear || CF_BOTH == x_clear)) throw std::runtime_error("sorry, clear:right float:left not implemented");
+		if (CF_RIGHT == x_float && (CF_LEFT == x_clear || CF_BOTH == x_clear)) throw std::runtime_error("sorry, clear:left float:right not implemented");
+
 		const bool right_aligned = (CF_RIGHT == x_float);
-		point snap_to;
-		snap_to[0] = right_aligned ? bounds.second : bounds.first;
-		snap_to[1] = remain.tl_c()[1];
 		auto test = x->outer_box();
 		const auto test_width = test.br_c()[0] - test.tl_c()[0];
+
+		auto& bounds = work_bounds[z_index];
+		point snap_to;
+		snap_to[1] = last_flowed.tl_c()[1];
+		snap_to[0] = right_aligned ? bounds.second : bounds.first;
+		const int delta = bounds.second - bounds.first;
 		if (reset_delta > delta && delta < test_width) {
 			// need to sink down
 			assert(0 && "unhandled operation");
@@ -634,7 +731,29 @@ bool box_dynamic::reflow()
 		if (CF_LEFT == x_clear || CF_BOTH == x_clear) {
 			if (0 < bounds.first) {
 				// need to sink down
-				assert(0 && "unhandled operation");
+				auto clear_for = x->border_box();
+				css:box::rect candidate(point(INT_MAX), point(INT_MAX));
+				for (const auto& r : vacuum) {
+					if (0 < r.tl_c()[0]) continue;
+					if (clear_for.tl_c()[1] <= r.tl_c()[1] && candidate.tl_c()[1] > r.tl_c()[1]) candidate = r;
+				}
+				if (INT_MAX > candidate.tl_c()[1]) {
+					snap_to = candidate.tl_c();
+					// but top margin doesn't really matter here
+					snap_to[1] -= x->margin<TOP>();
+					// things below us should not be flowed yet
+					bounds = reset_bounds;
+					point float_scan(candidate.tl_c());
+restart_float_scan:
+					float_scan[0] = bounds.second-1;
+					for (const auto& r : live) {
+						if (r.contains(float_scan)) {
+							bounds.second = r.tl_c()[0];
+							if (bounds.second >= test_width) break;	// \todo verify whether this is cause to go even lower?  Definitely request more width.
+							goto restart_float_scan;
+						}
+					}
+				}
 			}
 		}
 		if (CF_RIGHT == x_clear || CF_BOTH == x_clear) {
@@ -644,6 +763,7 @@ bool box_dynamic::reflow()
 			}
 		}
 		point other_corner(test.tl_c());
+		// \todo float is actually supposed to trigger looking for the highest possible location
 		if (right_aligned) {
 			other_corner[0] = test.br_c()[0];
 			other_corner[1] = test.tl_c()[1];
@@ -665,8 +785,8 @@ bool box_dynamic::reflow()
 			// need to block off entire area to right
 			assert(0 && "unhandled operation");
 		}
-
-		live.push_back(test);
+		last_flowed = test;
+		_self_union(live, test);
 
 		{	// update free space model
 		std::array<int,2> codes;
@@ -681,7 +801,7 @@ bool box_dynamic::reflow()
 				} else {
 					vacuum.erase(vacuum.begin() + ub);
 					vacuum.reserve(vacuum.size() + r_size);
-					for (const auto& r : replace) vacuum.push_back(r);
+					for (const auto& r : replace) _self_union(vacuum, r);
 				}
 			}
 		} while(0 < ub);

@@ -229,6 +229,7 @@ public:
 #if POINT_IS_Z_VECTOR
 	auto inner_box() const { return rect(_origin, _origin + _size); }
 	auto clickable_box() const { return rect(_origin - padding<LEFT, TOP>(), _origin + _size + padding<RIGHT, BOTTOM>()); }
+	auto border_box() const { return rect(_origin - padding<LEFT, TOP>(), _origin + _size + padding<RIGHT, BOTTOM>()); }
 	auto outer_box() const { return rect(_origin - padding<LEFT,TOP>() - margin<LEFT,TOP>(), _origin + _size+ padding<RIGHT, BOTTOM>() + margin<RIGHT, BOTTOM>()); }
 #endif
 
