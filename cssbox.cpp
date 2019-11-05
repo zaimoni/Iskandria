@@ -464,6 +464,116 @@ void box_dynamic::draw() const
 	}
 }
 
+// following likely should be ported to Zaimoni.STL/GDI/box.hpp
+static int _interval_compare(int x_lb, int x_ub, int y_lb, int y_ub)
+{
+	if (x_ub <= y_lb) return -3;	// disjoint
+	if (y_ub <= x_lb) return 3;		// disjoint
+	// at this point: x_ub > y_lb, y_ub > x_lb: we have some sort of intersection
+	if (x_lb < y_lb && x_ub <= y_lb) return -2;	// clean difference: lhs < rhs
+	if (y_lb < x_lb && y_ub <= x_lb) return 2;	// clean difference: lhs > rhs
+
+	if (x_lb == y_lb && x_ub == y_ub) return 0;	// equal
+	if (x_lb <= y_lb && y_ub <= x_ub) return -1;	// lhs contains rhs
+	if (y_lb <= x_lb && x_ub <= y_ub) return 1;		// rhs contains lhs
+	throw std::logic_error("non-exhaustive linear interval classification");
+}
+
+static bool _intersects(const css::box::rect& lhs, const css::box::rect& rhs, std::array<int,2>& codes)
+{
+	size_t ub = 2;
+	do {
+		--ub;
+		codes[ub] = _interval_compare(lhs.tl_c()[ub], lhs.br_c()[ub], rhs.tl_c()[ub], rhs.br_c()[ub]);
+		if (3 == codes[ub] || -3 == codes[ub]) return false;
+	} while (0 < ub);
+	return true;
+}
+
+// comparison order for the codes is as follows:
+// 0,1 are last (they are both complete-deletion on that coordinate)
+// -1 is first (3-way split of which center is vulnerable to later deletion)
+// 2,-2 are middle (2-way split of which center is vulnerable to later deletion)
+// i.e.: -1; 2,-2; 0,1
+static int set_difference_interval_priority(int x)
+{
+	if (-1 == x) return 0;
+	if (-2 == x || 2 == x) return 1;
+	return 2;
+}
+
+static std::vector<css::box::rect> _set_difference(const css::box::rect& lhs, const css::box::rect& rhs, std::array<int, 2>& codes)
+{
+	std::array<int, 2> test_order;
+	size_t test_order_ub = 0;
+	// Insertion sort.  Threshold for a more advanced sort needs testing, once ported
+	size_t ub = 2;
+	do {
+		--ub;
+		test_order[test_order_ub++] = ub;
+		if (2 <= test_order_ub) {
+			size_t back_scan = test_order_ub - 1;
+			while (set_difference_interval_priority(test_order[back_scan-1]) > set_difference_interval_priority(test_order[back_scan])) {
+				std::swap(test_order[back_scan-1], test_order[back_scan]);
+				if (0 >= --back_scan) break;
+			}
+		}
+	} while (0 < ub);
+
+	std::vector<css::box::rect> ret;
+	std::vector<css::box::rect> working;
+	working.push_back(lhs);
+
+	ub = 2;
+	do {
+		--ub;
+		const auto i = test_order[ub];
+		size_t outer_ub = working.size();
+		do {
+			--outer_ub;
+			auto& test = working[outer_ub];
+			const auto code = _interval_compare(test.tl_c()[i], test.br_c()[i], rhs.tl_c()[i], rhs.br_c()[i]);
+			switch (code)
+			{
+			case -1:	// 3-way split
+				{
+				auto safe_1(test);
+				auto safe_2(test);
+				safe_1.tl_c()[i] = rhs.br_c()[i];
+				safe_2.br_c()[i] = rhs.tl_c()[i];
+				ret.push_back(safe_1);
+				ret.push_back(safe_2);
+				test.tl_c()[i] = rhs.tl_c()[i];
+				test.br_c()[i] = rhs.br_c()[i];
+				}
+				break;
+			case -2:	// 2-way split
+				{
+				auto safe(test);
+				safe.br_c()[i] = rhs.tl_c()[i];
+				ret.push_back(safe);
+				test.tl_c()[i] = rhs.tl_c()[i];
+				}
+				break;
+			case  2:	// 2-way split
+				{
+				auto safe(test);
+				safe.tl_c()[i] = rhs.br_c()[i];
+				ret.push_back(safe);
+				test.br_c()[i] = rhs.tl_c()[i];
+				}
+				break;
+			case  1:
+			case  0:
+				working.erase(working.begin() + outer_ub);
+				break;
+			};
+		} while (0 < outer_ub);
+		if (working.empty()) break;
+	}  while(0 < ub);
+	return ret;
+}
+// end migration target
 
 bool box_dynamic::reflow()
 {
@@ -472,22 +582,22 @@ bool box_dynamic::reflow()
 	bool layout_changed = false;
 	rect flowed_hull(point(0), point(0));
 
-	// one key for each z-index
-	std::map<int, rect> workspace;			// bounding rectangles on where things could go
-	std::map<int, std::pair<int,int> > work_bounds;			// bounding rectangles on where things could go
 	const std::pair<int, int> reset_bounds(0, effective_max_width());
 	const int reset_delta = reset_bounds.second - reset_bounds.first;
-	std::map<int, std::vector<rect> > used;	// rectangles representing already-used space
-	std::map<int, std::vector<rect> > float_left_used;	// rectangles representing already-used space
-	std::map<int, std::vector<rect> > float_right_used;	// rectangles representing already-used space
+	const auto clean_rect = rect(point(0), max_size());
+	// one key for each z-index
+	std::map<int, std::vector<rect> > in_use;
+	std::map<int, std::vector<rect> > available;
+
+	std::map<int, rect> workspace;			// bounding rectangles on where things could go
+	std::map<int, std::pair<int,int> > work_bounds;			// bounding rectangles on where things could go
 
 	for(auto& x : _contents) {
 		if (x->has_no_box()) continue;
 		const auto z_index = x->z_index();
 		// handle z-index setup
 		if (!workspace.count(z_index)) {
-			auto tmp = rect(point(0), max_size());
-			workspace[z_index] = tmp;
+			workspace[z_index] = clean_rect;
 			work_bounds[z_index] = reset_bounds;
 		}
 		if (!x->can_reflow()) {
@@ -496,17 +606,22 @@ bool box_dynamic::reflow()
 			clamp_lb(flowed_hull.br_c(), test.br_c());
 			continue;
 		}
-		if (!used.count(z_index)) used[z_index] = std::vector<rect>();
-		if (!float_left_used.count(z_index)) float_left_used[z_index] = std::vector<rect>();
-		if (!float_right_used.count(z_index)) float_right_used[z_index] = std::vector<rect>();
-		auto& rects = used[z_index];
-		auto& float_left_rects = float_left_used[z_index];
-		auto& float_right_rects = float_right_used[z_index];
+		if (!in_use.count(z_index)) in_use[z_index] = std::vector<rect>();
+		if (!available.count(z_index)) {
+			std::vector<rect> staging;
+			staging.push_back(clean_rect);
+			available[z_index] = std::move(staging);
+		}
+
+		auto& live = in_use[z_index];
+		auto& vacuum = available[z_index];
+
 		auto& remain = workspace[z_index];
 		auto& bounds = work_bounds[z_index];
 		const int delta = bounds.second - bounds.first;
 		const auto x_clear = x->CSS_clear();
-		const bool right_aligned = (CF_RIGHT == x->CSS_float());
+		const auto x_float = x->CSS_float();
+		const bool right_aligned = (CF_RIGHT == x_float);
 		point snap_to;
 		snap_to[0] = right_aligned ? bounds.second : bounds.first;
 		snap_to[1] = remain.tl_c()[1];
@@ -540,13 +655,8 @@ bool box_dynamic::reflow()
 			layout_changed = true;
 		}
 		if (right_aligned) {
-			float_right_rects.push_back(test);
 			bounds.second = test.tl_c()[0];
-		} else if (CF_LEFT == x->CSS_float()) {
-			float_left_rects.push_back(test);
-			bounds.first = test.br_c()[0];
 		} else {
-			rects.push_back(test);
 			bounds.first = test.br_c()[0];
 		}
 		clamp_ub(flowed_hull.tl_c(), test.tl_c());
@@ -554,6 +664,27 @@ bool box_dynamic::reflow()
 		if (CF_RIGHT == x_clear || CF_BOTH == x_clear) {
 			// need to block off entire area to right
 			assert(0 && "unhandled operation");
+		}
+
+		live.push_back(test);
+
+		{	// update free space model
+		std::array<int,2> codes;
+		size_t ub = vacuum.size();
+		do {
+			auto& target = vacuum[--ub];
+			if (_intersects(target, test, codes)) {
+				auto replace = _set_difference(target, test, codes);
+				const auto r_size = replace.size();
+				if (1 == r_size) {
+					target = replace[0];
+				} else {
+					vacuum.erase(vacuum.begin() + ub);
+					vacuum.reserve(vacuum.size() + r_size);
+					for (const auto& r : replace) vacuum.push_back(r);
+				}
+			}
+		} while(0 < ub);
 		}
 	}
 	clamp_lb(flowed_hull.tl_c()[0], 0);
