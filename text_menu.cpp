@@ -5,11 +5,16 @@
 
 namespace isk {
 
+static void _remove_gui(std::shared_ptr<css::box_dynamic>& src)
+{
+	if (src && !src.unique()) {
+		DisplayManager::get().remove(src);
+	}
+}
+
 textmenu::~textmenu()
 {
-	if (_gui_top && !_gui_top.unique()) {
-		DisplayManager::get().remove(_gui_top);
-	}
+	_remove_gui(_gui_top);
 }
 
 bool textmenu::handle(const sf::Event::KeyEvent& hotkey)
@@ -21,7 +26,9 @@ bool textmenu::handle(const sf::Event::KeyEvent& hotkey)
 		if (hotkey.alt != test.alt) continue;
 		if (hotkey.control != test.control) continue;
 		if (hotkey.system != test.system) continue;
-		return std::get<3>(entry)();
+		const auto ret = std::get<3>(entry)();
+		if (remove_self_after_handling) _remove_gui(_gui_top);
+		return ret;
 	}
 	return false;
 }

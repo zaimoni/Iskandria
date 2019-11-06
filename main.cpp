@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	isk::Wrap<iskandria::craft>::world_setup();
 
 	// configure the game start menu and install to the input manager (possibly natural singleton?)  function target here
-	isk::textmenu start_game;
+	isk::textmenu start_game(true);
 
 	sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::T, false, false, false, false };
 	start_game.add_entry("T)est", hotkey, isk::GameManager::quit_handler);	// eventually provides access to various test drivers
