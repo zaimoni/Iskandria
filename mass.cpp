@@ -73,11 +73,7 @@ mass::interval mass::GM() const
 bool operator==(const mass& lhs, const mass& rhs)
 {
 	if (lhs._mode == rhs._mode && lhs._x.upper()==lhs._x.lower() && rhs._x==lhs._x.upper()) return true;
-#ifdef CONSTANTS_ISK_INTERVAL
 	if (zaimoni::is_zero(lhs._x) && zaimoni::is_zero(rhs._x)) return true;
-#else
-	if (boost::numeric::interval_lib::user::is_zero(lhs._x) && boost::numeric::interval_lib::user::is_zero(rhs._x)) return true;
-#endif
 	return false;	// we don't try to do unit conversions
 }
 

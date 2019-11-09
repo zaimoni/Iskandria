@@ -96,18 +96,10 @@ public:
 
 	// geometry testers
 	bool is_circle() const { return _e == 0.0; };
-#if CONSTANTS_ISK_INTERVAL
 	bool is_not_circle() const { return !_e.contains(0); };
-#else
-	bool is_not_circle() const { return 0<_e.lower(); };
-#endif
 
 	bool is_parabola() const { return _e == 1.0; };
-#if CONSTANTS_ISK_INTERVAL
 	bool is_not_parabola() const { return !_e.contains(1); };
-#else
-	bool is_not_parabola() const { return 1>_e.upper() || 1 < _e.lower(); };
-#endif
 
 	bool is_ellipse() const { return 0 < _e.lower() && 1 > _e.upper(); };
 	bool is_not_ellipse() const { return 0 >= _e.upper() || 1 < _e.lower(); };
