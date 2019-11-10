@@ -3,7 +3,9 @@
 #ifndef GRIDSPACE_HPP
 #define GRIDSPACE_HPP
 
-#include "coord_chart.hpp"
+#include "matrix.hpp"
+#include "Zaimoni.STL/GDI/box.hpp"
+#include "Zaimoni.STL/Pure.C/stdio_c.h"
 
 namespace iskandria {
 namespace grid {
@@ -13,30 +15,39 @@ namespace grid {
 // * we must be able to state the position of an agent or craft in a 2-d grid
 // * we must be able to state the position of an agent in a craft
 
-class cartesian_2d final
+template<size_t N>
+class cartesian final
 {
+	static_assert(2 <= N);
 public:
-	typedef typename zaimoni::math::Cartesian_vector<ptrdiff_t,2>::coord_type coord_type;
+	typedef typename zaimoni::math::vector<ptrdiff_t,N> coord_type;
 	typedef unsigned char orientation_type;
 private:
 //	std::vector<std::weak_ptr<agent> > _agents;
 //	std::vector<std::weak_ptr<craft> > _crafts;
-	coord_type _lb;
-	coord_type _ub;
-
+	zaimoni::gdi::box<coord_type> _domain;
 public:
-	cartesian_2d() = default;
-	cartesian_2d(FILE* src);
-	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(cartesian_2d);
-	void save(FILE* dest) const;
+	cartesian() = default;
+	cartesian(FILE* src)
+	{
+		zaimoni::read(_domain.tl_c(), src);
+		zaimoni::read(_domain.br_c(), src);
+	}
+
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(cartesian);
+	void save(FILE* dest) const
+	{
+		zaimoni::write(_domain.tl_c(), dest);
+		zaimoni::write(_domain.br_c(), dest);
+	}
 };
 
 }	// namespace grid
 }	// namespace iskandria
 
 namespace zaimoni {
-	template<>
-	struct rw_mode<iskandria::grid::cartesian_2d>
+	template<size_t N>
+	struct rw_mode<iskandria::grid::cartesian<N> >
 	{
 		enum {
 			group_write = 3,
