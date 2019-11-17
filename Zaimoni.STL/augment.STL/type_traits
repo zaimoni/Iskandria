@@ -93,6 +93,19 @@ typename types<T>::norm>::type norm(T x)
 			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
 }
 
+// for when we want operator- to be non-negative
+template<class T>
+constexpr  typename std::enable_if<
+	std::is_integral<T>::value
+	&& std::is_signed<T>::value,
+	typename types<T>::norm>::type pos_diff(T upper, T lower) {
+//	if (lower >= upper) return false;	// precondition
+	if (0 <= lower) return upper - lower;
+	const auto evade_overflow = lower + std::numeric_limits<T>::max();
+	if (evade_overflow >= upper) return upper - lower;
+	return (typename types<T>::norm)(std::numeric_limits<T>::max()) + (typename types<T>::norm)(upper - evade_overflow);
+}
+
 // interval arithmetic doesn't play nice with operator== (it is definitely possible for neither == and != to be positively true)
 template<class T>
 struct definitely
