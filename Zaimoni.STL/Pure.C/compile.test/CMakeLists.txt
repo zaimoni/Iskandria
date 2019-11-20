@@ -1,0 +1,4 @@
+add_executable(exists_MS_io_h EXCLUDE_FROM_ALL exists_MS_io_h.c)
+add_executable(exists_timespec EXCLUDE_FROM_ALL exists_timespec.c)
+add_executable(exists_nanosleep EXCLUDE_FROM_ALL exists_nanosleep.c)
+add_executable(realloc_0 EXCLUDE_FROM_ALL realloc_0.c)
