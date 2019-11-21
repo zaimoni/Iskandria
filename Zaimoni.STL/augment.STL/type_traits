@@ -149,11 +149,11 @@ struct min_unsigned
 // hooks for some common tests that easily cause compiler errors when done naively, or can be inefficient on more complex types
 template<class T>
 struct type_traits_arithmetic_aux {	// defaults for std::is_arithmetic<T>::value
-	static constexpr is_zero(typename const_param<T>::type x) { return 0 == x; }	// could use kronecker delta for this
-	static constexpr contains_zero(typename const_param<T>::type x) { return 0 == x; }
-	static constexpr is_positive(typename const_param<T>::type x) { return 0 < x; }
-	static constexpr is_negative(typename const_param<T>::type x) { return 0 > x; }
-	static constexpr is_one(typename const_param<T>::type x) { return 1 == x; }
+	static constexpr bool is_zero(typename const_param<T>::type x) { return 0 == x; }	// could use kronecker delta for this
+	static constexpr bool contains_zero(typename const_param<T>::type x) { return 0 == x; }
+	static constexpr bool is_positive(typename const_param<T>::type x) { return 0 < x; }
+	static constexpr bool is_negative(typename const_param<T>::type x) { return 0 > x; }
+	static constexpr bool is_one(typename const_param<T>::type x) { return 1 == x; }
 };
 
 template<class T>

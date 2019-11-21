@@ -53,11 +53,11 @@ namespace zaimoni {
 
 	template<class T>
 	struct type_traits_arithmetic_aux<ISK_INTERVAL<T> > {
-		static constexpr is_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(0); }	// could use kronecker delta for this
-		static constexpr contains_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 >= x.lower() && 0 <= x.upper(); }
-		static constexpr is_positive(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 < x.lower(); }
-		static constexpr is_negative(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 > x.upper(); }
-		static constexpr is_one(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(1); }
+		static constexpr bool is_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(0); }	// could use kronecker delta for this
+		static constexpr bool contains_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 >= x.lower() && 0 <= x.upper(); }
+		static constexpr bool is_positive(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 < x.lower(); }
+		static constexpr bool is_negative(typename const_param<ISK_INTERVAL<T> >::type x) { return 0 > x.upper(); }
+		static constexpr bool is_one(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(1); }
 	};
 
 	template<class T>
