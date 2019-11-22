@@ -51,6 +51,49 @@ enum {
 	VOXEL_EDGE = 16
 };
 
+// offset code is
+// 0: on-pixel exactly
+// 1: +1/2 x
+// 2: +1/2 y
+// 3: +1/2 x,y
+// for floating-point numerals, only need to use offset code 0
+template<class T>
+bool exact_rotate(const T& origin_x, const T& origin_y, unsigned int offset_code, iskandria::compass::XCOMlike new_facing, T& x, T& y)
+{
+	switch (new_facing)
+	{
+	case iskandria::compass::N: return true;	// no-op
+	case iskandria::compass::S: break;	// 180 degrees, always can handle
+	case iskandria::compass::E:
+	case iskandria::compass::W:
+		if (0 == offset_code || 3 == offset_code) break;
+		return false;
+	default: return false;	// can't handle it
+	}
+	const bool low_x = (x <= origin_x);
+	const bool low_y = (y <= origin_y);
+	const bool x_half = (offset_code & 1);
+	const bool y_half = (offset_code & 2);
+	std::pair<T, T> abs_delta(low_x ? origin_x-x : x-origin_x-x_half ,low_y ? origin_y - y : y - origin_y - y_half);
+	switch (new_facing)
+	{
+	case iskandria::compass::S:
+		// invariant: x_half==y_half
+		x = low_x ? origin_x + x_half + abs_delta.first : origin_x - abs_delta.first;
+		y = low_y ? origin_y + y_half + abs_delta.second : origin_y - abs_delta.second;
+		return true;
+	case iskandria::compass::W:
+		y = !low_x ? origin_y + y_half + abs_delta.first : origin_y - abs_delta.first;
+		x = low_y ? origin_x + x_half + abs_delta.second : origin_x - abs_delta.second;
+		return true;
+	case iskandria::compass::E:
+		y = low_x ? origin_y + y_half + abs_delta.first : origin_y - abs_delta.first;
+		x = !low_y ? origin_x + x_half + abs_delta.second : origin_x - abs_delta.second;
+		return true;
+	default: return false;	// invariant error
+	}
+}
+
 }	// namespace grid
 }	// namespace iskandria
 #endif
