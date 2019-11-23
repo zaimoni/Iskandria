@@ -7,9 +7,7 @@ namespace isk {
 
 static void _remove_gui(std::shared_ptr<css::box>& src)
 {
-	if (src && !src.unique()) {
-		DisplayManager::get().remove(src);
-	}
+	if (src && 1<src.use_count()) DisplayManager::get().remove(src);
 }
 
 textmenu::~textmenu()

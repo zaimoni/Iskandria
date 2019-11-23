@@ -30,6 +30,11 @@ public:
 	~textmenu();
 	ZAIMONI_DEFAULT_COPY_ASSIGN(textmenu);
 
+	void _debug_gui_stats() const {
+		INFORM(_gui_top ? "+textmenu::_debug_gui_stats+" : "-textmenu::_debug_gui_stats-");
+		INFORM((intmax_t)_gui_top.use_count());
+	}
+
 	void add_entry(const std::vector<std::string>& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler);
 	void add_entry(const std::string& label, const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler) {
 		std::vector<std::string> working;

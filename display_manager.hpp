@@ -47,7 +47,7 @@ public:
 	// makes logical pixels look physical
 	std::pair<float, float> scale() const { return std::pair<float, float>(_width_pixels/(float)DESIGN_WIDTH, _height_pixels/(float)DESIGN_HEIGHT); };
 
-	void append(std::shared_ptr<css::box> src) { _css_root->append(src); };
+	void append(std::shared_ptr<css::box>& src) { _css_root->append(src); };
 	void remove(std::shared_ptr<css::box>& src) { _css_root->remove(src); };
 	void draw();
 

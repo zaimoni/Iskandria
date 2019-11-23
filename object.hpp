@@ -65,7 +65,7 @@ protected:
 			const Derived* const tmp = i.get();
 			if (!tmp) continue;
 			if (tmp->gc_this()) {
-				if (i.unique()) continue;
+				if (1 >= i.use_count()) continue;
 				i->gc_this(false);	// not allowed to GC multiple-owner objects
 			}
 			dest[n++] = i;
