@@ -9,7 +9,7 @@
 #include "dicounter.hpp"
 #include "lossy.hpp"
 #include "int_range.hpp"
-#include "Zaimoni.STL/Augment.STL/cmath"
+#include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Pure.C/auto_int.h"
 
 // interval division of floating point can legitimately create intervals with an infinite endpoint.

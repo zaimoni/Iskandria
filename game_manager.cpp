@@ -8,7 +8,7 @@
 
 #include "Zaimoni.STL/Pure.C/format_util.h"
 #include "Zaimoni.STL/Pure.C/logging.h"
-#include "Zaimoni.STL/OS/Clock.hpp"
+#include "Zaimoni.STL/OS/clock.hpp"
 #include "Zaimoni.STL/OS/usleep.h"
 
 #include "singleton.on.hpp"

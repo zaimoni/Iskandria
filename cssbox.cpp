@@ -166,7 +166,7 @@ box_dynamic::box_dynamic(bool bootstrap) : _redo_layout(0) {
 
 box_dynamic::~box_dynamic()
 {
-	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
+//	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
 }
 
 // content management
@@ -188,7 +188,8 @@ void box::set_parent(std::shared_ptr<box_dynamic>& src)
 		i = css::property::COUNT;
 		while (0 < i--) if (_inherited & (1ULL << i)) inherit(i, src);
 	}
-	while (0 < i--) if (_auto & (1ULL << i)) _reflow |= (1ULL << i);	// trigger auto properties here
+//	i = HEIGHT+1;
+//	while (0 < i--) if (_auto & (1ULL << i)) _reflow |= (1ULL << i);	// trigger auto properties here
 }
 
 bool box::has_no_box() const
@@ -208,10 +209,10 @@ bool box::can_reflow() const
 void box::remove(std::shared_ptr<box> gone) {}
 void box_dynamic::remove(std::shared_ptr<box> gone) {
 	size_t ub = _contents.size();
-	do {
-		if (_contents[ub] == gone) _contents.erase(_contents.begin() + ub);
+	while(0 < ub) {
+		if (_contents[--ub] == gone) _contents.erase(_contents.begin() + ub);
 		else _contents[ub]->remove(gone);
-	} while(0<ub);
+	}
 	gone->disconnect();
 }
 
@@ -225,7 +226,6 @@ void box_dynamic::append(std::shared_ptr<box> src) {
 		}
 		set_parent(src);
 		_contents.push_back(src);
-		size_t layout_calc = _contents.size();
 		if (!_redo_layout) _redo_layout = _contents.size();
 	}
 }
@@ -443,7 +443,6 @@ void box_dynamic::_recalc(layout_op& code)
 		}
 		return;
 	}
-	const auto c_size = _contents.size();
 	// parallel: css_SFML.hpp
 	switch(code.first)
 	{

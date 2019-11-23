@@ -136,14 +136,14 @@ bool definitely_unequal(T& lhs, const T& rhs) { return definitely<typename std::
 template<uintmax_t n>
 struct min_unsigned
 {
-	typedef typename std::conditional<std::numeric_limits<unsigned int>::max()<=n,
-			typename std::conditional<std::numeric_limits<unsigned char>::max()<=n,
+	typedef typename std::conditional<std::numeric_limits<unsigned int>::max() <= n,
+			typename std::conditional<std::numeric_limits<unsigned char>::max() <= n,
 				unsigned char,
-				typename std::conditional<std::numeric_limits<unsigned short>::max(),
+				typename std::conditional<std::numeric_limits<unsigned short>::max() <= n,
 					unsigned short,
 					unsigned int>::type
 			>::type,
-			typename std::conditional<std::numeric_limits<unsigned long>::max()<=n,	unsigned long, uintmax_t>::type>::type type;
+			typename std::conditional<std::numeric_limits<unsigned long>::max() <= n,	unsigned long, uintmax_t>::type>::type type;
 };
 
 // hooks for some common tests that easily cause compiler errors when done naively, or can be inefficient on more complex types
