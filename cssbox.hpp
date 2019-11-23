@@ -250,7 +250,7 @@ public:
 	// layout recalculation (unsure about access control here)
 	auto parent() const { return _parent.lock(); }
 	auto origin() const { return _origin; }
-	virtual void remove(std::shared_ptr<box> gone);
+	virtual void remove(const std::shared_ptr<box>& gone);
 
 	// these should be abstract, but bringing up a new implementation may need waiving that
 #ifdef PROTOTYPING_CSS
@@ -310,8 +310,9 @@ public:
 	~box_dynamic();
 
 	// content management
-	void append(std::shared_ptr<box> src);
-	void remove(std::shared_ptr<box> gone) override;
+	void append(std::shared_ptr<box>& src);
+	void append(box* _src);
+	void remove(const std::shared_ptr<box>& gone) override;
 	void disconnect() override { _self.reset(); };
 	void set_self() override { if (!_self) _self = decltype(_self)(this); };
 

@@ -5,7 +5,7 @@
 
 namespace isk {
 
-static void _remove_gui(std::shared_ptr<css::box_dynamic>& src)
+static void _remove_gui(std::shared_ptr<css::box>& src)
 {
 	if (src && !src.unique()) {
 		DisplayManager::get().remove(src);
@@ -55,7 +55,7 @@ void textmenu::draw() const
 				span->set_clear(css::box::CF_LEFT);
 				// CSS styles desired: clear:left (implicit line break) on first text node generated for each line
 				// would like to use HTML for italics/bold/... but that requires parsing
-				working->append(std::shared_ptr<css::box>(span.release()));
+				working->append(span.release());
 			}
 		}
 		// center this: non-default full-auto margins
@@ -63,7 +63,7 @@ void textmenu::draw() const
 		working->set_auto(css::box::TOP);
 		working->set_auto(css::box::RIGHT);
 		working->set_auto(css::box::BOTTOM);
-		_gui_top = std::shared_ptr<css::box_dynamic>(working.release());
+		_gui_top = decltype(_gui_top)(working.release());
 		DisplayManager::get().append(_gui_top);
 	}
 }

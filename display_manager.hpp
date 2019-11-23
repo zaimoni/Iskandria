@@ -48,7 +48,7 @@ public:
 	std::pair<float, float> scale() const { return std::pair<float, float>(_width_pixels/(float)DESIGN_WIDTH, _height_pixels/(float)DESIGN_HEIGHT); };
 
 	void append(std::shared_ptr<css::box> src) { _css_root->append(src); };
-	void remove(std::shared_ptr<css::box> src) { _css_root->remove(src); };
+	void remove(std::shared_ptr<css::box>& src) { _css_root->remove(src); };
 	void draw();
 
 	// character support; likely to need all of this for subwindows as well (should be driven by font size)

@@ -206,8 +206,8 @@ bool box::can_reflow() const
 	return true;
 }
 
-void box::remove(std::shared_ptr<box> gone) {}
-void box_dynamic::remove(std::shared_ptr<box> gone) {
+void box::remove(const std::shared_ptr<box>& gone) {}
+void box_dynamic::remove(const std::shared_ptr<box>& gone) {
 	size_t ub = _contents.size();
 	while(0 < ub) {
 		if (_contents[--ub] == gone) _contents.erase(_contents.begin() + ub);
@@ -216,8 +216,23 @@ void box_dynamic::remove(std::shared_ptr<box> gone) {
 	gone->disconnect();
 }
 
-void box_dynamic::append(std::shared_ptr<box> src) {
+void box_dynamic::append(std::shared_ptr<box>& src) {
 	if (src) {
+		bool resize_ok = parent() ? true : false;
+		// absolute positioning will prevent resizing; possibly other cases
+		if (resize_ok) {
+			if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
+			if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
+		}
+		set_parent(src);
+		_contents.push_back(src);
+		if (!_redo_layout) _redo_layout = _contents.size();
+	}
+}
+
+void box_dynamic::append(box* _src) {
+	if (_src) {
+		std::shared_ptr<box> src(_src);
 		bool resize_ok = parent() ? true : false;
 		// absolute positioning will prevent resizing; possibly other cases
 		if (resize_ok) {

@@ -18,7 +18,7 @@ private:
 	// action function
 	// The last part must *NOT* reach the savefile as-is.  Simplest if this is not wrapped as a game object but instead handled by the input manager.
 	std::vector<menu_entry> entries;
-	mutable std::shared_ptr<css::box_dynamic> _gui_top;	// actual menu display
+	mutable std::shared_ptr<css::box> _gui_top;	// actual menu display
 	bool remove_self_after_handling;
 	// when installed to the input manager:
 	// * show the bounding rectangle of the text if and only if if mouse is within the bounding rectangle of the text
