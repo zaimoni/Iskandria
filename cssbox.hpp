@@ -296,7 +296,8 @@ private:
 	void inherit(int i, std::shared_ptr<box_dynamic> src) {};
 };
 
-class box_dynamic : public box
+// std::enable_shared_from_this prevents MSVC++ std::shared_ptr double-deallocation crashes just by being derived from
+class box_dynamic : public box, public std::enable_shared_from_this<box_dynamic>
 {
 private:
 	std::vector<std::shared_ptr<box> > _contents;
