@@ -14,7 +14,6 @@ class wrap : public box
 private:
 	std::shared_ptr<T> _x;
 	std::pair<float, float> _scale;
-	std::shared_ptr<wrap> _self;
 public:
 	wrap() = default;
 	wrap(const wrap& src) = default;
@@ -30,8 +29,8 @@ public:
 	auto natural_dimensions() const { return _x->getLocalBounds(); }
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
 
-	void disconnect() override { _self.reset(); };
-	void set_self() override { if (!_self) _self = decltype(_self)(this); };
+	void disconnect() override {};
+	void set_self() override {};
 	void draw() const override {
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}
