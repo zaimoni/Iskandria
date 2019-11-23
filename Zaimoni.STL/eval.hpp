@@ -6,7 +6,7 @@
 #include <utility>
 #include <memory>
 #include <string>
-#include "Augment.STL/type_traits"
+#include "augment.STL/type_traits"
 
 namespace zaimoni {
 
@@ -29,7 +29,7 @@ namespace zaimoni {
 		};
 	};
 
-	template<_type_spec::arch_domain DOMAIN, _type_spec::operation OP = _type_spec::none> struct _type {
+	template<_type_spec::arch_domain DOM, _type_spec::operation OP = _type_spec::none> struct _type {
 		virtual ~_type() = default;
 	};
 

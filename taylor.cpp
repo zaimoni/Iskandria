@@ -33,7 +33,6 @@ struct map<1,1, a_0>
 };
 
 // division by zero shall not compile
-template<>
 template<intmax_t a_1_numerator, intmax_t a_0> struct map<a_1_numerator, 0, a_0>;
 
 // this probably wants overprecision support rather than just lossy arithmetic support
@@ -96,19 +95,19 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
-	INFORM(zaimoni::math::cos().a(0));
-	INFORM(zaimoni::math::cos().a(1));
-	INFORM(zaimoni::math::cos().a(2));
-	INFORM(zaimoni::math::cos().a(3));
-	INFORM(zaimoni::math::cos().a(4));
+	INFORM((long double)zaimoni::math::cos().a(0));
+	INFORM((long double)zaimoni::math::cos().a(1));
+	INFORM((long double)zaimoni::math::cos().a(2));
+	INFORM((long double)zaimoni::math::cos().a(3));
+	INFORM((long double)zaimoni::math::cos().a(4));
 
 	STRING_LITERAL_TO_STDOUT("cos coefficients a_0..4\n");
 
-	INFORM(zaimoni::math::sin().a(0));
-	INFORM(zaimoni::math::sin().a(1));
-	INFORM(zaimoni::math::sin().a(2));
-	INFORM(zaimoni::math::sin().a(3));
-	INFORM(zaimoni::math::sin().a(4));
+	INFORM((long double)zaimoni::math::sin().a(0));
+	INFORM((long double)zaimoni::math::sin().a(1));
+	INFORM((long double)zaimoni::math::sin().a(2));
+	INFORM((long double)zaimoni::math::sin().a(3));
+	INFORM((long double)zaimoni::math::sin().a(4));
 
 	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
 

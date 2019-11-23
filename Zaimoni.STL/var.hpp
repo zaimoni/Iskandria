@@ -4,7 +4,7 @@
 #include "eval.hpp"
 
 // We expect float, double, and long double to work out of the box.
-#include "Augment.STL/cmath"
+#include "augment.STL/cmath"
 #include "numeric_error.hpp"
 
 namespace zaimoni {

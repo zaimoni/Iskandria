@@ -23,8 +23,8 @@ int main(int argc, char* argv[])
 	INFORM(std::to_string(natural.left).c_str());
 	INFORM(std::to_string(natural.width).c_str());
 	INFORM(std::to_string(natural.height).c_str());
-	INFORM(text.width());
-	INFORM(text.height());
+	INFORM((intmax_t)text.width());
+	INFORM((intmax_t)text.height());
 
 	return 0;
 }

@@ -118,7 +118,7 @@ struct fp_compare<ISK_INTERVAL<T> >
 {
 	static bool good_sum_lt(const ISK_INTERVAL<T>& lhs, const ISK_INTERVAL<T>& rhs)
 	{
-		int exponent[5];
+		int exponent[6];
 		// only has to work reasonably after preprocessing by rearrange sum
 		frexp(lhs.lower(),exponent+0);
 		frexp(lhs.upper(),exponent+1);

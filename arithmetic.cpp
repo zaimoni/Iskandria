@@ -399,7 +399,7 @@ final_exit:
 	{
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
-		if (lhs.unique()) working = lhs;
+		if (1==lhs.use_count()) working = lhs;
 		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(lhs->clone()));
 
 		int ret = 0;
@@ -421,7 +421,7 @@ final_exit:
 	{
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
-		if (lhs.unique()) working = lhs;
+		if (1==lhs.use_count()) working = lhs;
 		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(lhs->clone()));
 
 		int ret = 0;
@@ -444,7 +444,7 @@ final_exit:
 
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(rhs)>::type working;
-		if (rhs.unique()) working = rhs;
+		if (1==rhs.use_count()) working = rhs;
 		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(rhs->clone()));
 
 		int ret = 0;

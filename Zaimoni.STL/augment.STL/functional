@@ -30,7 +30,11 @@ private:
 	std::function<Bridge (Domain)> _rhs;
 public:
 	fn_compose(const std::function<Range (Bridge)>& lhs, const std::function<Bridge (Domain)>& rhs) : _lhs(lhs),_rhs(rhs) {}
-	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(fn_compose);
+	fn_compose(const fn_compose& src) = default;
+	fn_compose(fn_compose&& src) = default;
+	~fn_compose() = default;
+	fn_compose& operator=(const fn_compose& src) = default;
+	fn_compose& operator=(fn_compose&& src) = default;
 
 	Range operator()(Domain x) {return _lhs(_rhs(x)); }
 };
@@ -46,7 +50,11 @@ private:
 	std::function<Range (Domain)> _rhs;
 public:
 	fn_product(const std::function<Range (Domain)>& lhs, const std::function<Range (Domain)>& rhs) : _lhs(lhs),_rhs(rhs) {}
-	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(fn_product);
+	fn_product(const fn_product& src) = default;
+	fn_product(fn_product&& src) = default;
+	~fn_product() = default;
+	fn_product& operator=(const fn_product& src) = default;
+	fn_product& operator=(fn_product&& src) = default;
 
 	Range operator()(Domain x) {return _lhs(x)*_rhs(x); }
 };
