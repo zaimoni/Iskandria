@@ -177,6 +177,23 @@ public:
 	}
 };
 
+template<class T, class U, size_t N>
+bool operator==(const vector<T, N>& lhs, const vector<U, N>& rhs)
+{
+	size_t ub = N;
+	do {
+		--ub;
+		if (lhs[ub] != rhs[ub]) return false;
+	} while(0 < ub);
+	return true;
+}
+
+template<class T, class U, size_t N>
+bool operator!=(const vector<T, N>& lhs, const vector<U, N>& rhs)
+{
+	return !(lhs == rhs);
+}
+
 template<class T,size_t N>
 vector<T,N> operator+(vector<T,N> lhs, const vector<T,N>& rhs)
 {

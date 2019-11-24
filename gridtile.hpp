@@ -60,6 +60,7 @@ enum {
 template<class T>
 bool exact_rotate(const T& origin_x, const T& origin_y, unsigned int offset_code, iskandria::compass::XCOMlike new_facing, T& x, T& y)
 {
+	if (origin_x == x && origin_y == y && 0 == offset_code) return true;	// no-op
 	switch (new_facing)
 	{
 	case iskandria::compass::N: return true;	// no-op
