@@ -143,9 +143,9 @@ int main(int argc, char* argv[])
 	INFORM(ret);
 
 	STRING_LITERAL_TO_STDOUT("floating point stats: digits\n");
-	INFORM((intmax_t)std::numeric_limits<float>::digits);
-	INFORM((intmax_t)std::numeric_limits<double>::digits);
-	INFORM((intmax_t)std::numeric_limits<long double>::digits);
+	INFORM(std::numeric_limits<float>::digits);
+	INFORM(std::numeric_limits<double>::digits);
+	INFORM(std::numeric_limits<long double>::digits);
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

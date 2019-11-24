@@ -65,13 +65,15 @@ def exec_loop_substitute(in_substitute,loops):
 	global copy_buffers
 	working = sim_loop_substitute(in_substitute,loops)
 	# handle the case where the first substitution of each loop is an identity as an exception
-	leading_identity_map = 1
+	leading_identity_map = 0
 	n = len(in_substitute[2])
-	while 0 < n:
-		n -= 1
-		if in_substitute[2][n]!=working[n]:
-			leading_identity_map = 0
-			break
+	if len(working)>n:
+		leading_identity_map = 1
+		while 0 < n:
+			n -= 1
+			if in_substitute[2][n]!=working[n]:
+				leading_identity_map = 0
+				break
 	if leading_identity_map:
 		working = working[len(in_substitute[2]):]
 	for x in working:

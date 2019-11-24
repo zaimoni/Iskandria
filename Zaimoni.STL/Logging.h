@@ -1,6 +1,6 @@
 /* Logging.h */
 /* Unified error logging */
-/* (C)2009,2016 Kenneth Boyd, license: MIT.txt */
+/* (C)2009,2016,2019 Kenneth Boyd, license: MIT.txt */
 
 #ifndef ZAIMONI_LOGGING_H
 #define ZAIMONI_LOGGING_H
@@ -82,35 +82,43 @@ void INFORM(long double B);
 void LOG(long double B);
 void INC_INFORM(long double B);
 
-#ifdef __GNUC__
+#pragma start_copy signed_inform
+inline void INFORM(signed long B) { return INFORM((intmax_t)(B)); }
+inline void LOG(signed long B) { return LOG((intmax_t)(B)); }
+inline void INC_INFORM(signed long B) { return INC_INFORM((intmax_t)(B)); }
+#pragma end_copy
+#pragma for F in int,short,signed char
+#pragma substitute $F for signed long in signed_inform
+inline void INFORM(int B) { return INFORM((intmax_t)(B)); }
+inline void LOG(int B) { return LOG((intmax_t)(B)); }
+inline void INC_INFORM(int B) { return INC_INFORM((intmax_t)(B)); }
+inline void INFORM(short B) { return INFORM((intmax_t)(B)); }
+inline void LOG(short B) { return LOG((intmax_t)(B)); }
+inline void INC_INFORM(short B) { return INC_INFORM((intmax_t)(B)); }
+inline void INFORM(signed char B) { return INFORM((intmax_t)(B)); }
+inline void LOG(signed char B) { return LOG((intmax_t)(B)); }
+inline void INC_INFORM(signed char B) { return INC_INFORM((intmax_t)(B)); }
+#pragma end_substitute
+#pragma done
+
+#pragma start_copy unsigned_inform
 inline void INFORM(unsigned long B) {return INFORM((uintmax_t)(B));}
 inline void LOG(unsigned long B) {return LOG((uintmax_t)(B));}
 inline void INC_INFORM(unsigned long B) {return INC_INFORM((uintmax_t)(B));}
-#endif
-
-#ifdef __GNUC__
+#pragma end_copy
+#pragma for F in unsigned int,unsigned short,unsigned char
+#pragma substitute $F for unsigned long in unsigned_inform
 inline void INFORM(unsigned int B) {return INFORM((uintmax_t)(B));}
 inline void LOG(unsigned int B) {return LOG((uintmax_t)(B));}
 inline void INC_INFORM(unsigned int B) {return INC_INFORM((uintmax_t)(B));}
-#endif
-
-#ifdef __GNUC__
-inline void INFORM(int B) {return INFORM((intmax_t)(B));}
-inline void LOG(int B) {return LOG((intmax_t)(B));}
-inline void INC_INFORM(int B) {return INC_INFORM((intmax_t)(B));}
-#endif
-
-#ifdef __GNUC__
 inline void INFORM(unsigned short B) {return INFORM((uintmax_t)(B));}
 inline void LOG(unsigned short B) {return LOG((uintmax_t)(B));}
 inline void INC_INFORM(unsigned short B) {return INC_INFORM((uintmax_t)(B));}
-#endif
-
-#ifdef __GNUC__
 inline void INFORM(unsigned char B) {return INFORM((uintmax_t)(B));}
 inline void LOG(unsigned char B) {return LOG((uintmax_t)(B));}
 inline void INC_INFORM(unsigned char B) {return INC_INFORM((uintmax_t)(B));}
-#endif
+#pragma end_substitute
+#pragma done
 
 #else	/* !defined(__cplusplus) */
 #ifdef NDEBUG
@@ -145,7 +153,7 @@ inline void INC_INFORM(unsigned char B) {return INC_INFORM((uintmax_t)(B));}
 #	elif 1300<=_MSC_VER	/* __FUNCDNAME__ extension cuts in at Visual C++ .NET 2002 */
 #		define FATAL(B) FATAL((LOG(__FUNCDNAME__),LOG_STRING_LITERAL(__FILE__ ":" DEEP_STRINGIZE(__LINE__)),B))
 #		define FATAL_CODE(B,CODE) FATAL_CODE((LOG(__FUNCDNAME__),LOG_STRING_LITERAL(__FILE__ ":" DEEP_STRINGIZE(__LINE__)),B),CODE)
-#	else	/* if no extensions, assume C99 */		
+#	else	/* if no extensions, assume C99 */
 #		define FATAL(B) FATAL((LOG(__func__),LOG_STRING_LITERAL(__FILE__ ":" DEEP_STRINGIZE(__LINE__)),B));
 #		define FATAL_CODE(B,CODE) FATAL_CODE((LOG(__func__),LOG_STRING_LITERAL(__FILE__ ":" DEEP_STRINGIZE(__LINE__)),B),CODE);
 #	endif
