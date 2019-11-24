@@ -6,10 +6,10 @@ int main(int argc, char* argv[])
 {	// parse options
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
-	const typename iskandria::grid::cartesian<2>::coord_type origin(7);	// for offset code 3 this is the center of a 16x16 voxel square
-	const typename iskandria::grid::cartesian<2>::coord_type quadrant_1(8);
-	const typename iskandria::grid::cartesian<2>::coord_type quadrant_3(6);
 	typename iskandria::grid::cartesian<2>::coord_type dest;
+	const decltype(dest) origin(7);	// for offset code 3 this is the center of a 16x16 voxel square
+	const decltype(dest) quadrant_1(8);
+	const decltype(dest) quadrant_3(6);
 	bool all_tests_ok = true;
 
 	INC_INFORM("origin: ");
@@ -198,7 +198,52 @@ int main(int argc, char* argv[])
 	SUCCEED_OR_DIE(!iskandria::grid::exact_rotate(origin[0], origin[1], 2, iskandria::compass::W, dest[0], dest[1]));
 	SUCCEED_OR_DIE(dest == quadrant_1);
 
-	// \todo verify that S i.e 180 degrees is period 2
+	// verify that S i.e 180 degrees is period 2
+	const auto Q1_S0(zaimoni::make<decltype(dest)>()(6, 6));
+	const auto Q1_S1(zaimoni::make<decltype(dest)>()(7, 6));
+	const auto Q1_S2(zaimoni::make<decltype(dest)>()(6, 7));
+	const auto Q1_S3(zaimoni::make<decltype(dest)>()(7, 7));
+	const auto Q3_S0(zaimoni::make<decltype(dest)>()(8, 8));
+	const auto Q3_S1(zaimoni::make<decltype(dest)>()(9, 8));
+	const auto Q3_S2(zaimoni::make<decltype(dest)>()(8, 9));
+	const auto Q3_S3(zaimoni::make<decltype(dest)>()(9, 9));
+
+	dest = quadrant_1;
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 1, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 1, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 2, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S2);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 2, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+
+	dest = quadrant_3;
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 1, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 1, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 2, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S2);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 2, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::S, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+
 	// \todo verify that E i.e 270 degrees is period 4
 	// \todo verify that W i.e 90 degrees is period 4
 

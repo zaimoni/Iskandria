@@ -631,6 +631,15 @@ matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1
 
 }	// namespace math
 
+template<class T>
+struct make<zaimoni::math::vector<T,2> >
+{
+	zaimoni::math::vector<T, 2> operator()(typename const_param<T>::type x0, typename const_param<T>::type x1) {
+		T src[2] = { x0, x1 };
+		return zaimoni::math::vector<T, 2>(src);
+	}
+};
+
 // savefile support
 template<class T,size_t N>
 struct rw_mode<zaimoni::math::vector<T,N> >
