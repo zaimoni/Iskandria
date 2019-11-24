@@ -614,13 +614,13 @@ matrix<T,R1,C2> operator*(const matrix<T,R1,C1R2>& lhs,const matrix<T,C1R2,C2>& 
 	return tmp;
 }
 
-template<class T,size_t R1C2,size_t C1R2,size_t C2>
+template<class T,size_t R1C2,size_t C1R2>
 matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1R2,R1C2>& rhs)
 {
 	matrix_square<T,R1C2> tmp;
 	size_t r = 0;
 	do	{
-		typename matrix<T,R1C2,C1R2>::const_row_type lhs_row = lhs.row(r);
+		auto lhs_row = lhs.row(r);
 		size_t c = 0;
 		do	tmp(r,c) = zaimoni::math::Euclidean::dot(lhs_row,rhs.col(c));
 		while(R1C2> ++c);
