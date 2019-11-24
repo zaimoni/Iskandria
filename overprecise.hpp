@@ -638,8 +638,8 @@ restart:
 	fp_stats<T> rhs_stats(rhs);
 	if (rhs_stats.exponent()>lhs_stats.exponent()) {
 		// force lhs larger than rhs
-		lhs_stats.swap(rhs_stats);
-		swap(lhs,rhs);
+		swap(lhs, rhs);
+		goto hard_restart;
 	}
 	const int exponent_delta = rhs_stats.exponent()-lhs_stats.exponent();
 
@@ -651,7 +651,8 @@ restart:
 			return true;
 		}
 		// a denormal acts like it has exponent std::numeric_limits<T>::min_exponent - 1
-		if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
+		assert(FP_SUBNORMAL != fp_type[0] || FP_SUBNORMAL == fp_type[1]);	// should be enforced above
+		if (FP_SUBNORMAL == fp_type[0] /* && FP_SUBNORMAL == fp_type[1] */) {
 			T tmp = copysign(std::numeric_limits<T>::min(),lhs);
 			// lhs+rhs = (lhs+tmp)+(rhs-tmp)
 			rhs -= tmp;	// now opp-sign denormal
@@ -660,7 +661,8 @@ restart:
 			if (0.0 == rhs) return true;
 			any_change = true;
 			goto hard_restart;	// could be more clever here if breaking const
-		}
+		} else if (FP_SUBNORMAL == fp_type[1]) return 2 * any_change;	// MingW64 infinite loop stopper
+
 		if (0==exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
 			T tmp = copysign(scalbn(1.0,lhs_stats.exponent()+1),(is_negative[0] ? -1.0 : 1.0));
 			rhs -= tmp;
