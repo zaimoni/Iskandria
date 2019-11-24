@@ -83,7 +83,7 @@ add_test(NAME integer_range COMMAND int_range.test)
 add_test(NAME interval_arithmetic COMMAND interval.test)
 add_test(NAME lossy_arithmetic COMMAND lossy.test)
 add_test(NAME matrix COMMAND matrix.test)
-# add_test(NAME taylor_series COMMAND taylor.test)
+add_test(NAME taylor_series COMMAND taylor.test)
 
 add_test(NAME angle COMMAND angle.test)
 add_test(NAME conics COMMAND conic.test)

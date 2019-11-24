@@ -80,9 +80,29 @@ restart:
 retry:
 		T* const _raw = _x.data();
 		// we almost certainly have to improve the O(...) of this, eyeballs as cubic O(n^3)
+		// should exploit that our only caller has just pushed the "unstable numeral"
 		do {
 			size_t i = test_vertex;
-			do	switch(rearrange_sum(_raw[--i],_raw[test_vertex]))
+			do	{
+				switch(trivial_sum(_raw[--i], _raw[test_vertex]))
+				{
+				case -1:	// lhs gone
+					if (1 < test_vertex - i) swap(_raw[i], _raw[test_vertex - 1]);
+					swap(_raw[test_vertex - 1], _raw[test_vertex]);
+					if (test_vertex < _x.size() - 1) swap(_raw[test_vertex], _raw[_x.size() - 1]);
+					_x.pop_back();
+					if (1 >= _x.size()) return;
+					--test_vertex;
+					goto retry;
+				case 1:		// rhs gone
+					if (1 < test_vertex - i) swap(_raw[i], _raw[test_vertex - 1]);
+					if (test_vertex < _x.size() - 1) swap(_raw[test_vertex], _raw[_x.size() - 1]);
+					_x.pop_back();
+					if (1 >= _x.size()) return;
+					--test_vertex;
+					goto retry;
+				}
+				switch(rearrange_sum(_raw[i], _raw[test_vertex]))
 				{
 				case 1:	// rhs deleted
 					if (1<test_vertex-i) swap(_raw[i],_raw[test_vertex-1]);
@@ -100,13 +120,14 @@ retry:
 					if (1 >= _x.size()) return;
 					goto retry;
 				case 2:	// lhs, rhs altered:
+					if (2 > test_vertex) break;
 					if (1<test_vertex-i) swap(_raw[i],_raw[test_vertex-1]);
 					test_vertex--;
 					i = test_vertex;
 					break;
 				default: break;	// do not recognize the change code, assume zero/no-op
 				}
-			while(0 < i);
+			} while(0 < i);
 			}
 		while(++test_vertex < _x.size());
 	};
