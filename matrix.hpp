@@ -134,8 +134,11 @@ public:
 	};
 
 	// decide: constructor destructor assignment operator
-	vector() = default;
-	explicit vector(const T& src) { std::fill_n(_x.data(), N, src); }
+	vector() {
+		if constexpr (std::is_trivially_constructible<T>::value)
+			_x.fill(int_as<0, T>());
+	};
+	explicit vector(const T& src) { _x.fill(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
 
@@ -254,8 +257,11 @@ public:
 	};
 
 	// decide: constructor destructor assignment operator
-	covector() = default;
-	explicit covector(const T& src) { std::fill_n(_x.data(), N, src); }
+	covector() {
+		if constexpr (std::is_trivially_constructible<T>::value)
+			_x.fill(int_as<0, T>());
+	};
+	explicit covector(const T& src) { _x.fill(src); }
 	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
 
@@ -344,7 +350,19 @@ public:
 	};
 
 	// decide: constructor destructor assignment operator
-	matrix_square() = default;
+	matrix_square() {
+		if constexpr (std::is_trivially_constructible<T>::value)
+			_x.fill(int_as<0, T>());
+	};
+	explicit matrix_square(const T& src) {
+		if constexpr(std::is_trivially_constructible<T>::value)
+			_x.fill(int_as<0,T>());
+		size_t i = N;
+		do {
+			--i;
+			_x.data()[i * (cols + 1)] = src;
+		} while (0 < i);
+	}
 	matrix_square(const T* src) { assert(src); std::copy_n(src,N*N,_x.c_array()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix_square);
 
@@ -494,7 +512,10 @@ public:
 	};
 
 	// decide: constructor destructor assignment operator
-	matrix() = default;
+	matrix() {
+		if constexpr (std::is_trivially_constructible<T>::value)
+			_x.fill(int_as<0, T>());
+	};
 	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
