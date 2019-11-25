@@ -32,6 +32,9 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 //	series_sum<typename interval_type<typename T1::value_type>::type::base_type> accumulator_exact;
 	std::vector<typename std::remove_cv<typename T1::value_type>::type> lhs_terms;
 	std::vector<typename std::remove_cv<typename T2::value_type>::type> rhs_terms;
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 
 	{	// scoping brace
 	const auto lhs_end = lhs.end();

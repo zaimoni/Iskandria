@@ -27,6 +27,7 @@ public:
 	};	// usually __PRETTY_FUNCTION__ macro
 	void pop_back() {
 		if (!_x.empty()) _x.pop_back();
+		_summarize();
 	};
 	void log(const std::string& src) {
 		_append(src);

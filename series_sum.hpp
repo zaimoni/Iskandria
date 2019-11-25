@@ -26,6 +26,9 @@ public:
 		assert(!isNaN(src));
 		// cf trivial_sum
 		if (exact_equals(src,0)) return;	// XXX fails for intervals: std::terminate
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		const bool no_further_op = _x.empty();
 		if (!no_further_op) {
 			const bool was_finite = isFinite(_x.front());
@@ -58,6 +61,9 @@ public:
 	// also want: self-destructive version
 	typename interval_type<T>::type eval()
 	{
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		switch(_x.size())
 		{
 		case 0: return int_as<0,typename interval_type<T>::type >();
@@ -65,9 +71,8 @@ public:
 		case 2: break;
 		default: std::stable_sort(_x.begin(),_x.end(), fp_compare<T>::good_sum_lt); break;	// sort in strictly increasing exponent order
 		};
-
 		typename interval_type<T>::type ret(int_as<0, typename interval_type<T>::type>());
-		for (auto i : _x) ret += i;	// XXX
+		for (auto i : _x) ret += i;
 		return ret;
 	}
 
@@ -75,6 +80,9 @@ private:
 	void _rearrange_sum()
 	{
 		assert(2 <= _x.size());
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 restart:
 		size_t test_vertex = _x.size()-1;
 retry:

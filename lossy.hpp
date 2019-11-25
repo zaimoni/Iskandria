@@ -8,6 +8,11 @@
 #include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Logging.h"
 
+// currently redundant, but we might want to build against a 3rd-party interval type again
+#ifdef ZAIMONI_USING_STACKTRACE
+#include "Zaimoni.STL/Pure.CPP/stacktrace.hpp"
+#endif
+
 namespace zaimoni {
 namespace math {
 
@@ -105,6 +110,9 @@ struct fp_compare
 {
 	static bool good_sum_lt(const T& lhs, const T& rhs)
 	{
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		int exponent[2];
 		// only has to work reasonably after preprocessing by rearrange sum
 		frexp(lhs, exponent+0);
@@ -118,6 +126,9 @@ struct fp_compare<ISK_INTERVAL<T> >
 {
 	static bool good_sum_lt(const ISK_INTERVAL<T>& lhs, const ISK_INTERVAL<T>& rhs)
 	{
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		int exponent[6];
 		// only has to work reasonably after preprocessing by rearrange sum
 		frexp(lhs.lower(),exponent+0);

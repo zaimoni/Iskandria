@@ -8,6 +8,10 @@
 #include "augment.STL/cmath"
 #include "numeric_error.hpp"
 
+#ifdef ZAIMONI_USING_STACKTRACE
+#include "Pure.CPP/stacktrace.hpp"
+#endif
+
 #pragma STD FENV_ACCESS ON
 
 namespace zaimoni {
@@ -75,6 +79,9 @@ template<class T>
 typename std::enable_if<std::is_floating_point<T>::value, int>::type rearrange_sum(T& lhs, T& rhs)
 {
 	bool any_change = false;
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 
 	// 0: lhs
 	// 1: rhs
@@ -89,8 +96,8 @@ restart:
 	fp_stats<T> rhs_stats(rhs);
 	if (rhs_stats.exponent()>lhs_stats.exponent()) {
 		// force lhs larger than rhs
-		lhs_stats.swap(rhs_stats);
 		std::swap(lhs, rhs);
+		goto hard_restart;
 	}
 	const int exponent_delta = rhs_stats.exponent() - lhs_stats.exponent();
 
@@ -102,7 +109,7 @@ restart:
 			return -1;
 		}
 		// a denormal acts like it has exponent std::numeric_limits<T>::min_exponent - 1
-		if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
+		if (FP_SUBNORMAL == fp_type[0] /* && FP_SUBNORMAL == fp_type[1] */) {
 			T tmp = copysign(std::numeric_limits<T>::min(), lhs);
 			// lhs+rhs = (lhs+tmp)+(rhs-tmp)
 			rhs -= tmp;	// now opp-sign denormal
@@ -111,7 +118,8 @@ restart:
 			if (0.0 == rhs) return -1;
 			any_change = true;
 			goto hard_restart;	// could be more clever here if breaking const
-		}
+		} else if (FP_SUBNORMAL == fp_type[1]) return 2 * any_change;	// MingW64 infinite loop stopper
+
 		if (0 == exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
 			T tmp = copysign(scalbn(1.0, lhs_stats.exponent() + 1), (is_negative[0] ? -1.0 : 1.0));
 			rhs -= tmp;
@@ -175,6 +183,9 @@ public:
 	// -1: keep LHS; 1: keep RHS (never happens with default implementation)
 	// -2: incomplete rearrangement
 	static int sum(T& lhs, T& rhs) {
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		switch(const int code = trivial<T>::sum_c(lhs, rhs))
 		{
 		case 1:
@@ -516,9 +527,11 @@ namespace bits {
 
 	template<class T>
 	void op_add_assign(T& lhs, const T& rhs, int mode) {
+#ifdef ZAIMONI_USING_STACKTRACE
+		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 		if (trivial<T>::sum(lhs, rhs)) return;
 		if (would_overflow<T>::sum(lhs, rhs)) throw numeric_error("+: overflow");
-
 		fesetround(mode);
 		lhs += rhs;
 	}
@@ -552,6 +565,9 @@ T interval<T>::width() const	// from Boost
 template<class T>
 interval<T>& interval<T>::operator+=(const interval<T>& rhs)
 {
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 	bits::op_add_assign(_lb, rhs._lb, FE_DOWNWARD);
 	bits::op_add_assign(_ub, rhs._ub, FE_UPWARD);
 	return *this;

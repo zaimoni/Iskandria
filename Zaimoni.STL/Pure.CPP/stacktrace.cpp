@@ -16,7 +16,10 @@ void stacktrace::_append(const char* src) const
 
 void stacktrace::_summarize() const
 {
-	if (_x.empty()) return;
+	if (_x.empty()) {
+		INFORM("----");
+		return;
+	}
 	const auto& fr = _x.back();
 	INFORM("####");
 	_append(fr.first);

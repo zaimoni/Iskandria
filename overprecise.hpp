@@ -624,6 +624,9 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 {
 	assert(!trivial_sum(lhs,rhs));
 	bool any_change = false;
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 
 	// 0: lhs
 	// 1: rhs
@@ -651,7 +654,6 @@ restart:
 			return true;
 		}
 		// a denormal acts like it has exponent std::numeric_limits<T>::min_exponent - 1
-		assert(FP_SUBNORMAL != fp_type[0] || FP_SUBNORMAL == fp_type[1]);	// should be enforced above
 		if (FP_SUBNORMAL == fp_type[0] /* && FP_SUBNORMAL == fp_type[1] */) {
 			T tmp = copysign(std::numeric_limits<T>::min(),lhs);
 			// lhs+rhs = (lhs+tmp)+(rhs-tmp)
@@ -744,6 +746,9 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 		break;
 	case 0:	// no coordinates zero
 	}
+#endif
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
 	int lower_rearrange_code = 0;
 	switch(zero_code)
@@ -998,6 +1003,9 @@ template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(T& lhs, T& rhs)
 {
 	assert(!trivial_product(lhs,rhs));
+#ifdef ZAIMONI_USING_STACKTRACE
+	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
+#endif
 
 	// 0: lhs
 	// 1: rhs
