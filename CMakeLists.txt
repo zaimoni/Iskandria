@@ -15,8 +15,9 @@ find_package(SFML 2.5 REQUIRED COMPONENTS graphics window system)
 add_subdirectory(Zaimoni.STL)
 
 add_executable(Iskandria main.cpp interval_shim.cpp text_menu.cpp cssbox.cpp display_manager.cpp input_manager.cpp constants.cpp game_manager.cpp world_manager.cpp minkowski.cpp craft.cpp agent.cpp)
-target_link_libraries(Iskandria z_log_adapter z_logging z_format_util z_stdio_c z_stdio_log z_clock  sfml-graphics sfml-window sfml-system winmm)
+target_link_libraries(Iskandria z_log_adapter z_logging z_stdio_c z_clock  sfml-graphics sfml-window sfml-system winmm)
 
+# EXCLUDE_FROM_ALL means "can't test"
 add_executable(angle.test angle.cpp taylor.cpp interval_shim.cpp)
 add_executable(cssbox.test cssbox.cpp)
 add_executable(cssSFML.test css_SFML.cpp cssbox.cpp display_manager.cpp)
@@ -36,45 +37,45 @@ add_executable(minkowski.test minkowski.cpp angle.cpp taylor.cpp interval_shim.c
 add_executable(taylor.test taylor.cpp)
 
 target_compile_definitions(angle.test PRIVATE TEST_APP2)
-target_link_libraries(angle.test z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(angle.test z_log_adapter)
 
 target_compile_definitions(cssbox.test PRIVATE TEST_APP2)
-target_link_libraries(cssbox.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(cssbox.test z_log_adapter)
 
 target_compile_definitions(cssSFML.test PRIVATE TEST_APP3)
-target_link_libraries(cssSFML.test sfml-graphics sfml-window sfml-system z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(cssSFML.test sfml-graphics sfml-window sfml-system z_log_adapter)
 
 target_compile_definitions(conic.test PRIVATE TEST_APP2)
-target_link_libraries(conic.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(conic.test z_log_adapter)
 
 target_compile_definitions(constants PRIVATE TEST_APP)
-target_link_libraries(constants z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(constants z_log_adapter)
 
-target_link_libraries(cyclic_fn.test z_log_adapter z_stdio_log z_format_util)
-target_link_libraries(dicounter.test z_log_adapter z_stdio_log z_format_util)
-target_link_libraries(gridtile.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(cyclic_fn.test z_log_adapter)
+target_link_libraries(dicounter.test z_log_adapter)
+target_link_libraries(gridtile.test z_log_adapter)
 
 target_compile_definitions(heat_engine.test PRIVATE TEST_APP3)
-target_link_libraries(heat_engine.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(heat_engine.test z_log_adapter)
 
-target_link_libraries(int_range.test z_log_adapter z_stdio_log z_format_util)
-target_link_libraries(interval.test z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(int_range.test z_log_adapter)
+target_link_libraries(interval.test z_log_adapter)
 
 target_compile_definitions(kepler_orbit.test PRIVATE TEST_APP3)
-target_link_libraries(kepler_orbit.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(kepler_orbit.test z_log_adapter)
 
-target_link_libraries(lossy.test z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(lossy.test z_log_adapter)
 
 target_compile_definitions(mass.test PRIVATE TEST_APP2)
-target_link_libraries(mass.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(mass.test z_log_adapter)
 
-target_link_libraries(matrix.test z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(matrix.test z_log_adapter)
 
 target_compile_definitions(minkowski.test PRIVATE TEST_APP3)
-target_link_libraries(minkowski.test z_stdio_c z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(minkowski.test z_log_adapter)
 
 target_compile_definitions(taylor.test PRIVATE TEST_APP)
-target_link_libraries(taylor.test z_log_adapter z_stdio_log z_format_util)
+target_link_libraries(taylor.test z_log_adapter)
 
 enable_testing()
 
