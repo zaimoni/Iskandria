@@ -16,13 +16,22 @@ namespace kepler {
 // y-axis unit vector is at theta=90 degrees in polar coordinates
 // when embedding in 3-space, the unit vector parallel to the angular momentum vector is the cross-product of the above two vectors.
 
+// angle types
+enum {
+	Mean_Anomaly = 0,	// angle from center of circle whose orbital period is the orbit's orbital period
+	Eccentric_Anomaly,	// angle from geometric center of elliptical orbit
+	True_Anomaly		// angle from focus of orbit
+};
+
 class orbit
 {
 public:
 	typedef fundamental_constants::interval interval;
 	typedef zaimoni::math::Cartesian_vector<interval, 2>::coord_type vector;
 	typedef zaimoni::math::conic conic;
-	typedef zaimoni::circle::angle angle;
+	typedef zaimoni::circle::Angle<Mean_Anomaly> mean_anomaly;
+	typedef zaimoni::circle::Angle<Eccentric_Anomaly> eccentric_anomaly;
+	typedef zaimoni::circle::Angle<True_Anomaly> true_anomaly;
 private:
 	mass _m;	// usually specified as the reduced gravitational parameter.  Provides the unit system in use.
 	conic _orbit;	// the actual orbit
@@ -38,7 +47,7 @@ private:
 	mutable bool have_m_div_specific_angular_momentum = false;
 	mutable interval _m_div_specific_angular_momentum;
 	mutable bool have_mean_anomaly_scale = false;
-	mutable angle _mean_anomaly_scale;
+	mutable interval _mean_anomaly_scale;
 public:
 	orbit() = default;
 	orbit(const orbit& src) = default;
@@ -77,10 +86,10 @@ public:
 		return (_m_div_specific_angular_momentum = _m.GM() / specific_relative_angular_momentum());
 	}
 
-	const angle& mean_anomaly_scale() const {
+	const decltype(_mean_anomaly_scale)& mean_anomaly_scale() const {
 		if (have_mean_anomaly_scale) return _mean_anomaly_scale;
 		have_mean_anomaly_scale = true;
-		return (_mean_anomaly_scale = angle(360.0 / sqrt(period_squared())));
+		return (_mean_anomaly_scale = 360.0 / sqrt(period_squared()));
 	}
 
 	interval v_pericenter() const { return sqrt(m_div_a() / one_minus_e_div_one_plus_e()); }
@@ -91,38 +100,37 @@ public:
 	interval predicted_e() const { return (_apocenter-_pericenter) / (_apocenter + _pericenter); }	// some data normalization at construction time indicated
 
 //	vector r(const angle& true_anomaly) {}
-	vector v(const angle& true_anomaly) {
+	vector v(const true_anomaly& theta) const {
 		interval _sin;
 		interval _cos;
-		true_anomaly.sincos(_sin, _cos);
+		theta.sincos(_sin, _cos);
 		interval tmp = m_div_specific_angular_momentum();
-		interval vec[2] = { -_sin * tmp , tmp * (_orbit.e() + _cos) };
-		return vector(vec);
+		return zaimoni::make<vector>()(-_sin * tmp, tmp * (_orbit.e() + _cos));
 	}
-	interval d_polar_r_dt(const angle& true_anomaly) const {
+	interval d_polar_r_dt(const true_anomaly& theta) const {
 		interval _sin;
 		interval _cos;
-		true_anomaly.sincos(_sin, _cos);
+		theta.sincos(_sin, _cos);
 		return m_div_specific_angular_momentum()*_orbit.e()*_sin;
 	}
-	interval polar_r(const angle& eccentric_anomaly) const {
+	interval polar_r(const eccentric_anomaly& E) const {
 		interval _sin;
 		interval _cos;
-		eccentric_anomaly.sincos(_sin, _cos);
+		E.sincos(_sin, _cos);
 		return _orbit.a()*(1.0-_orbit.e()* _cos);
 	}
 /*
-	interval polar_theta(const angle& eccentric_anomaly) const {	// i.e. true anomaly
+	interval polar_theta(const eccentric_anomaly& E) const {	// i.e. true anomaly
 		// numerically solve: (1-_orbit.e())tan^2(theta) = (1+_orbit.e()) tan^2(eccentric_anomaly)
 		// obviously need an alternate expression for near 90 degrees/270 degrees
 	}
-	zaimoni::math::angle eccentric_anomaly(const angle& mean_anomaly) {
+	eccentric_anomaly E(const mean_anomaly& M) {
 		// numerically solve: mean_anomaly = E - _orbit.e()*sin(E) // requires working in radians?
 		// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity
 	}
 */
 	interval period_squared() const { return square(2.0 * interval_shim::pi) * pow(_orbit.a(), 3) / _m.GM(); }	// dimension time^2
-	angle mean_anomaly(const interval& t) { return mean_anomaly_scale() * t; }
+	mean_anomaly M(const interval& t) { return mean_anomaly(mean_anomaly_scale() * t); }	// replace this
 
 	// circular orbits (parabolic orbit values are twice this)
 	interval circular_velocity_squared_from_radius(const interval& r) { return _m.GM() / r; }

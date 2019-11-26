@@ -49,6 +49,19 @@ inline angle operator*(const angle& lhs, typename const_param<angle::interval::b
 inline angle operator*(const angle::interval& lhs, const angle& rhs) { return angle(rhs) *= lhs; }	// assumes commutative multiplication (true when base type is in real numbers R)
 inline angle operator*(typename const_param<angle::interval::base_type>::type lhs, const angle& rhs) { return angle(rhs) *= lhs; }
 
+// some uses need to track "what kind of angle".
+template<int code>
+class Angle : public angle {
+public:
+	Angle() = default;
+	explicit Angle(interval degrees) : angle(degrees) {};
+	explicit Angle(angle theta) : angle(theta) {};
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(Angle);
+
+	Angle& operator*=(const interval& rhs) { static_cast<angle>(*this) *= rhs; return *this; };
+	Angle& operator*=(typename const_param<interval::base_type>::type rhs) { static_cast<angle>(*this) *= rhs; return *this; };
+};
+
 }	// namespace circle
 }	// namespace zaimoni
 
