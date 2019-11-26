@@ -29,6 +29,20 @@ struct make
 {
 };
 
+// type demotion.
+template<class T> struct precise_demote
+{
+	enum { value = 0 };
+};
+
+// Handle Clang: sizeof(long double)==sizeof(double)
+template<>
+struct precise_demote<long double>
+{
+	typedef double type;
+	enum { value = (sizeof(long double) == sizeof(double)) };
+};
+
 // we don't have good compile-time detection for operators, and STL conflicts with mathematics at times anyway
 template<class T> struct op_works
 {
