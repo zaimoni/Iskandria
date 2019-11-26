@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 
 	typename iskandria::grid::cartesian<2>::coord_type dest;
 	const decltype(dest) origin(7);	// for offset code 3 this is the center of a 16x16 voxel square
-	const decltype(dest) quadrant_1(8);
+	const decltype(dest) quadrant_1(8);	// this test series is meant to be on an exact diagonal
 	const decltype(dest) quadrant_3(6);
 	bool all_tests_ok = true;
 
@@ -246,6 +246,82 @@ int main(int argc, char* argv[])
 
 	// \todo verify that E i.e 270 degrees is period 4
 	// \todo verify that W i.e 90 degrees is period 4
+	const auto Q1_E0(zaimoni::make<decltype(dest)>()(8, 6));
+	const auto Q1_E3(zaimoni::make<decltype(dest)>()(8, 7));
+	const auto Q1_W0(zaimoni::make<decltype(dest)>()(6, 8));
+	const auto Q1_W3(zaimoni::make<decltype(dest)>()(7, 8));
+	const auto Q3_E0(zaimoni::make<decltype(dest)>()(6, 8));
+	const auto Q3_E3(zaimoni::make<decltype(dest)>()(6, 9));
+	const auto Q3_W0(zaimoni::make<decltype(dest)>()(8, 6));
+	const auto Q3_W3(zaimoni::make<decltype(dest)>()(9, 6));
+
+	dest = quadrant_1;
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_E0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_W0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_W0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_E0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_E3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_W3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_W3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q1_E3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_1);
+
+	dest = quadrant_3;
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_E0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_W0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_W0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_E0);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_E3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_W3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::E, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_W3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_S3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == Q3_E3);
+	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 3, iskandria::compass::W, dest[0], dest[1]));
+	SUCCEED_OR_DIE(dest == quadrant_3);
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
