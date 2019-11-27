@@ -62,7 +62,6 @@ const TaylorSeries<int>& cos()
 	static TaylorSeries<int> ret(product(std::function<int (uintmax_t)>(unsigned_fn<0>::template kronecker_delta<Z_<2> >),
 	                             compose(std::function<int (uintmax_t)>(alternator()),
 	                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>))),
-	                             std::function<int (uintmax_t)>(unsigned_fn<1>::template constant<uintmax_t>),
 	                             fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::EVEN);
 	return ret;
 }
@@ -73,11 +72,9 @@ const TaylorSeries<int>& sin()
 	                                     compose(compose(std::function<int (uintmax_t)>(alternator()),
 	                                                     std::function<uintmax_t (uintmax_t)>(linear::map<1,2,0>::template eval<uintmax_t>)),
 										         std::function<uintmax_t (uintmax_t)>(linear::map<1,1,-1>::template eval<uintmax_t>))),
-	                             std::function<int (uintmax_t)>(unsigned_fn<1>::template constant<uintmax_t>),
 	                             fn_algebraic_properties::ALTERNATING | fn_algebraic_properties::ODD);
 	return ret;
 }
-
 
 }	// namespace math
 }	// namespace zaimoni

@@ -19,7 +19,6 @@ class TaylorSeries
 private:
 	// serious data design issues here
 	std::function<COEFF (uintmax_t)> term_numerator;	// alternative is "unbounded" integer class for domain of indexes
-	std::function<COEFF (uintmax_t)> term_numerator_ub;
 	// we also need a "tracker" for important fn traits
 	// normal polynomial is merely finite upper bound for non-zero conefficient indexes
 	// key optimizations:at this level
@@ -29,7 +28,7 @@ private:
 
 	typename fn_algebraic_properties::bitmap_type _bitmap;
 public:
-	TaylorSeries(const std::function<COEFF (uintmax_t)>& src, const std::function<COEFF (uintmax_t)>& src_ub,typename fn_algebraic_properties::bitmap_type src_bitmap=0) : term_numerator(src),_bitmap(src_bitmap) {};
+	TaylorSeries(const std::function<COEFF (uintmax_t)>& src,typename fn_algebraic_properties::bitmap_type src_bitmap=0) : term_numerator(src),_bitmap(src_bitmap) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(TaylorSeries);
 
 	COEFF a(uintmax_t n) const {return term_numerator(n);};
