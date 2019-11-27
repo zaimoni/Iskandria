@@ -113,6 +113,10 @@ public:
 const TaylorSeries<int>& cos();
 const TaylorSeries<int>& sin();
 
+const TaylorSeries<int>& exp();
+const TaylorSeries<int>& cosh();
+const TaylorSeries<int>& sinh();
+
 }
 }	// namespace zaimoni
 

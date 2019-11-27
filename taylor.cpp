@@ -76,6 +76,32 @@ const TaylorSeries<int>& sin()
 	return ret;
 }
 
+const TaylorSeries<int>& exp()
+{
+	static TaylorSeries<int> ret(std::function<int(uintmax_t)>(unsigned_fn<1>::constant<uintmax_t>),
+		fn_algebraic_properties::NONZERO | fn_algebraic_properties::NONNEGATIVE);
+	return ret;
+}
+
+const TaylorSeries<int>& cosh()
+{
+	static TaylorSeries<int> ret(product(std::function<int(uintmax_t)>(unsigned_fn<0>::template kronecker_delta<Z_<2> >),
+		compose(std::function<int(uintmax_t)>(unsigned_fn<1>::constant<uintmax_t>),
+			std::function<uintmax_t(uintmax_t)>(linear::map<1, 2, 0>::template eval<uintmax_t>))),
+		fn_algebraic_properties::NONZERO | fn_algebraic_properties::NONNEGATIVE | fn_algebraic_properties::EVEN);
+	return ret;
+}
+
+const TaylorSeries<int>& sinh()
+{
+	static TaylorSeries<int> ret(product(std::function<int(uintmax_t)>(unsigned_fn<1>::template kronecker_delta<Z_<2> >),
+		compose(compose(std::function<int(uintmax_t)>(unsigned_fn<1>::constant<uintmax_t>),
+			std::function<uintmax_t(uintmax_t)>(linear::map<1, 2, 0>::template eval<uintmax_t>)),
+			std::function<uintmax_t(uintmax_t)>(linear::map<1, 1, -1>::template eval<uintmax_t>))),
+		fn_algebraic_properties::ODD);
+	return ret;
+}
+
 }	// namespace math
 }	// namespace zaimoni
 
@@ -92,19 +118,19 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
-	INFORM((long double)zaimoni::math::cos().a(0));
-	INFORM((long double)zaimoni::math::cos().a(1));
-	INFORM((long double)zaimoni::math::cos().a(2));
-	INFORM((long double)zaimoni::math::cos().a(3));
-	INFORM((long double)zaimoni::math::cos().a(4));
+	INFORM(zaimoni::math::cos().a(0));
+	INFORM(zaimoni::math::cos().a(1));
+	INFORM(zaimoni::math::cos().a(2));
+	INFORM(zaimoni::math::cos().a(3));
+	INFORM(zaimoni::math::cos().a(4));
 
 	STRING_LITERAL_TO_STDOUT("cos coefficients a_0..4\n");
 
-	INFORM((long double)zaimoni::math::sin().a(0));
-	INFORM((long double)zaimoni::math::sin().a(1));
-	INFORM((long double)zaimoni::math::sin().a(2));
-	INFORM((long double)zaimoni::math::sin().a(3));
-	INFORM((long double)zaimoni::math::sin().a(4));
+	INFORM(zaimoni::math::sin().a(0));
+	INFORM(zaimoni::math::sin().a(1));
+	INFORM(zaimoni::math::sin().a(2));
+	INFORM(zaimoni::math::sin().a(3));
+	INFORM(zaimoni::math::sin().a(4));
 
 	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
 
@@ -117,6 +143,20 @@ int main(int argc, char* argv[])
 	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
 	INC_INFORM("cos(1): ");
 	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
+
+	INC_INFORM("exp(0): ");
+	INFORM(zaimoni::math::exp().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+	INC_INFORM("sinh(0): ");
+	INFORM(zaimoni::math::sinh().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+	INC_INFORM("cosh(0): ");
+	INFORM(zaimoni::math::cosh().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+
+	INC_INFORM("exp(1): ");
+	INFORM(zaimoni::math::exp().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
+	INC_INFORM("sinh(1): ");
+	INFORM(zaimoni::math::sinh().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
+	INC_INFORM("cosh(1): ");
+	INFORM(zaimoni::math::cosh().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

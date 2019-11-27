@@ -98,5 +98,5 @@ add_test(NAME minkowski_space COMMAND minkowski.test)
 add_test(NAME mass_equivalence COMMAND mass.test)
 
 add_test(NAME heat_engines COMMAND heat_engine.test)
-add_test(NAME matrix COMMAND matrix.test)	# hangs on MingW64
-# add_test(NAME kepler_orbits COMMAND kepler_orbit.test)	# doesn't build on CLang
+add_test(NAME matrix COMMAND matrix.test)
+add_test(NAME kepler_orbits COMMAND kepler_orbit.test)
