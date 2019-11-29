@@ -17,43 +17,76 @@ void zaimoni::circle::angle::_standard_form()
 	while(-10125 > _theta.lower()) _theta += 10125;
 }
 
-// check for whole-circle in degrees
-bool zaimoni::circle::angle::_deg_to_whole_circle()
-{
-	ISK_INTERVAL<double> tmp(_theta.upper());
-	tmp -= _theta.lower();
-	if (360<=tmp.lower())
-		{
-		_theta.assign(-5062.5,5062.5);
+static bool degree_whole_circle(zaimoni::circle::angle::interval& deg) {
+	if (360.0 <= (zaimoni::circle::angle::interval(deg.upper()) - zaimoni::circle::angle::interval(deg.lower())).lower()) {
+		deg.assign(-5062.5, 5062.5);
 		return true;
-		}
+	}
 	return false;
 }
 
-void zaimoni::circle::angle::_to_standard_form()
+// check for whole-circle in degrees
+void zaimoni::circle::angle::_degree_to_standard_form()
 {
 	// First, check for the whole-circle special case.
-	if (_deg_to_whole_circle()) return;
+	if (degree_whole_circle(_theta)) return;
 
 	// normal form: -180<=lb<180
-	while(180<=_theta.lower())
-		{
-		int scale = 2;
-		while((scale+1)*180.0<=_theta.lower() && scale<(HUGE_VAL/360.0)) scale*=2;
-		_theta -= scale*180.0;
-		if (_deg_to_whole_circle()) return;
-		}
-	// normal form: -180<ub<=180
-	while(-180>=_theta.upper())
-		{
-		int scale = 2;
-		while((scale+1)*(-180.0)>=_theta.upper() && scale<(HUGE_VAL/360.0)) scale*=2;
-		_theta += scale*180.0;
-		if (_deg_to_whole_circle()) return;
-		}
+	static const interval scale_overflow(interval(HUGE_VAL) / 360.0);
+	if (180 <= _theta.lower()) {
+		do {
+			int scale = 2;
+			while ((scale + 1) * 180.0 <= _theta.lower() && scale < scale_overflow.lower()) scale *= 2;
+			_theta -= scale * 180.0;
+			if (degree_whole_circle(_theta)) return;
+		} while (180 <= _theta.lower());
+	} else if (-180 >= _theta.upper()) {
+		do {
+			int scale = 2;
+			while ((scale + 1) * (-180.0) >= _theta.upper() && scale < scale_overflow.lower()) scale *= 2;
+			_theta += scale * 180.0;
+			if (degree_whole_circle(_theta)) return;
+		} while (-180 >= _theta.upper());
+	}
 	// change to preferred internal representation
 	(_theta*=225)/=8;
 }
+
+static bool radian_whole_circle(zaimoni::circle::angle::interval& rad) {
+	if (interval_shim::pi.upper() <= (zaimoni::circle::angle::interval(rad.upper()) - zaimoni::circle::angle::interval(rad.lower())).lower()) {
+		rad.assign(-5062.5, 5062.5);
+		return true;
+	}
+	return false;
+}
+
+void zaimoni::circle::angle::_radian_to_standard_form()
+{
+	// First, check for the whole-circle special case.
+	if (radian_whole_circle(_theta)) return;
+
+	// normal form: -180<=lb<180
+	static const interval scale_overflow(interval(HUGE_VAL) / (2*interval_shim::pi.upper()));
+	if (interval_shim::pi.upper() <= _theta.lower()) {
+		do {
+			int scale = 2;
+			while (((scale + 1) * interval_shim::pi).upper() <= _theta.lower() && scale < scale_overflow.lower()) scale *= 2;
+			_theta -= scale * interval_shim::pi;
+			if (radian_whole_circle(_theta)) return;
+		} while (interval_shim::pi.upper() <= _theta.lower());
+	}
+	else if (-interval_shim::pi.upper() >= _theta.upper()) {
+		do {
+			int scale = 2;
+			while (((scale + 1) * -interval_shim::pi).upper() <= _theta.lower() && scale < scale_overflow.lower()) scale *= 2;
+			_theta += scale * interval_shim::pi;
+			if (radian_whole_circle(_theta)) return;
+		} while (-interval_shim::pi.upper() >= _theta.upper());
+	}
+	// change to preferred internal representation
+	((_theta *= 1125) /= 2) /= interval_shim::pi;
+}
+
 
 void static enforce_circle(interval_shim::interval& _sin, interval_shim::interval& _cos)
 {
@@ -158,7 +191,8 @@ int main(int argc, char* argv[])
 {
 	STRING_LITERAL_TO_STDOUT("starting main\n");
 
-	zaimoni::circle::angle test(0);;
+	zaimoni::circle::angle test_deg(typename zaimoni::circle::angle::degree(0));
+	zaimoni::circle::angle test_rad(typename zaimoni::circle::angle::radian(0));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 

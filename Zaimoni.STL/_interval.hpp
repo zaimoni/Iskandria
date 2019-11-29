@@ -119,6 +119,13 @@ namespace zaimoni {
 		using zaimoni::isNaN;
 		using zaimoni::scalBn;
 
+		template<int code, class T>
+		class Interval : public ISK_INTERVAL<T> {
+		public:
+			Interval() = default;
+			explicit Interval(const ISK_INTERVAL<T>& src) : ISK_INTERVAL<T>(src) {};
+			ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(Interval);
+		};
 	}
 }	// namespace zaimoni
 

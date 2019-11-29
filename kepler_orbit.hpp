@@ -120,9 +120,14 @@ public:
 		return _orbit.a()*(1.0-_orbit.e()* _cos);
 	}
 /*
-	interval polar_theta(const eccentric_anomaly& E) const {	// i.e. true anomaly
+	// we have: 0 degrees true anomaly = 0 degrees eccentric anomaly = 0 degrees mean anomaly
+	// and 180 degrees true anomaly = 180 degrees eccentric anomaly = 180 degrees mean anomaly
+	true_anomaly theta(const eccentric_anomaly& E) const {	// i.e. true anomaly
 		// numerically solve: (1-_orbit.e())tan^2(theta) = (1+_orbit.e()) tan^2(eccentric_anomaly)
 		// obviously need an alternate expression for near 90 degrees/270 degrees
+		// fully multiplicative form: (1-_orbit.e())sin^2(theta)cos^2(eccentric_anomaly) = (1+_orbit.e()) sin^2(eccentric_anomaly)cos^2(theta)
+		// i.e. we have unfixable direct solution for 90 degrees theta, eccentric anomaly -- but as a right triangle with one edge the focal
+		// distance c we have other means there
 	}
 	eccentric_anomaly E(const mean_anomaly& M) {
 		// numerically solve: mean_anomaly = E - _orbit.e()*sin(E) // requires working in radians?
@@ -130,7 +135,7 @@ public:
 	}
 */
 	interval period_squared() const { return square(2.0 * interval_shim::pi) * pow(_orbit.a(), 3) / _m.GM(); }	// dimension time^2
-	mean_anomaly M(const interval& t) { return mean_anomaly(mean_anomaly_scale() * t); }	// replace this
+	mean_anomaly M(const zaimoni::circle::angle& t) { return mean_anomaly(mean_anomaly_scale() * t); }	// replace this
 
 	// circular orbits (parabolic orbit values are twice this)
 	interval circular_velocity_squared_from_radius(const interval& r) { return _m.GM() / r; }

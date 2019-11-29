@@ -18,11 +18,14 @@ namespace circle {
 class angle {
 public:
 	typedef interval_shim::interval interval;
+	typedef zaimoni::math::Interval<0, typename interval::base_type> radian;
+	typedef zaimoni::math::Interval<1, typename interval::base_type> degree;
 private:
 	interval _theta;
 public:
 	angle() = default;
-	explicit angle(interval degrees) : _theta(degrees) {_to_standard_form();};
+	explicit angle(const degree& src) : _theta(src) { _degree_to_standard_form(); };
+	explicit angle(const radian& src) : _theta(src) { _radian_to_standard_form(); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(angle);
 
 	bool is_whole_circle() const {return 10125<=_theta.upper()-_theta.lower();};
@@ -37,8 +40,8 @@ public:
 	void sincos(interval& _sin, interval& _cos) const;
 private:
 	void _standard_form();
-	bool _deg_to_whole_circle();
-	void _to_standard_form();
+	void _degree_to_standard_form();
+	void _radian_to_standard_form();
 
 	static void _sincos(interval x, interval& _sin, interval& _cos);
 	static void _radian_sincos(interval radians, interval& _sin, interval& _cos);
@@ -54,7 +57,8 @@ template<int code>
 class Angle : public angle {
 public:
 	Angle() = default;
-	explicit Angle(interval degrees) : angle(degrees) {};
+	explicit Angle(const degree& theta) : angle(theta) {};
+	explicit Angle(const radian& theta) : angle(theta) {};
 	explicit Angle(angle theta) : angle(theta) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(Angle);
 
