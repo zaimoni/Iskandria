@@ -8,6 +8,7 @@
 #include "augment.STL/cmath"
 #include "numeric_error.hpp"
 
+
 #ifdef ZAIMONI_USING_STACKTRACE
 #include "Pure.CPP/stacktrace.hpp"
 #endif
@@ -288,13 +289,13 @@ private:
 	T _lb;
 	T _ub;
 
-	static const interval<T> _empty;
-	static const interval<T> _whole;
+	static const interval _empty;	// self-constexpr doesn't work in either CLang or MingW64
+	static const interval _whole;
 public:
 	constexpr interval() = default;
 	constexpr interval(const interval& src) = default;
-	interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
-	interval(const T& l, const T& u) : _lb(l), _ub(u) {}
+	constexpr interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
+	constexpr interval(const T& l, const T& u) : _lb(l), _ub(u) {}
 	template<class T1> constexpr interval(const interval<T1> &src) : _lb(src.lower()), _ub(src.upper()) {}
 
 	interval& operator=(const interval& src) = default;
@@ -303,8 +304,8 @@ public:
 
 	void assign(const T& l, const T& u) { _lb = l; _ub = u; }
 
-	const T& lower() const { return _lb; }
-	const T& upper() const { return _ub; }
+	constexpr T lower() const { return _lb; }
+	constexpr T upper() const { return _ub; }
 	interval<T> median() const;	// from Boost
 	T width() const;	// from Boost
 
@@ -314,10 +315,10 @@ public:
 
 	// these two should fail for unsigned integers
 	void self_negate() { assign(-_ub, -_lb); };
-	interval operator-() const { return interval(-_ub,-_lb);  };
+	constexpr interval operator-() const { return interval(-_ub,-_lb);  };
 
 	// operator==(interval,interval) doesn't work as expected
-	bool contains(const T& s) const { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
+	constexpr bool contains(const T& s) const { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
 
 	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
 	interval& operator+= (const interval& rhs);
@@ -350,25 +351,25 @@ template<class T> interval<T> operator/(typename const_param<T>::type lhs, const
 
 // we don't want to mess with operator== for intervals because it's counterintuitive
 template<class T>
-bool operator==(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator==(const interval<T>& i, typename const_param<T>::type s)
 {
 	return i.lower() == s && i.upper() == s;
 }
 
 template<class T>
-bool operator==(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator==(typename const_param<T>::type s, const interval<T>& i)
 {
 	return i.lower() == s && i.upper() == s;
 }
 
 template<class T>
-bool operator!=(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator!=(const interval<T>& i, typename const_param<T>::type s)
 {
 	return i.lower() != s || i.upper() != s;
 }
 
 template<class T>
-bool operator!=(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator!=(typename const_param<T>::type s, const interval<T>& i)
 {
 	return i.lower() != s || i.upper() != s;
 }
@@ -376,49 +377,49 @@ bool operator!=(typename const_param<T>::type s, const interval<T>& i)
 // Boost library assumes policy involved for scalar inequality with respect to intervals.  It's easier here to just go with "false is maybe" 
 // and reserve any sophisticated logic for another function set
 template<class T>
-bool operator<(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator<(typename const_param<T>::type s, const interval<T>& i)
 {
 	return s < i.lower();
 }
 
 template<class T>
-bool operator<=(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator<=(typename const_param<T>::type s, const interval<T>& i)
 {
 	return s <= i.lower();
 }
 
 template<class T>
-bool operator>(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator>(typename const_param<T>::type s, const interval<T>& i)
 {
 	return i.upper() < s;
 }
 
 template<class T>
-bool operator>=(typename const_param<T>::type s, const interval<T>& i)
+constexpr bool operator>=(typename const_param<T>::type s, const interval<T>& i)
 {
 	return i.upper() <= s;
 }
 
 template<class T>
-bool operator>(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator>(const interval<T>& i, typename const_param<T>::type s)
 {
 	return s < i.lower();
 }
 
 template<class T>
-bool operator>=(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator>=(const interval<T>& i, typename const_param<T>::type s)
 {
 	return s <= i.lower();
 }
 
 template<class T>
-bool operator<(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator<(const interval<T>& i, typename const_param<T>::type s)
 {
 	return i.upper() < s;
 }
 
 template<class T>
-bool operator<=(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator<=(const interval<T>& i, typename const_param<T>::type s)
 {
 	return i.upper() <= s;
 }
@@ -431,14 +432,15 @@ template<class T> interval<T>  const interval<T>::_whole(std::numeric_limits<T>:
 // type_traits
 
 template<class T>
-constexpr auto norm(const zaimoni::math::interval<T>& x)
+auto norm(const zaimoni::math::interval<T>& x)
 {
 	const auto l_norm = norm(x.lower());
 	const auto u_norm = norm(x.upper());
 	return l_norm < u_norm ? u_norm : l_norm;
 }
 
-template<class T> int sgn(const math::interval<T>& x) {
+template<class T>
+int sgn(const math::interval<T>& x) {
 	if (is_positive(x.lower())) return 1;
 	if (is_negative(x.upper())) return -1;
 	return 0;
