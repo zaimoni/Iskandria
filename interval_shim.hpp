@@ -6,7 +6,7 @@
 struct interval_shim
 {
 	typedef ISK_INTERVAL<double> interval;
-	static const interval pi;	// define is a point estimate
+	static constexpr const interval pi = interval(3.1415926535897932, 3.1415926535897935);
 };
 
 #endif

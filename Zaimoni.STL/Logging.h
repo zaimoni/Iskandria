@@ -120,6 +120,13 @@ inline void INC_INFORM(unsigned char B) {return INC_INFORM((uintmax_t)(B));}
 #pragma end_substitute
 #pragma done
 
+inline void INFORM(double B) { return INFORM((long double)(B)); }
+inline void LOG(double B) { return LOG((long double)(B)); }
+inline void INC_INFORM(double B) { return INC_INFORM((long double)(B)); }
+inline void INFORM(float B) { return INFORM((long double)(B)); }
+inline void LOG(float B) { return LOG((long double)(B)); }
+inline void INC_INFORM(float B) { return INC_INFORM((long double)(B)); }
+
 #else	/* !defined(__cplusplus) */
 #ifdef NDEBUG
 #	define FATAL(B) _fatal(B)
