@@ -135,36 +135,181 @@ void zaimoni::circle::angle::_radian_sincos(interval radians, interval& _sin, in
 	assert(1.0>=_cos.lower());
 	assert(-1.0>=_sin.upper());
 	assert(-1.0>=_cos.upper());
-	if (-1.0>_sin.lower() || 1.0<_sin.upper()) _sin.assign((-1.0>_sin.lower() ? -1.0 : _sin.lower()),(1.0<_sin.upper() ? 1.0 : _sin.upper()));
-	if (-1.0>_cos.lower() || 1.0<_cos.upper()) _cos.assign((-1.0>_cos.lower() ? -1.0 : _cos.lower()),(1.0<_cos.upper() ? 1.0 : _cos.upper()));
+	_sin.self_intersect(sin_cos_range_for_real_domain);
+	_cos.self_intersect(sin_cos_range_for_real_domain);
 
 	enforce_circle(_sin,_cos);
 	enforce_circle(_cos,_sin);
 }
 
+void zaimoni::circle::angle::_apply_180_degrees_shift(interval x, interval& _sin, interval& _cos)
+{
+	interval tmp_sin;
+	interval tmp_cos;
+	_sincos(x, tmp_sin, tmp_cos);
+	_sin.self_union(-tmp_sin);
+	_cos.self_union(-tmp_cos);
+}
+
+void zaimoni::circle::angle::_apply_sector(interval x, interval& _sin, interval& _cos)
+{
+	interval tmp_sin;
+	interval tmp_cos;
+	_sincos(x, tmp_sin, tmp_cos);
+	_sin.self_union(tmp_sin);
+	_cos.self_union(tmp_cos);
+}
+
+void zaimoni::circle::angle::_apply_y_reflect(interval x, interval& _sin, interval& _cos)
+{
+	interval tmp_sin;
+	interval tmp_cos;
+	_sincos(x, tmp_sin, tmp_cos);
+	_sin.self_union(tmp_sin);
+	_cos.self_union(-tmp_cos);
+}
+
+void zaimoni::circle::angle::_apply_x_reflect(interval x, interval& _sin, interval& _cos)
+{
+	interval tmp_sin;
+	interval tmp_cos;
+	_sincos(x, tmp_sin, tmp_cos);
+	_sin.self_union(-tmp_sin);
+	_cos.self_union(tmp_cos);
+}
+
+static constexpr const typename interval_shim::interval::base_type _whole_circle = 10125.0;
+
 // x is in the internal representation
 void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)
 {
-//	\todo preprocessing
-	if (5062.5 >= x.upper() && 2531.25<=x.lower())
-		{	// quadrant II -> quadrant IV
-		x -= 5062.5;
-		_sincos(x,_sin,_cos);
-		_sin.assign(-_sin.upper(),-_sin.lower());
-		_cos.assign(-_cos.upper(),-_cos.lower());
+	// Quadrant II wrap
+	if (_whole_circle/2 < x.upper()) {	// spans x-axis
+		assert(_whole_circle / 2 > x.lower());	// assume normalized
+		interval Q3(_whole_circle / 2, x.upper());
+		interval Q2(x.lower(), _whole_circle / 2);
+		_sincos(Q2, _sin, _cos);
+		_apply_180_degrees_shift(Q3 -= _whole_circle / 2, _sin, _cos);
 		return;
+	} else if (_whole_circle / 2 == x.upper()) {	// ends on x-axis
+		if (_whole_circle / 4 >= x.lower()) {
+			_sin.assign(0, 1);
+			_cos.assign(-1, 0);
+			if (_whole_circle / 4 > x.lower()) {
+				x.assign(x.lower(), _whole_circle / 4);
+				_apply_sector(x, _sin, _cos);
+			}
+			return;
 		}
-	if (-5062.5 <= x.lower() && -2531.25>=x.upper())
-		{	// quadrant III -> quadrant I
-		x += 5062.5;
-		_sincos(x,_sin,_cos);
-		_sin.assign(-_sin.upper(),-_sin.lower());
-		_cos.assign(-_cos.upper(),-_cos.lower());
+		interval Q1(0, (_whole_circle / 2 - interval(x.lower())).upper());
+		_apply_y_reflect(Q1, _sin, _cos);
 		return;
+	}
+
+	// Quadrant III wrap
+	if (-_whole_circle / 2 > x.lower()) {	// spans x-axis
+		assert(-_whole_circle / 2 < x.upper());	// assume normalized
+		interval Q3(-_whole_circle / 2, x.upper());
+		interval Q2(x.lower(), -_whole_circle / 2);
+		_sincos(Q3, _sin, _cos);
+		_apply_180_degrees_shift(Q2 += _whole_circle / 2, _sin, _cos);
+		return;
+	} else if (-_whole_circle / 2 == x.lower()) {	// ends on x-axis
+		if (-_whole_circle / 4 <= x.upper()) {
+			_sin.assign(0, -1);
+			_cos.assign(-1, 0);
+			if (-_whole_circle / 4 < x.upper()) {
+				x.assign(-_whole_circle / 4, x.upper());
+				_apply_sector(x, _sin, _cos);
+			}
+			return;
 		}
+		_sincos(-_whole_circle / 2 - x, _sin, _cos);
+		_cos.self_negate();
+		return;
+	}
+	// domain is now (-_whole_circle / 2, _whole_circle / 2)
+
+	// we want that alternating series to alternate
+	if (0 > x.lower()) {
+		if (0 >= x.upper()) {
+			_sincos(-x, _sin, _cos);
+			_sin.self_negate();
+			return;
+		}
+		interval Q1Q2(0, -x.lower());
+		x.assign(0, x.upper());
+		_sincos(x, _sin, _cos);
+		_apply_x_reflect(Q1Q2, _sin, _cos);
+		return;
+	}
+	// domain is now [0, _whole_circle / 2)
+	if (_whole_circle / 4 < x.upper()) {
+		if (_whole_circle / 4 <= x.lower()) {
+			_sincos(_whole_circle / 2 - x, _sin, _cos);
+			_cos.self_negate();
+			return;
+		}
+		_sincos(interval(x.lower(), _whole_circle / 4), _sin, _cos);
+		_apply_y_reflect(interval((_whole_circle / 2 - x).lower(), _whole_circle / 4), _sin, _cos);
+		return;
+	} else if (_whole_circle / 4 == x.upper()) {
+		if (0 == x.lower()) {
+			_sin.assign(0, 1);
+			_cos.assign(0, 1);
+			return;
+		}
+	}
+	// domain is now [0, _whole_circle / 4]
+	if (_whole_circle / 8 <= x.lower()) {
+		_sincos(_whole_circle / 8 - x, _sin, _cos);
+		swap(_sin, _cos);
+		return;
+	} else if (_whole_circle / 8 < x.upper()) {
+		_sincos(interval((_whole_circle / 8 - x).lower(), _whole_circle / 8), _sin, _cos);
+		swap(_sin, _cos);
+		x.assign(x.lower(), _whole_circle / 8);
+		_apply_sector(x, _sin, _cos);
+		return;
+	}
+	// domain is now [0, _whole_circle / 8]
+	if (x.lower() == x.upper()) {
+		_internal_sincos(x.lower(), _sin, _cos);
+		return;
+	}
 //	go to radians
 	_radian_sincos(((x*2.0)*interval_shim::pi)/1125.0, _sin, _cos);
 }
+
+void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos)
+{
+	assert(0 <= x && _whole_circle / 8 >= x);
+	static const auto SQRT3_2 = sqrt(interval(3)) / 2;	// these belong in interval_shim
+	static const auto SQRT2_2 = sqrt(interval(2)) / 2;
+	// also can have entries for 18 degrees and 36 degrees, from the pentagon construction
+	if (0 == x) {
+		_sin = 0;
+		_cos = 1;
+		return;
+	} else if (_whole_circle/12 == x) {		// 30 degrees
+		_sin = 0.5;
+		_cos = SQRT3_2;
+		return;
+	} else if (_whole_circle / 8 == x) {	// 45 degrees
+		_sin = SQRT2_2;
+		_cos = SQRT2_2;
+		return;
+	}
+	_radian_sincos(((x * 2.0) * interval_shim::pi) / 1125.0, _sin, _cos);
+	if (_whole_circle / 12 > x) {
+		_sin.self_intersect(interval(0, 0.5));
+		_cos.self_intersect(interval(SQRT3_2.lower(), 1));
+	} else { // if (_whole_circle / 12 > x)
+		_sin.self_intersect(interval(0.5, SQRT2_2.upper()));
+		_cos.self_intersect(interval(SQRT2_2.lower(), SQRT3_2.upper()));
+	}
+}
+
 
 void zaimoni::circle::angle::sincos(interval& _sin, interval& _cos) const
 {

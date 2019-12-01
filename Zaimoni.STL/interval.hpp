@@ -326,6 +326,21 @@ public:
 	interval& operator*= (const interval& rhs);
 	interval& operator/= (const interval& rhs);
 
+	void self_intersect(const interval& x) {
+		if (_lb < x._lb) _lb = x._lb;
+		if (_ub > x._ub) _ub = x._ub;
+	}
+	void self_union(const interval& x) {
+		if (_lb > x._lb) _lb = x._lb;
+		if (_ub < x._ub) _ub = x._ub;
+	}
+	void self_union_lower(typename const_param<T>::type x) {
+		if (_lb > x) _lb = x;
+	}
+	void self_union_upper(typename const_param<T>::type x) {
+		if (_ub < x) _ub = x;
+	}
+
 //	catch these once the interval forms are stable
 //	interval& operator+= (T const &r);
 //	interval& operator-= (T const &r);

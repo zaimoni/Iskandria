@@ -20,6 +20,8 @@ public:
 	typedef interval_shim::interval interval;
 	typedef zaimoni::math::Interval<0, typename interval::base_type> radian;
 	typedef zaimoni::math::Interval<1, typename interval::base_type> degree;
+	static constexpr const interval sin_cos_range_for_real_domain = interval(-1, 1);
+
 private:
 	interval _theta;
 public:
@@ -43,8 +45,13 @@ private:
 	void _degree_to_standard_form();
 	void _radian_to_standard_form();
 
+	static void _apply_180_degrees_shift(interval x, interval& _sin, interval& _cos);
+	static void _apply_sector(interval x, interval& _sin, interval& _cos);
+	static void _apply_y_reflect(interval x, interval& _sin, interval& _cos);
+	static void _apply_x_reflect(interval x, interval& _sin, interval& _cos);
 	static void _sincos(interval x, interval& _sin, interval& _cos);
 	static void _radian_sincos(interval radians, interval& _sin, interval& _cos);
+	static void _internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos);
 };
 
 inline angle operator*(const angle& lhs, const angle::interval& rhs) { return angle(lhs) *= rhs; }
