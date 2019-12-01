@@ -20,7 +20,14 @@ class floor_model
 private:
 	std::string _name;
 	cartesian<3> _voxel_bounds;
+	std::string _img_path;	// specifies either a filepath or a CGI generation process for top-down orientation N
+
+	static std::vector<floor_model> _models;
 public:
+	enum reserved {
+		NONE = 0
+	};
+
 	floor_model() = default;
 	~floor_model() = default;
 	floor_model(const floor_model& src) = default;
@@ -34,7 +41,15 @@ class wall_model
 private:
 	std::string _name;
 	cartesian<3> _voxel_bounds;
+	std::string _img_path_outside;	// specifies either a filepath or a CGI generation process
+	std::string _img_path_inside;	// specifies either a filepath or a CGI generation process
+
+	static std::vector<wall_model> _models;
 public:
+	enum reserved {
+		NONE = 0
+	};
+
 	wall_model() = default;
 	~wall_model() = default;
 	wall_model(const wall_model& src) = default;
