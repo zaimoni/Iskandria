@@ -24,6 +24,9 @@ public:
 
 private:
 	interval _theta;
+
+	constexpr explicit angle(typename interval::base_type x) : _theta(x) {}
+	constexpr explicit angle(typename interval::base_type lb, typename interval::base_type ub) : _theta(lb, ub) {}
 public:
 	angle() = default;
 	explicit angle(const degree& src) : _theta(src) { _degree_to_standard_form(); };
@@ -31,10 +34,14 @@ public:
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(angle);
 
 	bool is_whole_circle() const {return 10125<=_theta.upper()-_theta.lower();};
-	interval degrees() const {return (_theta*8.0)/225.0;}
+	degree deg() const {return degree((_theta*8.0)/225.0);}
 //	XOPEN standard provides M_PI, not ISO C
 //	interval radians() const {return (((_theta*8)/225)/180)*M_PI;}
-	interval radians() const {return ((_theta*2.0)*interval_shim::pi)/1125.0;}
+	radian rad() const {return radian(((_theta*2.0)*interval_shim::pi)/1125.0);}
+
+	angle lower() const { return angle(_theta.lower()); }
+	angle upper() const { return angle(_theta.upper()); }
+	bool is_exact() const { return _theta.lower() == _theta.upper(); }
 
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
