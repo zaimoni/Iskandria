@@ -68,29 +68,10 @@ public:
 	const interval& pericenter() const { return _pericenter; }
 	const interval& apocenter() const { return _apocenter; }
 
-	const interval& m_div_a() const {
-		if (have_m_div_a) return _m_div_a;
-		have_m_div_a = true;
-		return (_m_div_a = _m.GM() / _orbit.a());
-	}
-
-	const interval& one_minus_e_div_one_plus_e() const {
-		if (have_one_minus_e_div_one_plus_e) return _one_minus_e_div_one_plus_e;
-		have_one_minus_e_div_one_plus_e = true;
-		return (_one_minus_e_div_one_plus_e = (1.0 - _orbit.e()) / (1.0 + _orbit.e()));	// numerator wants support from conic class
-	}
-
-	const interval& m_div_specific_angular_momentum() const {
-		if (have_m_div_specific_angular_momentum) return _m_div_specific_angular_momentum;
-		have_m_div_specific_angular_momentum = true;
-		return (_m_div_specific_angular_momentum = _m.GM() / specific_relative_angular_momentum());
-	}
-
-	const decltype(_mean_anomaly_scale)& mean_anomaly_scale() const {
-		if (have_mean_anomaly_scale) return _mean_anomaly_scale;
-		have_mean_anomaly_scale = true;
-		return (_mean_anomaly_scale = 360.0 / sqrt(period_squared()));
-	}
+	const interval& m_div_a() const;
+	const interval& one_minus_e_div_one_plus_e() const;
+	const interval& m_div_specific_angular_momentum() const;
+	const decltype(_mean_anomaly_scale)& mean_anomaly_scale() const;
 
 	interval v_pericenter() const { return sqrt(m_div_a() / one_minus_e_div_one_plus_e()); }
 	interval v_apocenter() const { return sqrt(m_div_a() * one_minus_e_div_one_plus_e()); }
@@ -100,25 +81,9 @@ public:
 	interval predicted_e() const { return (_apocenter-_pericenter) / (_apocenter + _pericenter); }	// some data normalization at construction time indicated
 
 //	vector r(const angle& true_anomaly) {}
-	vector v(const true_anomaly& theta) const {
-		interval _sin;
-		interval _cos;
-		theta.sincos(_sin, _cos);
-		interval tmp = m_div_specific_angular_momentum();
-		return zaimoni::make<vector>()(-_sin * tmp, tmp * (_orbit.e() + _cos));
-	}
-	interval d_polar_r_dt(const true_anomaly& theta) const {
-		interval _sin;
-		interval _cos;
-		theta.sincos(_sin, _cos);
-		return m_div_specific_angular_momentum()*_orbit.e()*_sin;
-	}
-	interval polar_r(const eccentric_anomaly& E) const {
-		interval _sin;
-		interval _cos;
-		E.sincos(_sin, _cos);
-		return _orbit.a()*(1.0-_orbit.e()* _cos);
-	}
+	vector v(const true_anomaly& theta) const;
+	interval d_polar_r_dt(const true_anomaly& theta) const;
+	interval polar_r(const eccentric_anomaly& E) const;
 /*
 	// we have: 0 degrees true anomaly = 0 degrees eccentric anomaly = 0 degrees mean anomaly
 	// and 180 degrees true anomaly = 180 degrees eccentric anomaly = 180 degrees mean anomaly
@@ -143,11 +108,7 @@ public:
 	// angular velocity omega in radians is v/r
 
 private:
-	static conic _from_perihelion_aphelion(const interval& barycentric_perihelion, const interval& barycentric_aphelion) {
-		interval major = (barycentric_perihelion + barycentric_aphelion) / 2.0;
-		interval minor = sqrt(barycentric_perihelion * barycentric_aphelion);
-		return conic(zaimoni::math::conic_tags::ellipse(), major, minor);
-	}
+	static conic _from_perihelion_aphelion(const interval& barycentric_perihelion, const interval& barycentric_aphelion);
 };
 
 }	// namespace kepler
