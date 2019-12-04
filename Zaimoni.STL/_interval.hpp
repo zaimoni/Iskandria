@@ -124,6 +124,7 @@ namespace zaimoni {
 		public:
 			constexpr Interval() = default;
 			explicit constexpr Interval(const ISK_INTERVAL<T>& src) : ISK_INTERVAL<T>(src) {};
+			explicit constexpr Interval(const T& l, const T& u) : ISK_INTERVAL<T>(l,u) {};
 			ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(Interval);
 		};
 	}

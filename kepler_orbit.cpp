@@ -54,6 +54,29 @@ orbit::conic orbit::_from_perihelion_aphelion(const interval& barycentric_perihe
 	return conic(zaimoni::math::conic_tags::ellipse(), major, minor);
 }
 
+static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact)
+{
+	// numerically solve: mean_anomaly M = E - _orbit.e()*sin(E) // requires working in radians?
+	// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity)?
+
+	// remove this stub later
+	return orbit::eccentric_anomaly(M_exact);
+}
+
+orbit::eccentric_anomaly orbit::E(const mean_anomaly& M) {
+	if (_orbit.is_circle()) return eccentric_anomaly(M);	// identity map for circle
+	if (!(_orbit.e() < 1)) throw std::runtime_error("sorry, hyperbolic and parabolic anomaly not implemented here");
+
+	if (M.is_exact()) return _E(M);
+
+	auto lb = _E(M.lower());
+	auto ub = _E(M.upper());
+
+	// base case (no wraparound)
+	return eccentric_anomaly(zaimoni::circle::angle::degree(lb.deg().lower(), ub.deg().upper()));
+}
+
+
 }	// namespace kepler
 
 #ifdef TEST_APP3

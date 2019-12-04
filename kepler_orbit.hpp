@@ -94,13 +94,10 @@ public:
 		// i.e. we have unfixable direct solution for 90 degrees theta, eccentric anomaly -- but as a right triangle with one edge the focal
 		// distance c we have other means there
 	}
-	eccentric_anomaly E(const mean_anomaly& M) {
-		// numerically solve: mean_anomaly = E - _orbit.e()*sin(E) // requires working in radians?
-		// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity
-	}
 */
+	eccentric_anomaly E(const mean_anomaly& M);
 	interval period_squared() const { return square(2.0 * interval_shim::pi) * pow(_orbit.a(), 3) / _m.GM(); }	// dimension time^2
-	mean_anomaly M(const zaimoni::circle::angle& t) { return mean_anomaly(mean_anomaly_scale() * t); }	// replace this
+//	mean_anomaly M(const zaimoni::circle::angle& t) { return mean_anomaly(mean_anomaly_scale() * t); }	// replace this
 
 	// circular orbits (parabolic orbit values are twice this)
 	interval circular_velocity_squared_from_radius(const interval& r) { return _m.GM() / r; }

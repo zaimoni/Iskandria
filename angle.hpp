@@ -42,6 +42,7 @@ public:
 	angle lower() const { return angle(_theta.lower()); }
 	angle upper() const { return angle(_theta.upper()); }
 	bool is_exact() const { return _theta.lower() == _theta.upper(); }
+	bool contains(const angle& x) { return _theta.contains(x._theta); }
 
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
@@ -75,6 +76,9 @@ public:
 	explicit Angle(const radian& theta) : angle(theta) {};
 	explicit Angle(angle theta) : angle(theta) {};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(Angle);
+
+	Angle lower() const { return Angle(angle::lower()); }
+	Angle upper() const { return Angle(angle::upper()); }
 
 	Angle& operator*=(const interval& rhs) { static_cast<angle>(*this) *= rhs; return *this; };
 	Angle& operator*=(typename const_param<interval::base_type>::type rhs) { static_cast<angle>(*this) *= rhs; return *this; };
