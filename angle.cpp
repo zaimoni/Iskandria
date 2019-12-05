@@ -4,17 +4,41 @@
 
 #include "taylor.hpp"
 
+static constexpr const typename interval_shim::interval::base_type _whole_circle = 10125.0;
+
+zaimoni::circle::angle::angle(const angle& lb, const angle& ub)
+: _theta(lb._theta.lower(), ub._theta.upper())
+{
+	if (_theta.lower() > _theta.upper()) {
+		if (_whole_circle / 2 >= _theta.lower() && -_whole_circle / 2 <= _theta.upper()) {
+			// wraparound likely
+			const auto adjusted_ub = interval(_whole_circle) + _theta.upper();
+			const auto adjusted_lb = interval(-_whole_circle) + _theta.lower();
+			// use more precise adjusted version
+			if (adjusted_ub.width() <= adjusted_lb.width() && _theta.lower() <= adjusted_ub.upper()) {
+				_theta.assign(_theta.lower(), adjusted_ub.upper());
+				return;
+			} else if (adjusted_lb.lower() <= _theta.upper()) {
+				_theta.assign(adjusted_lb.lower(), _theta.upper());
+				return;
+			}
+		}
+		throw std::runtime_error("denormalized angle");
+	}
+}
+
+
 void zaimoni::circle::angle::_standard_form()
 {
 	if (is_whole_circle())
 		{
-		_theta.assign(-5062.5,5062.5);
+		_theta.assign(-_whole_circle / 2, _whole_circle / 2);
 		return;
 		}
 
 	// our preferred internal representation is in [-5062.5, 5062.5] but
-	while( 10125 < _theta.upper()) _theta -= 10125;
-	while(-10125 > _theta.lower()) _theta += 10125;
+	while (_whole_circle / 2 <= _theta.lower()) _theta -= _whole_circle;
+	while (-_whole_circle / 2 >= _theta.upper()) _theta += _whole_circle;
 }
 
 static bool degree_whole_circle(zaimoni::circle::angle::interval& deg) {
@@ -177,8 +201,6 @@ void zaimoni::circle::angle::_apply_x_reflect(interval x, interval& _sin, interv
 	_sin.self_union(-tmp_sin);
 	_cos.self_union(tmp_cos);
 }
-
-static constexpr const typename interval_shim::interval::base_type _whole_circle = 10125.0;
 
 // x is in the internal representation
 void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)

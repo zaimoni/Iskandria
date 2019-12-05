@@ -68,12 +68,7 @@ orbit::eccentric_anomaly orbit::E(const mean_anomaly& M) {
 	if (!(_orbit.e() < 1)) throw std::runtime_error("sorry, hyperbolic and parabolic anomaly not implemented here");
 
 	if (M.is_exact()) return _E(M);
-
-	auto lb = _E(M.lower());
-	auto ub = _E(M.upper());
-
-	// base case (no wraparound)
-	return eccentric_anomaly(zaimoni::circle::angle::degree(lb.deg().lower(), ub.deg().upper()));
+	return eccentric_anomaly(zaimoni::circle::angle(_E(M.lower()), _E(M.upper())));
 }
 
 

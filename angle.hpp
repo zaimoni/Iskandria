@@ -31,6 +31,7 @@ public:
 	angle() = default;
 	explicit angle(const degree& src) : _theta(src) { _degree_to_standard_form(); };
 	explicit angle(const radian& src) : _theta(src) { _radian_to_standard_form(); };
+	angle(const angle& lb, const angle& ub);
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(angle);
 
 	bool is_whole_circle() const {return 10125<=_theta.upper()-_theta.lower();};
