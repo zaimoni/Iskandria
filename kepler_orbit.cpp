@@ -54,21 +54,38 @@ orbit::conic orbit::_from_perihelion_aphelion(const interval& barycentric_perihe
 	return conic(zaimoni::math::conic_tags::ellipse(), major, minor);
 }
 
-static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact)
+static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename orbit::conic::interval::base_type e_exact)
 {
 	// numerically solve: mean_anomaly M = E - _orbit.e()*sin(E) // requires working in radians?
-	// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity)?
+	if (0 == e_exact) return orbit::eccentric_anomaly(M_exact);	// no correction at eccentricity 0
+
+	// \todo check cache (which has to be capable of expiring)
 
 	// remove this stub later
 	return orbit::eccentric_anomaly(M_exact);
+}
+
+static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, const orbit::conic::interval& e)
+{
+	// numerically solve: mean_anomaly M = E - _orbit.e()*sin(E) // requires working in radians?
+	// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity)?
+	if (M_exact == orbit::mean_anomaly(zaimoni::circle::angle::degree(0))) return orbit::eccentric_anomaly(M_exact);
+	if (M_exact == orbit::mean_anomaly(zaimoni::circle::angle::degree(180))) return orbit::eccentric_anomaly(M_exact);
+	if (orbit::mean_anomaly(zaimoni::circle::angle::degree(-180, 0)).contains(M_exact)) return -_E(-M_exact, e);
+	// should be strictly between 0 and 180 degrees at this point
+	// M < E, always (sin(E) and eccentricity e are positive)
+	auto lb = _E(M_exact, e.lower());
+	auto ub = _E(M_exact, e.upper());
+
+	return orbit::eccentric_anomaly(zaimoni::circle::angle(lb,ub));
 }
 
 orbit::eccentric_anomaly orbit::E(const mean_anomaly& M) {
 	if (_orbit.is_circle()) return eccentric_anomaly(M);	// identity map for circle
 	if (!(_orbit.e() < 1)) throw std::runtime_error("sorry, hyperbolic and parabolic anomaly not implemented here");
 
-	if (M.is_exact()) return _E(M);
-	return eccentric_anomaly(zaimoni::circle::angle(_E(M.lower()), _E(M.upper())));
+	if (M.is_exact()) return _E(M, _orbit.e());
+	return eccentric_anomaly(zaimoni::circle::angle(_E(M.lower(), _orbit.e()), _E(M.upper(), _orbit.e())));
 }
 
 

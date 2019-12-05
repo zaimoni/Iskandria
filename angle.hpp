@@ -45,6 +45,9 @@ public:
 	bool is_exact() const { return _theta.lower() == _theta.upper(); }
 	bool contains(const angle& x) { return _theta.contains(x._theta); }
 
+	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
+	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
+
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
 
@@ -80,6 +83,8 @@ public:
 
 	Angle lower() const { return Angle(angle::lower()); }
 	Angle upper() const { return Angle(angle::upper()); }
+
+	friend Angle operator-(const Angle& x) { return Angle(-x); }
 
 	Angle& operator*=(const interval& rhs) { static_cast<angle>(*this) *= rhs; return *this; };
 	Angle& operator*=(typename const_param<interval::base_type>::type rhs) { static_cast<angle>(*this) *= rhs; return *this; };
