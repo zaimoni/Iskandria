@@ -60,6 +60,8 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	if (0 == e_exact) return orbit::eccentric_anomaly(M_exact);	// no correction at eccentricity 0
 
 	// \todo check cache (which has to be capable of expiring)
+	// two levels of cache: the reference angles M->E (which are hard-coded as very high precision)
+	// and the computed angles
 
 	// remove this stub later
 	return orbit::eccentric_anomaly(M_exact);

@@ -306,8 +306,8 @@ void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)
 void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos)
 {
 	assert(0 <= x && _whole_circle / 8 >= x);
-	static const auto SQRT3_2 = sqrt(interval(3)) / 2;	// these belong in interval_shim
-	static const auto SQRT2_2 = sqrt(interval(2)) / 2;
+	static const auto SQRT3_2 = interval_shim::SQRT3 / 2;	// these belong in interval_shim
+	static const auto SQRT2_2 = interval_shim::SQRT2 / 2;
 	// also can have entries for 18 degrees and 36 degrees, from the pentagon construction
 	if (0 == x) {
 		_sin = 0;
