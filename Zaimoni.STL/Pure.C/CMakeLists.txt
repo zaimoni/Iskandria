@@ -17,7 +17,7 @@ add_custom_command(OUTPUT comptest.h
 	COMMAND realloc_0 >> comptest.h
 	VERBATIM)
 
-add_custom_target(AutoDetect
+add_custom_target(AutoDetect ALL
                   DEPENDS auto_int.h
                   DEPENDS comptest.h
                   VERBATIM)
@@ -27,4 +27,4 @@ add_library(z_logging STATIC logging.c)
 add_library(z_stdio_c STATIC stdio_c.c)
 
 target_include_directories(z_stdio_c PRIVATE ${CMAKE_BINARY_DIR})
-
+add_dependencies(z_stdio_c AutoDetect)
