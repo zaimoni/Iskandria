@@ -2,7 +2,7 @@
 
 #include "stdio_c.h"
 
-#include "comptest.h"
+#include "Zaimoni.STL/Pure.C/comptest.h"
 #if ZAIMONI_HAVE_MICROSOFT_IO_H
 #include <io.h>
 #endif

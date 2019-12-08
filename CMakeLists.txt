@@ -8,11 +8,23 @@ if (NOT DEFINED $CACHE{ZSTL_CMAKE_SUFFIX})
 	set(ZSTL_CMAKE_SUFFIX ${TMP_CMAKE_SUFFIX} CACHE STRING "platform suffix")
 endif()
 
+if (NOT DEFINED $CACHE{ZSTL_COMPILER})
+	string(FIND ${CMAKE_C_COMPILER} "/" TMP_INDEX REVERSE)
+	math(EXPR TMP_INDEX "${TMP_INDEX}+1")
+	string(SUBSTRING ${CMAKE_C_COMPILER} ${TMP_INDEX} -1 TMP_COMPILER_STEM)
+	string(FIND ${TMP_COMPILER_STEM} "." TMP_INDEX REVERSE)
+	string(SUBSTRING ${TMP_COMPILER_STEM} 0 ${TMP_INDEX} TMP_COMPILER_STEM)
+	set(ZSTL_COMPILER ${TMP_COMPILER_STEM} CACHE STRING "compiler")
+endif()
+
 string(APPEND SFML_DIR $CACHE{ZSTL_CMAKE_SUFFIX})
 
 find_package(SFML 2.5 REQUIRED COMPONENTS graphics window system)
 
 add_subdirectory(Zaimoni.STL)
+
+# might actually need this?
+# include_directories(${CMAKE_BINARY_DIR})
 
 add_executable(Iskandria main.cpp text_menu.cpp cssbox.cpp display_manager.cpp input_manager.cpp constants.cpp game_manager.cpp world_manager.cpp minkowski.cpp craft.cpp agent.cpp)
 target_link_libraries(Iskandria z_log_adapter z_logging z_stdio_c z_clock  sfml-graphics sfml-window sfml-system winmm)
