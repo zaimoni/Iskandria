@@ -309,27 +309,25 @@ void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::bas
 	static const auto SQRT3_2 = interval_shim::SQRT3 / 2;	// these belong in interval_shim
 	static const auto SQRT2_2 = interval_shim::SQRT2 / 2;
 	// also can have entries for 18 degrees and 36 degrees, from the pentagon construction
-	if (0 == x) {
-		_sin = 0;
-		_cos = 1;
-		return;
-	} else if (_whole_circle/12 == x) {		// 30 degrees
-		_sin = 0.5;
-		_cos = SQRT3_2;
-		return;
-	} else if (_whole_circle / 8 == x) {	// 45 degrees
-		_sin = SQRT2_2;
-		_cos = SQRT2_2;
-		return;
-	}
+	// { reference angle, {sin, cos} }
+	static const std::pair<interval::base_type, std::pair<interval, interval> > ref_trig[] = {
+		{0, {0, 1}},	// 0 degrees
+		{_whole_circle / 12, {0.5, SQRT3_2}},	// 30 degrees
+		{_whole_circle / 8, {SQRT2_2, SQRT2_2}}	// 45 degrees
+	};
+	auto i = STATIC_SIZE(ref_trig);
+	do {
+		auto& tmp = ref_trig[--i];
+		if (x == tmp.first) {
+			_sin = tmp.second.first;
+			_cos = tmp.second.second;
+			return;
+		} else if (x > tmp.first) break;
+	} while (0 < i);
+
 	_radian_sincos(((x * 2.0) * interval_shim::pi) / 1125.0, _sin, _cos);
-	if (_whole_circle / 12 > x) {
-		_sin.self_intersect(interval(0, 0.5));
-		_cos.self_intersect(interval(SQRT3_2.lower(), 1));
-	} else { // if (_whole_circle / 12 > x)
-		_sin.self_intersect(interval(0.5, SQRT2_2.upper()));
-		_cos.self_intersect(interval(SQRT2_2.lower(), SQRT3_2.upper()));
-	}
+	_sin.self_intersect(interval(ref_trig[i].second.first.lower(), ref_trig[i+1].second.first.upper()));
+	_cos.self_intersect(interval(ref_trig[i+1].second.second.lower(), ref_trig[i].second.second.upper()));
 }
 
 
@@ -337,8 +335,8 @@ void zaimoni::circle::angle::sincos(interval& _sin, interval& _cos) const
 {
 	if (is_whole_circle())
 		{
-		_sin.assign(-1.0,1.0);
-		_cos.assign(-1.0,1.0);
+		_sin = sin_cos_range_for_real_domain;
+		_cos = sin_cos_range_for_real_domain;
 		return;
 		}
 	_sincos(_theta,_sin,_cos);
