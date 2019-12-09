@@ -32,6 +32,43 @@ int main(int argc, char* argv[])
 	INFORM(interval_shim::SQRT3.upper() == ref_sqrt_3.upper() ? "true" : "false");
 	INFORM(square(interval_shim::SQRT3).contains(3) ? "true" : "false");
 
+	constexpr const auto test = zaimoni::binary<double>(1);
+	constexpr const auto test2 = zaimoni::binary<float>(1);
+	INFORM("binary<double>(1)");
+	INFORM(test._x);
+	INFORM(test.sign);
+	INFORM(test.exp);
+	INFORM(test.exponent());
+	INFORM(test.mant);
+	INFORM(test.mantissa());
+	INFORM("binary<float>(1)");
+	INFORM(test2._x);
+	INFORM(test2.sign);
+	INFORM(test2.exp);
+	INFORM(test2.exponent());
+	INFORM(test2.mant);
+	INFORM(test2.mantissa());
+
+	constexpr const auto test3 = zaimoni::binary<double>(-1);
+	constexpr const auto test4 = zaimoni::binary<float>(-1);
+	INFORM("binary<double>(-1)");
+	INFORM(test3._x);
+	INFORM(test3.sign);
+	INFORM(test3.exp);
+	INFORM(test3.exponent());
+	INFORM(test3.mant);
+	INFORM(test3.mantissa());
+	INFORM("binary<float>(-1)");
+	INFORM(test4._x);
+	INFORM(test4.sign);
+	INFORM(test4.exp);
+	INFORM(test4.exponent());
+	INFORM(test4.mant);
+	INFORM(test4.mantissa());
+
+	INFORM(std::numeric_limits<long double>::max_exponent);
+	INFORM(std::numeric_limits<long double>::digits);
+
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
 
