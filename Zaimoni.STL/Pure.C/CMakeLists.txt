@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-add_executable(int_probe EXCLUDE_FROM_ALL int_probe.c)
+add_executable(int_probe int_probe.c)
 
 add_custom_command(OUTPUT auto_int.h
 	COMMAND int_probe > auto_int.h

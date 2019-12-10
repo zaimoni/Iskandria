@@ -6,6 +6,8 @@
 #include "type_traits"
 #include "../Logging.h"
 #include "Zaimoni.STL/Pure.C/auto_int.h"
+#include "../c_bitmap.hpp"
+#include <float.h>
 #include <cmath>
 #include <utility>
 
@@ -37,8 +39,67 @@ template<class T>
 union binary {
 };
 
-//#ifdef ZAIMONI_LITTLE_ENDIAN
-#if 1
+#if DBL_MANT_DIG==LDBL_MANT_DIG && DBL_MAX_EXP==LDBL_MAX_EXP
+template<>
+union binary<long double>
+{
+	static_assert(CHAR_BIT * sizeof(long double) == 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits);
+	static_assert(sizeof(unsigned long long) == sizeof(long double));
+
+	long double _x;
+	struct {
+#ifdef ZAIMONI_LITTLE_ENDIAN
+		unsigned long long mant : std::numeric_limits<long double>::digits - 1;
+		unsigned long long exp : int_log2(std::numeric_limits<long double>::max_exponent) + 1;
+		unsigned long long sign : 1;
+#else
+#error "need to implement binary<long double> for big-endian architectures"
+#endif
+	};
+
+	constexpr binary(long double src) : _x(src) {};
+private:
+	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
+public:
+
+	constexpr int exponent() const { return (int)exp - (std::numeric_limits<long double>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
+	constexpr double mantissa() const { return binary(mant, std::numeric_limits<long double>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
+};
+static_assert(sizeof(binary<long double>) == sizeof(long double));
+#elif 64>=LDBL_MANT_DIG
+template<>
+union binary<long double>
+{
+	static_assert(CHAR_BIT * 2 * sizeof(unsigned long long) >= 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits);
+	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits;
+	static constexpr const auto low_exp = CHAR_BIT * sizeof(unsigned long long) - (std::numeric_limits<long double>::digits - 1);
+	static constexpr const auto high_exp = int_log2(std::numeric_limits<long double>::max_exponent) + 1 - low_exp;
+
+	long double _x;
+	struct {
+#ifdef ZAIMONI_LITTLE_ENDIAN
+		unsigned long long mant : std::numeric_limits<long double>::digits - 1;
+		unsigned long long exp : low_exp;
+		typename zaimoni::bitmap<total_bits - CHAR_BIT * sizeof(unsigned long long)>::type exp_2 : high_exp;
+		typename zaimoni::bitmap<total_bits-CHAR_BIT*sizeof(unsigned long long)>::type sign : 1;
+#else
+#error "need to implement binary<long double> for big-endian architectures"
+#endif
+	};
+
+	constexpr binary(long double src) : _x(src) {};
+private:
+	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp & ((1ULL<<(low_exp+1))-1)), exp_2(_exp >> low_exp), sign(_sign) {}
+public:
+
+	constexpr int exponent() const { return (int)(exp + (exp_2 << low_exp)) - (std::numeric_limits<long double>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
+	constexpr double mantissa() const { return binary(mant, std::numeric_limits<long double>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
+};
+static_assert(sizeof(binary<long double>) == sizeof(long double));
+#else
+#error need to implement union binary<long double> for large mantissa
+#endif
+
 // holding off on long double at this time -- need preprocessor support and MingW64 is using real Intel long double
 template<>
 union binary<double>
@@ -48,9 +109,13 @@ union binary<double>
 
 	double _x;
 	struct {
+#ifdef ZAIMONI_LITTLE_ENDIAN
 		unsigned long long mant : std::numeric_limits<double>::digits - 1;
 		unsigned long long exp : int_log2(std::numeric_limits<double>::max_exponent) + 1;
 		unsigned long long sign : 1;
+#else
+#error "need to implement binary<double> for big-endian architectures"
+#endif
 	};
 
 	constexpr binary(double src) : _x(src) {};
@@ -71,9 +136,13 @@ union binary<float>
 
 	float _x;
 	struct {
+#ifdef ZAIMONI_LITTLE_ENDIAN
 		unsigned long mant : std::numeric_limits<float>::digits - 1;	// leading 1 doesn't count
 		unsigned long exp : int_log2(std::numeric_limits<float>::max_exponent) + 1;
 		unsigned long sign : 1;
+#else
+#error "need to implement binary<float> for big-endian architectures"
+#endif
 	};
 
 	constexpr binary(float src) : _x(src) {};
@@ -85,9 +154,6 @@ public:
 	constexpr double mantissa() const { return binary(mant, std::numeric_limits<float>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
 };
 static_assert(sizeof(binary<float>) == sizeof(float));
-#else
-#error "need to implement binary_float for big-endian architectures"
-#endif
 
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)

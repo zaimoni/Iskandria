@@ -118,6 +118,14 @@ int main()
 	STRING_LITERAL_TO_STDOUT("\n#define ZAIMONI_SIZEOF_FUNCPTR ");
 	write_to_stdout(sizeof(&write_to_stdout));
 
+	// out of theme (floating point)
+	STRING_LITERAL_TO_STDOUT("\n#define ZAIMONI_SIZEOF_FLOAT ");
+	write_to_stdout(sizeof(float));
+	STRING_LITERAL_TO_STDOUT("\n#define ZAIMONI_SIZEOF_DOUBLE ");
+	write_to_stdout(sizeof(double));
+	STRING_LITERAL_TO_STDOUT("\n#define ZAIMONI_SIZEOF_LDOUBLE ");
+	write_to_stdout(sizeof(long double));
+
 	/* check whether NULL pointer constant has a bitwise representation of all zeros */
 	test_null_zero.first = NULL;
 	i = sizeof(char*);
