@@ -84,7 +84,7 @@ struct types<float>
 // abs is taken by the standard library.
 // norm is meant to be the "typical" measure of absolute value; for real numbers should be abs
 template<class T>
-constexpr  typename std::enable_if<
+constexpr typename std::enable_if<
    std::is_floating_point<T>::value,
 T>::type norm(T x) {return 0<=x ? x : -x;}
 
@@ -95,23 +95,15 @@ constexpr  typename std::enable_if<
 T>::type norm(T x) {return x;}
 
 template<class T>
-constexpr  typename std::enable_if<
-   std::is_integral<T>::value
-&& std::is_signed<T>::value
-&& std::numeric_limits<T>::min() >= -std::numeric_limits<T>::max(),
-typename types<T>::norm>::type norm(T x) {return 0<=x ? x : -x;}
-
-// XXX operator > will close the template prematurely
-template<class T>
-constexpr  typename std::enable_if<
-   std::is_integral<T>::value
-&& std::is_signed<T>::value
-&& std::numeric_limits<T>::min() < -std::numeric_limits<T>::max(),
-typename types<T>::norm>::type norm(T x)
-{	// XXX 2's complement integer minimum is undefined behavior to negate
-	return 0<=x ? x
-	  : (-std::numeric_limits<T>::max()<=x) ? -x
-			  : (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max())+(typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max()-x);
+constexpr typename std::enable_if<
+	std::is_integral<T>::value
+	&& std::is_signed<T>::value,
+	typename types<T>::norm>::type norm(T x) {
+	if constexpr(std::numeric_limits<T>::min() < -std::numeric_limits<T>::max()) {
+		// XXX 2's complement integer minimum is undefined behavior to negate
+		if (-std::numeric_limits<T>::max() > x) return (typename std::make_unsigned<T>::type)(std::numeric_limits<T>::max()) + (typename std::make_unsigned<T>::type)(-std::numeric_limits<T>::max() - x);
+	};
+	return 0 <= x ? x : -x;
 }
 
 // for when we want operator- to be non-negative

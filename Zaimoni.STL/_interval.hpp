@@ -35,8 +35,14 @@ void INC_INFORM(const ISK_INTERVAL<T>& x) { INC_INFORM(zaimoni::to_string(x).c_s
 // support functions with masters in Augment.STL/type_traits or cmath
 namespace zaimoni {
 
+	template<class T>
+	struct types<ISK_INTERVAL<T> >
+	{
+		typedef ISK_INTERVAL<typename types<T>::norm> norm;
+	};
+
 	template<>
-	struct definitely<ISK_INTERVAL<double>>
+	struct definitely<ISK_INTERVAL<double> >
 	{
 		typedef ISK_INTERVAL<double> interval;
 		static bool equal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return rhs.upper() == rhs.lower() && lhs == rhs.upper(); }
@@ -44,7 +50,7 @@ namespace zaimoni {
 	};
 
 	template<>
-	struct definitely<ISK_INTERVAL<long double>>
+	struct definitely<ISK_INTERVAL<long double> >
 	{
 		typedef ISK_INTERVAL<long double> interval;
 		static bool equal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return rhs.upper() == rhs.lower() && lhs == rhs.upper(); }

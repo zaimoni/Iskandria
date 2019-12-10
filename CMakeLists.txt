@@ -64,9 +64,11 @@ add_dependencies(cssSFML.test AutoDetect)
 
 target_compile_definitions(conic.test PRIVATE TEST_APP2)
 target_link_libraries(conic.test z_log_adapter)
+add_dependencies(conic.test AutoDetect)
 
 target_compile_definitions(constants PRIVATE TEST_APP)
 target_link_libraries(constants z_log_adapter)
+add_dependencies(constants AutoDetect)
 
 target_link_libraries(cyclic_fn.test z_log_adapter)
 add_dependencies(cyclic_fn.test AutoDetect)
@@ -77,19 +79,25 @@ add_dependencies(gridtile.test AutoDetect)
 
 target_compile_definitions(heat_engine.test PRIVATE TEST_APP3)
 target_link_libraries(heat_engine.test z_log_adapter)
+add_dependencies(heat_engine.test AutoDetect)
 
 target_link_libraries(int_range.test z_log_adapter)
 target_link_libraries(interval.test z_log_adapter)
+add_dependencies(interval.test AutoDetect)
+
 target_link_libraries(interval_shim.test z_log_adapter)
+add_dependencies(interval_shim.test AutoDetect)
 
 target_compile_definitions(kepler_orbit.test PRIVATE TEST_APP3)
 target_link_libraries(kepler_orbit.test z_log_adapter)
 add_dependencies(kepler_orbit.test AutoDetect)
 
 target_link_libraries(lossy.test z_log_adapter)
+add_dependencies(lossy.test AutoDetect)
 
 target_compile_definitions(mass.test PRIVATE TEST_APP2)
 target_link_libraries(mass.test z_log_adapter)
+add_dependencies(mass.test AutoDetect)
 
 target_link_libraries(matrix.test z_log_adapter)
 add_dependencies(matrix.test AutoDetect)
