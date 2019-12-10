@@ -46,6 +46,9 @@ union binary<long double>
 	static_assert(CHAR_BIT * sizeof(long double) == 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits);
 	static_assert(sizeof(unsigned long long) == sizeof(long double));
 
+	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits;
+	static constexpr const auto raw_max_exponent = 2 * ((1ULL << int_log2(std::numeric_limits<long double>::max_exponent)) - 1) + 1;
+
 	long double _x;
 	struct {
 #ifdef ZAIMONI_LITTLE_ENDIAN
@@ -62,6 +65,7 @@ private:
 	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
 
+	// cross-union field access breaks constexpr, however
 	constexpr int exponent() const { return (int)exp - (std::numeric_limits<long double>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
 	constexpr double mantissa() const { return binary(mant, std::numeric_limits<long double>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
 };
@@ -74,6 +78,9 @@ union binary<long double>
 	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits;
 	static constexpr const auto low_exp = CHAR_BIT * sizeof(unsigned long long) - (std::numeric_limits<long double>::digits - 1);
 	static constexpr const auto high_exp = int_log2(std::numeric_limits<long double>::max_exponent) + 1 - low_exp;
+
+	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<long double>::max_exponent) + std::numeric_limits<long double>::digits;
+	static constexpr const auto raw_max_exponent = 2 * ((1ULL << int_log2(std::numeric_limits<long double>::max_exponent)) - 1) + 1;
 
 	long double _x;
 	struct {
@@ -92,6 +99,7 @@ private:
 	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp & ((1ULL<<(low_exp+1))-1)), exp_2(_exp >> low_exp), sign(_sign) {}
 public:
 
+	// cross-union field access breaks constexpr, however
 	constexpr int exponent() const { return (int)(exp + (exp_2 << low_exp)) - (std::numeric_limits<long double>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
 	constexpr double mantissa() const { return binary(mant, std::numeric_limits<long double>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
 };
@@ -106,6 +114,9 @@ union binary<double>
 {
 	static_assert(CHAR_BIT * sizeof(double) == 1 + int_log2(std::numeric_limits<double>::max_exponent) + std::numeric_limits<double>::digits);
 	static_assert(sizeof(unsigned long long) == sizeof(double));
+
+	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<double>::max_exponent) + std::numeric_limits<double>::digits;
+	static constexpr const auto raw_max_exponent = 2 * ((1ULL << int_log2(std::numeric_limits<double>::max_exponent)) - 1) + 1;
 
 	double _x;
 	struct {
@@ -123,6 +134,7 @@ private:
 	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
 
+	// cross-union field access breaks constexpr, however
 	constexpr int exponent() const { return (int)exp - (std::numeric_limits<double>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
 	constexpr double mantissa() const { return binary(mant, std::numeric_limits<double>::max_exponent - 2,sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
 };
@@ -133,6 +145,9 @@ union binary<float>
 {
 	static_assert(CHAR_BIT * sizeof(float) == 1 + int_log2(std::numeric_limits<float>::max_exponent) + std::numeric_limits<float>::digits);
 	static_assert(sizeof(unsigned long) == sizeof(float));
+
+	static constexpr const auto total_bits = 1 + int_log2(std::numeric_limits<float>::max_exponent) + std::numeric_limits<float>::digits;
+	static constexpr const auto raw_max_exponent = 2 * ((1ULL << int_log2(std::numeric_limits<float>::max_exponent)) - 1) + 1;
 
 	float _x;
 	struct {
@@ -150,6 +165,7 @@ private:
 	constexpr binary(unsigned long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
 
+	// cross-union field access breaks constexpr, however
 	constexpr int exponent() const { return (int)exp - (std::numeric_limits<float>::max_exponent - 2); }	// C library frexp convention: numeral 1.0 returns 1
 	constexpr double mantissa() const { return binary(mant, std::numeric_limits<float>::max_exponent - 2, sign)._x; }	// C library frexp convention: absolute value in [0.5,1)
 };
@@ -157,32 +173,34 @@ static_assert(sizeof(binary<float>) == sizeof(float));
 
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)
+// \todo? disconnect from C standard library (and DLL calls) by using above
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isINF(T x)
+typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isINF(T x)
 {
 	return std::isinf(x);
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type isFinite(T x)
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type isFinite(T x)
 {
+//	return binary<std::remove_cv_t<std::remove_reference_t<T> > >(x).exponent() <= std::numeric_limits<std::remove_cv_t<std::remove_reference_t<T> >>::max_exponent;
 	return std::isfinite(x);
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isNaN(T x)
+typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isNaN(T x)
 {
 	return std::isnan(x);
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type signBit(T x)
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type signBit(T x)
 {
 	return std::signbit(x);
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_floating_point<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+typename std::enable_if<std::is_floating_point<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
 {
 	return std::scalbn(x, scale);
 }
