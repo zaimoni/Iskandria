@@ -1,7 +1,7 @@
 // Zaimoni.STL/augment.STL/cmath
 
-#ifndef ZAIMONI_AUGMENT_STL_TYPE_CMATH
-#define ZAIMONI_AUGMENT_STL_TYPE_CMATH 1
+#ifndef ZAIMONI_AUGMENT_STL_CMATH
+#define ZAIMONI_AUGMENT_STL_CMATH 1
 
 #include "type_traits"
 #include "../Logging.h"

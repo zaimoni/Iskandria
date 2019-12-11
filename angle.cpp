@@ -1,8 +1,8 @@
 // angle.cpp
 
 #include "angle.hpp"
-
 #include "taylor.hpp"
+#include "Zaimoni.STL/augment.STL/array"
 
 static constexpr const typename interval_shim::interval::base_type _whole_circle = 10125.0;
 
@@ -303,18 +303,25 @@ void zaimoni::circle::angle::_sincos(interval x, interval& _sin, interval& _cos)
 	_radian_sincos(((x*2.0)*interval_shim::pi)/1125.0, _sin, _cos);
 }
 
+static const auto SQRT3_2 = interval_shim::SQRT3 / 2;	// these belong in interval_shim
+static const auto SQRT2_2 = interval_shim::SQRT2 / 2;
+// also can have entries for 18 degrees and 36 degrees, from the pentagon construction
+// { reference angle, {sin, cos} }
+static const std::pair<interval_shim::interval::base_type, std::pair<interval_shim::interval, interval_shim::interval> > ref_trig[] = {
+	{0, {0, 1}},	// 0 degrees
+	{_whole_circle / 12, {0.5, SQRT3_2}},	// 30 degrees
+	{_whole_circle / 8, {SQRT2_2, SQRT2_2}}	// 45 degrees
+};
+
+// can't actually do final stage, zaimoni::retype<zaimoni::circle::angle>: private constructor
+static const auto ref_angles = zaimoni::math::reflect_about_front(
+	zaimoni::math::reflect_about_back(
+	zaimoni::math::reflect_about_back(
+	zaimoni::math::restrict_to_axis<STATIC_SIZE(ref_trig), 0>(ref_trig))));
+
 void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos)
 {
 	assert(0 <= x && _whole_circle / 8 >= x);
-	static const auto SQRT3_2 = interval_shim::SQRT3 / 2;	// these belong in interval_shim
-	static const auto SQRT2_2 = interval_shim::SQRT2 / 2;
-	// also can have entries for 18 degrees and 36 degrees, from the pentagon construction
-	// { reference angle, {sin, cos} }
-	static const std::pair<interval::base_type, std::pair<interval, interval> > ref_trig[] = {
-		{0, {0, 1}},	// 0 degrees
-		{_whole_circle / 12, {0.5, SQRT3_2}},	// 30 degrees
-		{_whole_circle / 8, {SQRT2_2, SQRT2_2}}	// 45 degrees
-	};
 	auto i = STATIC_SIZE(ref_trig);
 	do {
 		auto& tmp = ref_trig[--i];
@@ -360,6 +367,9 @@ int main(int argc, char* argv[])
 
 	zaimoni::circle::angle test_deg(typename zaimoni::circle::angle::degree(0));
 	zaimoni::circle::angle test_rad(typename zaimoni::circle::angle::radian(0));
+
+	STRING_LITERAL_TO_STDOUT("raw reference angles\n");
+	for (auto x : ref_angles) INFORM(x);
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 

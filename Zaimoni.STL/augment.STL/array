@@ -1,0 +1,78 @@
+#ifndef ZAIMONI_AUGMENT_STL_ARRAY
+#define ZAIMONI_AUGMENT_STL_ARRAY
+
+#include <stddef.h>
+#include <array>
+#include <type_traits>
+
+
+namespace zaimoni {
+
+	using std::get;
+
+namespace math {
+
+	using std::get;
+
+}
+}
+
+// close-reopen to denotate roles
+
+namespace zaimoni {
+
+template<class U, class T, size_t N>
+auto retype(const std::array<T, N>& src) {
+	static_assert(1 < N);
+	std::array<U, N> ret;
+	size_t i = 0;
+	do ret[i] = std::move(U(src[i]));
+	while (N > ++i);
+	return ret;
+}
+
+namespace math {
+
+// projection maps
+template<size_t N, size_t I, class Iter>
+auto restrict_to_axis(Iter start) {
+	static_assert(0 < N);
+	std::array<typename std::remove_cv<std::remove_reference_t<decltype(get<I>(*start))> >::type, N> ret;
+	size_t i = 0;
+	do ret[i++] = get<I>(*(start++));
+	while(N > i);
+	return std::move(ret);
+}
+
+template<class T, size_t N>
+auto reflect_about_back(const std::array<T, N>& src) {
+	static_assert(1 < N);
+	std::array<typename std::remove_cv<std::remove_reference_t<T> >::type, 2*N-1> ret;
+	size_t i = 0;
+	do {
+		ret[i] = src[i];
+		auto delta = src.back() - src[i];
+		ret[2 * N - 2 - i] = src.back() + delta;
+	} while (N-1 > ++i);
+	ret[N-1] = src[N-1];
+	return ret;
+}
+
+template<class T, size_t N>
+auto reflect_about_front(const std::array<T, N>& src) {
+	static_assert(1 < N);
+	std::array<typename std::remove_cv<std::remove_reference_t<T> >::type, 2 * N - 1> ret;
+	size_t i = 1;
+	do {
+		ret[N - 1 + i] = src[i];
+		auto delta = src.front() - src[i];
+		ret[N - 1 - i] = src.front() + delta;
+	} while (N > ++i);
+	ret[N - 1] = src[0];
+	return ret;
+}
+
+}
+}
+
+#endif
