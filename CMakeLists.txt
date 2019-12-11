@@ -24,7 +24,7 @@ find_package(SFML 2.5 REQUIRED COMPONENTS graphics window system)
 add_subdirectory(Zaimoni.STL)
 
 # might actually need this?
-# include_directories(${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_BINARY_DIR})
 
 add_executable(Iskandria main.cpp text_menu.cpp cssbox.cpp display_manager.cpp input_manager.cpp constants.cpp game_manager.cpp world_manager.cpp minkowski.cpp craft.cpp agent.cpp)
 target_link_libraries(Iskandria z_log_adapter z_logging z_stdio_c z_clock  sfml-graphics sfml-window sfml-system winmm)

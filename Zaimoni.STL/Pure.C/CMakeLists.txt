@@ -11,11 +11,26 @@ add_subdirectory(stdio.log)
 
 add_custom_command(OUTPUT comptest.h
 	configure_file(comptest.in comptest.h COPYONLY)
-	COMMAND exists_MS_io_h >> comptest.h
-	COMMAND exists_timespec >> comptest.h
-	COMMAND exists_nanosleep >> comptest.h
 	COMMAND realloc_0 >> comptest.h
 	VERBATIM)
+
+if ($CACHE{ZSTL_HAVE_MS_IO_H})
+add_custom_command(OUTPUT comptest.h
+	COMMAND exists_MS_io_h >> comptest.h
+	VERBATIM APPEND)
+endif()
+
+if ($CACHE{ZSTL_HAVE_TIMESPEC})
+add_custom_command(OUTPUT comptest.h
+	COMMAND exists_timespec >> comptest.h
+	VERBATIM APPEND)
+endif()
+
+if ($CACHE{ZSTL_HAVE_NANOSLEEP})
+add_custom_command(OUTPUT comptest.h
+	COMMAND exists_nanosleep >> comptest.h
+	VERBATIM APPEND)
+endif()
 
 add_custom_target(AutoDetect ALL
                   DEPENDS auto_int.h
