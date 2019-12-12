@@ -62,6 +62,12 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	// \todo check cache (which has to be capable of expiring)
 	// two levels of cache: the reference angles M->E (which are hard-coded as very high precision)
 	// and the computed angles
+#if 0
+	auto test_ref = zaimoni::circle::angle(zaimoni::circle::angle::degree(0, 180)).contains_ref_angles();
+
+	size_t ub;
+	zaimoni::circle::angle test_ref2[zaimoni::circle::angle::ref_angle_maxsize];
+#endif
 
 	// remove this stub later
 	return orbit::eccentric_anomaly(M_exact);

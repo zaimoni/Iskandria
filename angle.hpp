@@ -5,6 +5,7 @@
 
 #include "interval_shim.hpp"
 #include "Zaimoni.STL/Compiler.h"
+#include <vector>
 
 namespace zaimoni {
 namespace circle {
@@ -50,6 +51,12 @@ public:
 
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
+
+	std::vector<angle> contains_ref_angles() const;
+
+	// more FORTRAN approach to retrieving reference angles
+	static constexpr size_t ref_angle_maxsize = 17;	// needs regression-testing
+	size_t contains_ref_angles(angle* dest) const;
 
 	void sincos(interval& _sin, interval& _cos) const;
 private:

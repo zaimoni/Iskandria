@@ -337,6 +337,24 @@ void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::bas
 	_cos.self_intersect(interval(ref_trig[i+1].second.second.lower(), ref_trig[i].second.second.upper()));
 }
 
+std::vector<zaimoni::circle::angle> zaimoni::circle::angle::contains_ref_angles() const
+{
+	std::vector<angle> ret;
+	for (const auto& x : ref_angles) if (_theta.contains(x)) ret.push_back(angle(x));
+	return std::move(ret);
+}
+
+size_t zaimoni::circle::angle::contains_ref_angles(angle* dest) const
+{
+	assert(dest);
+	size_t n = 0;
+	for (const auto& x : ref_angles) if (_theta.contains(x)) {
+		*(dest++) = angle(x);
+		n++;
+	};
+	return n;
+}
+
 
 void zaimoni::circle::angle::sincos(interval& _sin, interval& _cos) const
 {
@@ -370,6 +388,8 @@ int main(int argc, char* argv[])
 
 	STRING_LITERAL_TO_STDOUT("raw reference angles\n");
 	for (auto x : ref_angles) INFORM(x);
+
+	assert(zaimoni::circle::angle::ref_angle_maxsize == ref_angles.size());
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 
