@@ -6,7 +6,7 @@
 
 namespace zaimoni {
 
-// textbook cache that uses last-recently-used deletion policy
+// textbook cache that uses least-recently-used deletion policy
 template<class K, class V>
 class LRUcache
 {
@@ -51,6 +51,16 @@ public:
 		_values.emplace_front(key, val);
 		_index[key] = _values.begin();
 	}
+	void set(const K& key, V&& val) {
+		if (auto test = _index.find(key); _index.end() != test) {
+			auto working = test->second;
+			working->second = std::move(val);
+			_values.splice(_values.begin(), _values, working);
+			return;
+		}
+		_values.emplace_front(key, std::move(val));
+		_index[key] = _values.begin();
+	}
 
 	// DELETE
 	void unset(const K& key) {
@@ -69,6 +79,14 @@ public:
 			_index.erase(working->first);
 			unlink(working);
 		}
+	}
+	bool touch(const K& key) {
+		if (auto test = _index.find(key); _index.end() != test) {
+			auto working = test->second;
+			_values.splice(_values.begin(), _values, working);
+			return true;
+		}
+		return false;
 	}
 private:
 	void unlink(iter mortal) {

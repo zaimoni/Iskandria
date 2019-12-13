@@ -1,4 +1,5 @@
 #include "kepler_orbit.hpp"
+#include "Zaimoni.STL/Pure.CPP/LRUcache.hpp"
 
 namespace kepler {
 
@@ -54,6 +55,18 @@ orbit::conic orbit::_from_perihelion_aphelion(const interval& barycentric_perihe
 	return conic(zaimoni::math::conic_tags::ellipse(), major, minor);
 }
 
+static auto mean_to_eccentric_anomaly_cache()
+{
+	std::pair<std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::eccentric_anomaly, orbit::mean_anomaly> > >,	// reference angles
+			  std::unique_ptr<zaimoni::LRUcache<std::pair<interval_shim::interval, orbit::mean_anomaly>, orbit::eccentric_anomaly> > > _cache;	// calculated
+	if (!_cache.first) {
+		_cache.first = std::unique_ptr<typename std::remove_reference<decltype(*_cache.first)>::type>(new typename std::remove_reference<decltype(*_cache.first)>::type);
+		_cache.second = std::unique_ptr<typename std::remove_reference<decltype(*_cache.second)>::type>(new typename std::remove_reference<decltype(*_cache.second)>::type);
+		// if we were being linked with the world manager, the kepler::orbit wrapper would need to include us in its garbage collector handler
+	}
+	return _cache;
+}
+
 static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename orbit::conic::interval::base_type e_exact)
 {
 	// numerically solve: mean_anomaly M = E - _orbit.e()*sin(E) // requires working in radians?
@@ -62,6 +75,17 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	// \todo check cache (which has to be capable of expiring)
 	// two levels of cache: the reference angles M->E (which are hard-coded as very high precision)
 	// and the computed angles
+#if 0
+	auto M_to_E = mean_to_eccentric_anomaly_cache();
+	auto inverted = M_to_E.first->get(e_exact);
+	if (!inverted) {
+		decltype(*inverted) working;
+		// ...
+		M_to_E.first->set(e_exact, std::move(working));
+		inverted = M_to_E.first->get(e_exact);	// XXX \todo alter return type of LRU cache set family
+	}
+#endif
+
 #if 0
 	auto test_ref = zaimoni::circle::angle(zaimoni::circle::angle::degree(0, 180)).contains_ref_angles();
 
