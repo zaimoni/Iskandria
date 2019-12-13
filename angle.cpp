@@ -149,8 +149,8 @@ zaimoni::circle::angle& zaimoni::circle::angle::operator*=(typename const_param<
 
 void zaimoni::circle::angle::_radian_sincos(interval radians, interval& _sin, interval& _cos)
 {
-	_sin = zaimoni::math::sin().template eval(radians);	// using Taylor series as Boost compile-errors here
-	_cos = zaimoni::math::cos().template eval(radians);
+	_sin = zaimoni::math::sin().eval(radians);	// using Taylor series as Boost compile-errors here
+	_cos = zaimoni::math::cos().eval(radians);
 //	\todo post-processing
 	// since we know the domain is the real numbers, we have some additional specializations:
 	// * range is [-1,1]

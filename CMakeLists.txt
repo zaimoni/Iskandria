@@ -23,6 +23,11 @@ find_package(SFML 2.5 REQUIRED COMPONENTS graphics window system)
 
 add_subdirectory(Zaimoni.STL)
 
+if ($CACHE{ZSTL_USLEEP_CODE})
+	add_compile_definitions(ZSTL_USLEEP_CODE=$CACHE{ZSTL_USLEEP_CODE})
+endif()
+
+
 # might actually need this?
 include_directories(${CMAKE_BINARY_DIR})
 

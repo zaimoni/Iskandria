@@ -3,25 +3,21 @@
 #ifndef ZAIMONI_STL_OS_USLEEP_H
 #define ZAIMONI_STL_OS_USLEEP_H 1
 
+#ifndef ZSTL_USLEEP_CODE
 #include "../Compiler.h"
-
 #ifdef ZAIMONI_PLATFORM_WIN32
-/* Windows: emulate with Sleep */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-__stdcall void Sleep(unsigned long);	/* don't pull in all of the Windows headers */
-#ifdef __cplusplus
-}
-#endif
-inline void usleep(int v) {Sleep(v / 1000);}
-
+#define ZSTL_USLEEP_CODE 2
 #else /* ZAIMONI_PLATFORM_WIN32 */
-
-/* assume POSIX-ish; usleep is declared in unistd.h */
-#include <unistd.h>
-
+#define ZSTL_USLEEP_CODE 1
 #endif /* ZAIMONI_PLATFORM_WIN32 */
+#endif
+
+#if 1==ZSTL_USLEEP_CODE
+#include <unistd.h>
+#elif 2==ZSTL_USLEEP_CODE
+#include <Windows.h>	// for Sleep
+
+inline void usleep(int v) { Sleep(v / 1000); }
+#endif
 
 #endif	/* ZAIMONI_STL_OS_USLEEP_H */
