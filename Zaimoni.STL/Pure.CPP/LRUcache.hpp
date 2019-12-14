@@ -11,7 +11,7 @@ template<class K, class V>
 class LRUcache
 {
 private:
-	std::list<std::pair<K, V> > _values;
+	mutable std::list<std::pair<K, V> > _values;
 	typedef typename std::list<std::pair<K, V> >::iterator iter;
 	std::map<K, iter> _index;
 public:
@@ -80,7 +80,7 @@ public:
 			unlink(working);
 		}
 	}
-	bool touch(const K& key) {
+	bool touch(const K& key) const {
 		if (auto test = _index.find(key); _index.end() != test) {
 			auto working = test->second;
 			_values.splice(_values.begin(), _values, working);

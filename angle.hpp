@@ -44,7 +44,7 @@ public:
 	angle lower() const { return angle(_theta.lower()); }
 	angle upper() const { return angle(_theta.upper()); }
 	bool is_exact() const { return _theta.lower() == _theta.upper(); }
-	bool contains(const angle& x) { return _theta.contains(x._theta); }
+	bool contains(const angle& x) const { return _theta.contains(x._theta); }
 
 	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
 	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
@@ -77,6 +77,13 @@ inline angle operator*(const angle& lhs, const angle::interval& rhs) { return an
 inline angle operator*(const angle& lhs, typename const_param<angle::interval::base_type>::type rhs) { return angle(lhs) *= rhs; }
 inline angle operator*(const angle::interval& lhs, const angle& rhs) { return angle(rhs) *= lhs; }	// assumes commutative multiplication (true when base type is in real numbers R)
 inline angle operator*(typename const_param<angle::interval::base_type>::type lhs, const angle& rhs) { return angle(rhs) *= lhs; }
+
+struct ref_angle {
+	inline static const angle zero = angle(angle::degree(0));
+	inline static const angle half_circle = angle(angle::degree(180));
+	inline static const angle span_half_circle = angle(angle::degree(0, 180));
+	inline static const angle span_neg_half_circle = angle(angle::degree(-180,0));
+};
 
 // some uses need to track "what kind of angle".
 template<int code>

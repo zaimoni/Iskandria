@@ -79,7 +79,18 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	auto M_to_E = mean_to_eccentric_anomaly_cache();
 	auto inverted = M_to_E.first->get(e_exact);
 	if (!inverted) {
-		decltype(*inverted) working;
+		std::remove_reference_t<decltype(*inverted)> working;
+		auto test_ref = zaimoni::circle::ref_angle::span_half_circle.contains_ref_angles();
+		assert(test_ref.front() == zaimoni::circle::ref_angle::zero);
+		assert(test_ref.back() == zaimoni::circle::ref_angle::half_circle);
+		for (const auto& ref_E : test_ref) {
+			if (ref_E == zaimoni::circle::ref_angle::zero) continue;
+			if (ref_E == zaimoni::circle::ref_angle::half_circle) continue;
+			orbit::interval _sin;
+			orbit::interval _cos;
+			ref_E.sincos(_sin, _cos);
+			working[orbit::eccentric_anomaly(ref_E)] = ref_E - zaimoni::circle::angle(zaimoni::circle::angle::radian(e_exact * _sin));
+		}
 		// ...
 		M_to_E.first->set(e_exact, std::move(working));
 		inverted = M_to_E.first->get(e_exact);	// XXX \todo alter return type of LRU cache set family
@@ -101,9 +112,9 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, const orb
 {
 	// numerically solve: mean_anomaly M = E - _orbit.e()*sin(E) // requires working in radians?
 	// test with parabolic orbit (there should be limiting values for the eccentric anomaly as time goes to infinity)?
-	if (M_exact == orbit::mean_anomaly(zaimoni::circle::angle::degree(0))) return orbit::eccentric_anomaly(M_exact);
-	if (M_exact == orbit::mean_anomaly(zaimoni::circle::angle::degree(180))) return orbit::eccentric_anomaly(M_exact);
-	if (orbit::mean_anomaly(zaimoni::circle::angle::degree(-180, 0)).contains(M_exact)) return -_E(-M_exact, e);
+	if (M_exact == zaimoni::circle::ref_angle::zero) return orbit::eccentric_anomaly(M_exact);
+	if (M_exact == zaimoni::circle::ref_angle::half_circle) return orbit::eccentric_anomaly(M_exact);
+	if (zaimoni::circle::ref_angle::span_neg_half_circle.contains(M_exact)) return -_E(-M_exact, e);
 	// should be strictly between 0 and 180 degrees at this point
 	// M < E, always (sin(E) and eccentricity e are positive)
 	auto lb = _E(M_exact, e.lower());
