@@ -398,7 +398,7 @@ public:
 		}
 		return ret;
 	}
-	virtual sum* clone() const { return new sum(*this); }
+	sum* clone() const override { return new sum(*this); }
 	std::string to_s() const {
 		if (this->_x.empty()) return "0";
 		const auto _size = this->_x.size();
@@ -432,7 +432,7 @@ private:
 	virtual void _scal_bn(intmax_t scale) {
 		for (auto& x : this->_x) this->__scal_bn(x,scale);
 	}
-	virtual fp_API* _eval() const { return 0; }	// placeholder
+	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
 template<class T>
@@ -522,7 +522,7 @@ public:
 		}
 		return ret;
 	}
-	virtual product* clone() const { return new product(*this); }
+	product* clone() const override { return new product(*this); }
 	std::string to_s() const {
 		if (this->_x.empty()) return "1";
 		const auto _size = this->_x.size();
@@ -586,7 +586,7 @@ private:
 		}
 		if (0 != scale) throw zaimoni::math::numeric_error("scal_bn needed additional factors added");
 	}
-	virtual fp_API* _eval() const { return 0; }	// placeholder
+	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
 template<class T>
@@ -732,7 +732,7 @@ public:
 		clamped_diff_assign(ret, _denominator->ideal_scal_bn());
 		return ret;
 	}
-	virtual quotient* clone() const { return new quotient(*this); };
+	quotient* clone() const override { return new quotient(*this); };
 	virtual std::string to_s() const {
 		auto n = _numerator->to_s();
 		if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';
@@ -804,7 +804,7 @@ private:
 		}
 		this->__scal_bn(_denominator, -scale);
 	}
-	virtual fp_API* _eval() const { return zaimoni::math::eval_quotient(_numerator,_denominator); }
+	fp_API* _eval() const override { return zaimoni::math::eval_quotient(_numerator,_denominator); }
 };
 
 }

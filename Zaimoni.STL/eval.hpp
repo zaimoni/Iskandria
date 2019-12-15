@@ -21,7 +21,8 @@ namespace zaimoni {
 			_R_,		// real numbers
 			_C_,		// complex numbers
 			_R_SHARP_,	// extended real numbers
-			_C_SHARP_	// extended complex numbers
+			_C_SHARP_,	// extended complex numbers
+			_S1_		// unit circle
 		};
 	};
 	// while we want to support vector spaces, matrices, etc., that looks it like it requires more general methods than an operation enum
@@ -131,17 +132,23 @@ namespace zaimoni {
 		virtual bool is_finite() const { return static_cast<const Derived*>(this)->_is_finite(); };
 	};
 
-	// top-levels: _C_SHARP_, _R_SHARP_
+	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API {
 		enum { API_code = 1 };
-		virtual int allow_infinity() const { return 1; }
+		int allow_infinity() const override { return 1; }
 	};
 
 	template<>
 	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API {
 		enum { API_code = 1 };
-		virtual int allow_infinity() const { return -1; }
+		int allow_infinity() const override { return -1; }
+	};
+
+	template<>
+	struct _type<_type_spec::_S1_> : public virtual fp_API {
+		enum { API_code = 0 };
+		int allow_infinity() const override { return 0; }
 	};
 
 	// subspace relations
@@ -152,7 +159,7 @@ namespace zaimoni {
 		virtual ~_type() = default;
 
 		// numerical support -- these have coordinate-wise definitions available
-		virtual int allow_infinity() const override { return 0; }
+		int allow_infinity() const override { return 0; }
 		bool is_inf() const override { return false; };
 		bool is_finite() const override { return true; };
 	};

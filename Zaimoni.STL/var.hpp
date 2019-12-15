@@ -77,7 +77,7 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+		fp_API* clone() const override { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
@@ -86,7 +86,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 		}	// power-of-two
-		virtual fp_API* _eval() const { return 0; }
+		fp_API* _eval() const override { return 0; }
 	};
 
 	template<class Derived>
@@ -124,7 +124,7 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+		fp_API* clone() const override { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
@@ -133,7 +133,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 		}	// power-of-two
-		virtual fp_API* _eval() const { return 0; }
+		fp_API* _eval() const override { return 0; }
 	};
 
 	template<class Derived>
@@ -168,7 +168,7 @@ namespace zaimoni {
 			return _stats.ideal_scal_bn();
 		}
 
-		virtual fp_API* clone() const { return new Derived(*static_cast<const Derived*>(this)); }
+		fp_API* clone() const override { return new Derived(*static_cast<const Derived*>(this)); }
 	private:
 		void force_valid_stats() const {
 			if (!_stats.valid()) _stats.init_stats(static_cast<const Derived*>(this)->value());
@@ -177,7 +177,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x = std::scalbn(x, scale);
 		}	// power-of-two
-		virtual fp_API* _eval() const { return 0; }
+		fp_API* _eval() const override { return 0; }
 	};
 
 	template<class Derived>

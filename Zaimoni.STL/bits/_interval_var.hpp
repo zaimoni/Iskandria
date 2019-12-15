@@ -56,7 +56,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual typename _type_of<Derived>::type* clone() const {
+		typename _type_of<Derived>::type* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -75,7 +75,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
-		virtual fp_API* _eval() const {
+		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			if (x.lower() == x.upper()) return new var<double>(x.lower());
 			return 0;
@@ -135,7 +135,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual typename _type_of<Derived>::type* clone() const {
+		typename _type_of<Derived>::type* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -154,7 +154,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
-		virtual fp_API* _eval() const {
+		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			if (x.lower() == x.upper()) return new var<float>(x.lower());
 			return 0;
@@ -211,7 +211,7 @@ namespace zaimoni {
 			return 0;
 		}
 
-		virtual typename _type_of<Derived>::type* clone() const {
+		typename _type_of<Derived>::type* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -230,7 +230,7 @@ namespace zaimoni {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
-		virtual fp_API* _eval() const {
+		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			if (x.lower() == x.upper()) return new var<long double>(x.lower());
 			return 0;
