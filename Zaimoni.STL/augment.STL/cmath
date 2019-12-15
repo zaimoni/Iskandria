@@ -260,12 +260,52 @@ typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_canc
 	return 0.0 == rhs;
 }
 
+template<class T>
+class _fp_stats	// odd name avoids conflicting with an earlier prototype, below.  Optimized for Zaimoni.STL/var.hpp
+{
+	static_assert(std::is_floating_point<T>::value, "need floating point numeral type");
+protected:
+	mutable T _mantissa;
+	mutable int _exponent;
+	mutable bool _valid;
+public:
+	_fp_stats() : _valid(false) {};
+	_fp_stats(typename const_param<T>::type src) : _valid(true) {
+		_mantissa = frexp(src, &_exponent);
+	};
+
+	void invalidate_stats() { _valid = false; }
+	bool valid() const { return _valid; }
+	void init_stats(typename const_param<T>::type x) const {
+		_mantissa = frexp(x, &_exponent);
+		_valid = true;
+	}
+
+	// precondition: valid
+	// precondition: incoming lb/ub are initialized appropriately
+	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		if (0 == _mantissa) return;
+		auto _lb = std::numeric_limits<T>::min_exponent - _exponent;
+		auto _ub = std::numeric_limits<T>::max_exponent - _exponent;
+		if (0 < _lb) _lb = 0;
+		if (0 > _ub) _ub = 0;
+		if (lb < _lb) lb = _lb;
+		if (ub > _ub) ub = _ub;
+	}
+
+	// precondition: valid
+	bool is_scal_bn_identity() const { return std::numeric_limits<T>::max_exponent < _exponent; }	// 0, infinity, or NaN
+
+	// precondition: valid
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+};
+
 namespace math {
 
 template<class T>
-class fp_stats
+class fp_stats	// optimized for Iskandria's overprecise.hpp
 {
-	ZAIMONI_STATIC_ASSERT(std::is_floating_point<T>::value);
+	static_assert(std::is_floating_point<T>::value, "need floating point numeral type");
 private:
 	int _exponent;
 	T _mantissa;
