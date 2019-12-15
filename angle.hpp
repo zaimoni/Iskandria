@@ -49,6 +49,9 @@ public:
 	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
 	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
 
+	angle operator+=(const angle& src);
+	angle operator-=(const angle& src);
+
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
 
@@ -72,6 +75,9 @@ private:
 	static void _radian_sincos(interval radians, interval& _sin, interval& _cos);
 	static void _internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos);
 };
+
+inline angle operator+(const angle& lhs, const angle& rhs) { return angle(lhs) += rhs; }
+inline angle operator-(const angle& lhs, const angle& rhs) { return angle(lhs) -= rhs; }
 
 inline angle operator*(const angle& lhs, const angle::interval& rhs) { return angle(lhs) *= rhs; }
 inline angle operator*(const angle& lhs, typename const_param<angle::interval::base_type>::type rhs) { return angle(lhs) *= rhs; }

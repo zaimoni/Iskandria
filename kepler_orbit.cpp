@@ -58,7 +58,7 @@ orbit::conic orbit::_from_perihelion_aphelion(const interval& barycentric_perihe
 static auto mean_to_eccentric_anomaly_cache()
 {
 	std::pair<std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::eccentric_anomaly, orbit::mean_anomaly> > >,	// reference angles
-			  std::unique_ptr<zaimoni::LRUcache<std::pair<interval_shim::interval, orbit::mean_anomaly>, orbit::eccentric_anomaly> > > _cache;	// calculated
+		      std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::mean_anomaly, orbit::eccentric_anomaly> > > > _cache;	// calculated
 	if (!_cache.first) {
 		_cache.first = std::unique_ptr<typename std::remove_reference<decltype(*_cache.first)>::type>(new typename std::remove_reference<decltype(*_cache.first)>::type);
 		_cache.second = std::unique_ptr<typename std::remove_reference<decltype(*_cache.second)>::type>(new typename std::remove_reference<decltype(*_cache.second)>::type);
@@ -76,10 +76,13 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	// two levels of cache: the reference angles M->E (which are hard-coded as very high precision)
 	// and the computed angles
 #if 0
+	// needs bool angle::operator<
 	auto M_to_E = mean_to_eccentric_anomaly_cache();
 	auto inverted = M_to_E.first->get(e_exact);
+	auto forward = M_to_E.second->get(e_exact);
 	if (!inverted) {
 		std::remove_reference_t<decltype(*inverted)> working;
+		std::remove_reference_t<decltype(*forward)> working_forward;
 		auto test_ref = zaimoni::circle::ref_angle::span_half_circle.contains_ref_angles();
 		assert(test_ref.front() == zaimoni::circle::ref_angle::zero);
 		assert(test_ref.back() == zaimoni::circle::ref_angle::half_circle);
@@ -89,19 +92,27 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 			orbit::interval _sin;
 			orbit::interval _cos;
 			ref_E.sincos(_sin, _cos);
-			working[orbit::eccentric_anomaly(ref_E)] = ref_E - zaimoni::circle::angle(zaimoni::circle::angle::radian(e_exact * _sin));
+			auto predicted_M = orbit::mean_anomaly(ref_E - zaimoni::circle::angle(zaimoni::circle::angle::radian(e_exact * _sin)));
+			working[orbit::eccentric_anomaly(ref_E)] = predicted_M;
+			if (predicted_M.is_exact()) working_forward[predicted_M.lower()] = orbit::eccentric_anomaly(ref_E);
 		}
-		// ...
 		M_to_E.first->set(e_exact, std::move(working));
 		inverted = M_to_E.first->get(e_exact);	// XXX \todo alter return type of LRU cache set family
+		M_to_E.second->set(e_exact, std::move(working_forward));
+		forward = M_to_E.second->get(e_exact);
 	}
-#endif
-
-#if 0
-	auto test_ref = zaimoni::circle::angle(zaimoni::circle::angle::degree(0, 180)).contains_ref_angles();
-
-	size_t ub;
-	zaimoni::circle::angle test_ref2[zaimoni::circle::angle::ref_angle_maxsize];
+	if (!forward->empty()) {
+		if (auto test = forward->find(M_exact); test != forward->end()) return test->second;	// already calculated
+	}
+	zaimoni::circle::angle a_priori(zaimoni::circle::ref_angle::span_half_circle);
+	for (auto& scan : *inverted) {
+		auto x = scan.first;
+		auto y = scan.second;
+		if (scan.second.contains(M_exact)) {
+		} else if (M_exact < scan.second) {
+		} else if (scan.second < M_exact) {
+		}
+	}
 #endif
 
 	// remove this stub later

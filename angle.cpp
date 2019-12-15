@@ -125,6 +125,20 @@ void static enforce_circle(interval_shim::interval& _sin, interval_shim::interva
 	if (_cos.lower()<test.lower() || _cos.upper()>test.upper()) _cos.assign((_cos.lower()<test.lower() ? test.lower() : _cos.lower()),(_cos.upper()>test.upper() ? test.upper() : _cos.upper()));
 }
 
+zaimoni::circle::angle zaimoni::circle::angle::operator+=(const angle& src)
+{
+	_theta += src._theta;
+	_standard_form();
+	return *this;
+}
+
+zaimoni::circle::angle zaimoni::circle::angle::operator-=(const angle& src)
+{
+	_theta -= src._theta;
+	_standard_form();
+	return *this;
+}
+
 zaimoni::circle::angle& zaimoni::circle::angle::operator*=(const interval& rhs)
 {
 	interval lb(_theta.lower());
