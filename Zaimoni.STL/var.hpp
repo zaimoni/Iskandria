@@ -213,5 +213,8 @@ struct _type_of<var<T, U> >
 #ifdef _INTERVAL_HPP
 #include "bits/_interval_var.hpp"
 #endif
+#ifdef ANGLE_HPP
+#include "bits/_angle_var.hpp"
+#endif
 
 #endif

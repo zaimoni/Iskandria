@@ -45,6 +45,7 @@ public:
 	angle upper() const { return angle(_theta.upper()); }
 	bool is_exact() const { return _theta.lower() == _theta.upper(); }
 	bool contains(const angle& x) const { return _theta.contains(x._theta); }
+	friend void init(const angle& src, zaimoni::_fp_stats<double>& l_stat, zaimoni::_fp_stats<double>& u_stat);
 
 	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
 	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
@@ -112,5 +113,9 @@ public:
 
 }	// namespace circle
 }	// namespace zaimoni
+
+#ifdef VAR_HPP
+#include "Zaimoni.STL/bits/_angle_var.hpp"
+#endif
 
 #endif
