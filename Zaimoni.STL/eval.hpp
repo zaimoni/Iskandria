@@ -23,13 +23,11 @@ namespace zaimoni {
 			_R_SHARP_,	// extended real numbers
 			_C_SHARP_	// extended complex numbers
 		};
-		enum operation {
-			none = 0	// 
-			// we do want to support vector spaces, matrices, etc.
-		};
 	};
+	// while we want to support vector spaces, matrices, etc., that looks it like it requires more general methods than an operation enum
+	// e.g., consider a 2-dimensional vector space of operations on the surface of a 3-dimesnional sphere
 
-	template<_type_spec::arch_domain DOM, _type_spec::operation OP = _type_spec::none> struct _type {
+	template<_type_spec::arch_domain DOM> struct _type {
 		virtual ~_type() = default;
 	};
 
@@ -134,41 +132,41 @@ namespace zaimoni {
 	};
 
 	// top-levels: _C_SHARP_, _R_SHARP_
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_C_SHARP_, OP> : public virtual fp_API {
+	template<>
+	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API {
 		enum { API_code = 1 };
 		virtual int allow_infinity() const { return 1; }
 	};
 
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_R_SHARP_, OP> : public virtual fp_API {
+	template<>
+	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API {
 		enum { API_code = 1 };
 		virtual int allow_infinity() const { return -1; }
 	};
 
 	// subspace relations
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_C_, OP> : public _type<_type_spec::_C_SHARP_, OP> {
+	template<>
+	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
 		enum {API_code = 0};
 
 		virtual ~_type() = default;
 
 		// numerical support -- these have coordinate-wise definitions available
 		virtual int allow_infinity() const override { return 0; }
-		virtual bool is_inf() const { return false; };
-		virtual bool is_finite() const { return true; };
+		bool is_inf() const override { return false; };
+		bool is_finite() const override { return true; };
 	};
 
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_R_, OP> : public _type<_type_spec::_C_, OP>, public _type<_type_spec::_R_SHARP_, OP> {
+	template<>
+	struct _type<_type_spec::_R_> : public _type<_type_spec::_C_>, public _type<_type_spec::_R_SHARP_> {
 		virtual int allow_infinity() const override { return 0; }
 	};
 
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_Q_, OP> : public _type<_type_spec::_R_, OP> {};
+	template<>
+	struct _type<_type_spec::_Q_> : public _type<_type_spec::_R_> {};
 
-	template<_type_spec::operation OP>
-	struct _type<_type_spec::_Z_, OP> : public _type<_type_spec::_Q_, OP> {};
+	template<>
+	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
 
 	template<class T>
 	struct _type_of {};	// must override to do anything useful

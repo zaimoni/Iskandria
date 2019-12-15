@@ -25,7 +25,7 @@ namespace math {
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return 0; }
 
 #if 0
-	template int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+	template int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 #else
 	// rearrange_sum support
 	template<class T, class F>
@@ -425,7 +425,7 @@ final_exit:
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
 		if (1==lhs.use_count()) working = lhs;
-		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(lhs->clone()));
+		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_> >(dynamic_cast<_type<_type_spec::_R_SHARP_>*>(lhs->clone()));
 
 		int ret = 0;
 
@@ -447,7 +447,7 @@ final_exit:
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
 		if (1==lhs.use_count()) working = lhs;
-		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(lhs->clone()));
+		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_> >(dynamic_cast<_type<_type_spec::_R_SHARP_>*>(lhs->clone()));
 
 		int ret = 0;
 
@@ -463,14 +463,14 @@ final_exit:
 		return ret;
 	}
 
-	template<> int rearrange_sum< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs)
+	template<> int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
 
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(rhs)>::type working;
 		if (1==rhs.use_count()) working = rhs;
-		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(dynamic_cast<_type<_type_spec::_R_SHARP_, _type_spec::none>*>(rhs->clone()));
+		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_> >(dynamic_cast<_type<_type_spec::_R_SHARP_>*>(rhs->clone()));
 
 		int ret = 0;
 
@@ -487,10 +487,10 @@ final_exit:
 	}
 #endif
 
-	template int rearrange_product< _type<_type_spec::_R_SHARP_, _type_spec::none> >(std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+	template int rearrange_product< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 
 #if 0
-	template _type<_type_spec::_R_SHARP_, _type_spec::none>* eval_quotient< _type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& d);
+	template _type<_type_spec::_R_SHARP_>* eval_quotient< _type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& d);
 #else
 	// eval_quotient support
 	template<class T,class F>
@@ -548,7 +548,7 @@ final_exit:
 		return 0;
 	}
 
-	template<> _type<_type_spec::_R_SHARP_, _type_spec::none>* eval_quotient< _type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& d)
+	template<> _type<_type_spec::_R_SHARP_>* eval_quotient< _type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto d_src = d.get();
 		if (auto r = dynamic_cast<_access<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->value()));
@@ -566,11 +566,11 @@ final_exit:
 	// * may enable further rearrangement
 	// so the score should be largest for denormals and smallest near infinity
 #if 0
-	template int sum_implemented<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& x);
+	template int sum_implemented<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& x);
 
-	template int sum_score<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+	template int sum_score<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 
-	template std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> > eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs);
+	template std::shared_ptr<_type<_type_spec::_R_SHARP_> > eval_sum<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 #else
 	template<class F>
 	typename std::enable_if<std::is_floating_point<F>::value, int>::type sum_score(const ISK_INTERVAL<F>& x)
@@ -587,7 +587,7 @@ final_exit:
 		return std::numeric_limits<long double>::max_exponent - test.exponent();
 	}
 
-	template<> int sum_implemented<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& x)
+	template<> int sum_implemented<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& x)
 	{
 		auto src = x.get();
 		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(r->value());
@@ -631,7 +631,7 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<> int sum_score<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs)
+	template<> int sum_score<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();
 		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(lhs,r->value());
@@ -695,15 +695,15 @@ final_exit:
 		return 0;
 	}
 
-	template<> std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> > eval_sum<_type<_type_spec::_R_SHARP_, _type_spec::none> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >& rhs)
+	template<> std::shared_ptr<_type<_type_spec::_R_SHARP_> > eval_sum<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();
-		if (auto r = dynamic_cast<_access<float>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<float>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
-		else if (auto r = dynamic_cast<_access<double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<double>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
-		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_, _type_spec::none> >(eval_sum(lhs, r->value()));
+		if (auto r = dynamic_cast<_access<float>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, ISK_INTERVAL<float>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, ISK_INTERVAL<double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, r->value()));
 		return 0;
 	}
 #endif
