@@ -135,28 +135,28 @@ int main(int argc, char* argv[])
 	STRING_LITERAL_TO_STDOUT("sin coefficients a_0..4\n");
 
 	INC_INFORM("sin(0): ");
-	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::sin().eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
 	INC_INFORM("cos(0): ");
-	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::cos().eval(zaimoni::math::int_as<0,ISK_INTERVAL<long double> >()));
 
 	INC_INFORM("sin(1): ");
-	INFORM(zaimoni::math::sin().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::sin().eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
 	INC_INFORM("cos(1): ");
-	INFORM(zaimoni::math::cos().template eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::cos().eval(zaimoni::math::int_as<1,ISK_INTERVAL<long double> >()));
 
 	INC_INFORM("exp(0): ");
-	INFORM(zaimoni::math::exp().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::exp().eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
 	INC_INFORM("sinh(0): ");
-	INFORM(zaimoni::math::sinh().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::sinh().eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
 	INC_INFORM("cosh(0): ");
-	INFORM(zaimoni::math::cosh().template eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::cosh().eval(zaimoni::math::int_as<0, ISK_INTERVAL<long double> >()));
 
 	INC_INFORM("exp(1): ");
-	INFORM(zaimoni::math::exp().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::exp().eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
 	INC_INFORM("sinh(1): ");
-	INFORM(zaimoni::math::sinh().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::sinh().eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
 	INC_INFORM("cosh(1): ");
-	INFORM(zaimoni::math::cosh().template eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
+	INFORM(zaimoni::math::cosh().eval(zaimoni::math::int_as<1, ISK_INTERVAL<long double> >()));
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
