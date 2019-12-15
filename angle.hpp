@@ -55,6 +55,7 @@ public:
 
 	angle& operator*=(const interval& rhs);
 	angle& operator*=(typename const_param<interval::base_type>::type rhs);
+	void self_scalBn(int scale);	// works on "primary" value; true division would give a range out
 
 	std::vector<angle> contains_ref_angles() const;
 

@@ -429,7 +429,7 @@ public:
 		return true;
 	}
 private:
-	virtual void _scal_bn(intmax_t scale) {
+	void _scal_bn(intmax_t scale) override {
 		for (auto& x : this->_x) this->__scal_bn(x,scale);
 	}
 	fp_API* _eval() const override { return 0; }	// placeholder
@@ -552,7 +552,7 @@ public:
 		return true;
 	}
 private:
-	virtual void _scal_bn(intmax_t scale) {
+	void _scal_bn(intmax_t scale) override {
 		bool saw_identity = false;
 		// \todo both of these loops can be specialized (scale positive/negative will be invariant)
 		for (auto& x : this->_x) {
@@ -763,7 +763,7 @@ private:
 		if (!_denominator) return "denominator null";
 		return _transform_fatal(_numerator, _denominator);
 	}
-	virtual void _scal_bn(intmax_t scale) {
+	void _scal_bn(intmax_t scale) override {
 		auto numerator_scale = _numerator->ideal_scal_bn();
 		auto denominator_scale = _denominator->ideal_scal_bn();
 		// try to normalize the denominator first

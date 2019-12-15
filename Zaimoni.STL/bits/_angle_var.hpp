@@ -74,9 +74,9 @@ namespace circle {
 				init(x, _stats_l, _stats_u);
 			}
 		}
-		virtual void _scal_bn(intmax_t scale) {
+		void _scal_bn(intmax_t scale) override {
 			auto& x = static_cast<Derived*>(this)->value();
-			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
+			x.self_scalBn(scale);
 		}	// power-of-two
 		fp_API* _eval() const override { return 0; }
 	};

@@ -161,6 +161,23 @@ zaimoni::circle::angle& zaimoni::circle::angle::operator*=(typename const_param<
 	return *this;
 }
 
+void zaimoni::circle::angle::self_scalBn(int scale)
+{
+	if (0 == scale || 0 == _theta) return;
+	if (is_whole_circle()) return;	// \todo is it clear we shouldn't suddenly undegenerate?
+	if (0 > scale) {
+		_theta = scalBn(_theta, scale);
+		return;	// will be in range, although underflow is a consideration
+	}
+	// remaining near standard form is an issue
+	while (0 < scale) {
+		_theta = scalBn(_theta, 1);
+		_standard_form();
+		if (is_whole_circle()) return;	// bail if we degenerate
+		--scale;
+	}
+}
+
 void zaimoni::circle::angle::_radian_sincos(interval radians, interval& _sin, interval& _cos)
 {
 	_sin = zaimoni::math::sin().eval(radians);	// using Taylor series as Boost compile-errors here

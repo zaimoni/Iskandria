@@ -71,7 +71,7 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
-		virtual void _scal_bn(intmax_t scale) {
+		void _scal_bn(intmax_t scale) override {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
@@ -150,7 +150,7 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
-		virtual void _scal_bn(intmax_t scale) {
+		void _scal_bn(intmax_t scale) override {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
@@ -226,7 +226,7 @@ namespace zaimoni {
 				_stats_u.init_stats(x.upper());
 			}
 		}
-		virtual void _scal_bn(intmax_t scale) {
+		void _scal_bn(intmax_t scale) override {
 			auto& x = static_cast<Derived*>(this)->value();
 			x.assign(std::scalbn(x.lower(), scale), std::scalbn(x.upper(), scale));
 		}	// power-of-two
