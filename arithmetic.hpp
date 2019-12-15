@@ -331,15 +331,15 @@ public:
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
 private:
-	virtual bool would_fpAPI_eval() const { return 1 >= this->_x.size(); }
+	bool would_fpAPI_eval() const override { return 1 >= this->_x.size(); }
 public:
 	// eval_shared_ptr
-	virtual smart_ptr destructive_eval() {
+	smart_ptr destructive_eval() override {
 		if (1 == this->_x.size()) return this->_x.front();
 		return 0;
 	}
 	// fp_API
-	virtual bool self_eval() {
+	bool self_eval() override {
 		if (!this->_pre_self_eval()) return false;
 		if (this->_self_eval(_n_ary_op::is_additive_identity,zaimoni::math::rearrange_sum, zaimoni::math::sum_implemented, zaimoni::math::sum_score, zaimoni::math::eval_sum)) return true;
 		//	auto& checking = this->_heuristic.back();
@@ -347,16 +347,16 @@ public:
 		this->_heuristic.clear();
 		return false;
 	}
-	virtual bool is_zero() const {
+	bool is_zero() const override {
 		if (this->_x.empty()) return true;
 		if (1 == this->_x.size()) return this->_x.front()->is_zero();
 		return false;
 	}
-	virtual bool is_one() const {
+	bool is_one() const override {
 		if (1 == this->_x.size()) return this->_x.front()->is_one();
 		return false;
 	}
-	virtual int sgn() const {
+	int sgn() const override {
 		if (is_zero()) return 0;
 		unsigned int seen = 0;
 		for (auto& x : this->_x) {
@@ -370,7 +370,7 @@ public:
 		// anything else would need evaluation to get right
 		throw zaimoni::math::numeric_error("sum needs to evaluate enough to calculate sgn()");
 	}
-	virtual bool is_scal_bn_identity() const { return is_zero(); };	// let evaluation handle this, mostly
+	bool is_scal_bn_identity() const override { return is_zero(); };	// let evaluation handle this, mostly
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		for(const auto& x : this->_x) {
@@ -399,7 +399,7 @@ public:
 		return ret;
 	}
 	sum* clone() const override { return new sum(*this); }
-	std::string to_s() const {
+	std::string to_s() const override {
 		if (this->_x.empty()) return "0";
 		const auto _size = this->_x.size();
 		if (1 == _size) return this->_x.front()->to_s();
@@ -418,7 +418,7 @@ public:
 		}
 		return ret;
 	}
-	virtual int precedence() const { return 1; }
+	int precedence() const override { return 1; }
 
 	bool _is_inf() const {
 		for (auto& x : this->_x) if (x->is_inf()) return true;
@@ -465,15 +465,15 @@ public:
 	void append_term(T* src) { append_term(smart_ptr(src)); }
 
 private:
-	virtual bool would_fpAPI_eval() const { return 1 >= this->_x.size(); }
+	bool would_fpAPI_eval() const override { return 1 >= this->_x.size(); }
 public:
 	// eval_shared_ptr
-	virtual smart_ptr destructive_eval() {
+	smart_ptr destructive_eval() override {
 		if (1 == this->_x.size()) return this->_x.front();
 		return 0;
 	}
 	// fp_API
-	virtual bool self_eval() {
+	bool self_eval() override {
 		if (!this->_pre_self_eval()) return false;
 		if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_eval)) return true;
 //		auto& checking = this->_heuristic.back();
@@ -481,16 +481,16 @@ public:
 		this->_heuristic.clear();
 		return false;
 	}
-	virtual bool is_zero() const {
+	bool is_zero() const override {
 		if (1 == this->_x.size()) return this->_x.front()->is_zero();
 		return false;
 	}
-	virtual bool is_one() const {
+	bool is_one() const override {
 		if (this->_x.empty()) return true;
 		if (1 == this->_x.size()) return this->_x.front()->is_one();
 		return false;
 	}
-	virtual int sgn() const {
+	int sgn() const override {
 		if (this->_x.empty()) return 1;
 		int ret = 1;
 		for (auto& x : this->_x) {
@@ -499,7 +499,7 @@ public:
 		}
 		return ret;
 	}
-	virtual bool is_scal_bn_identity() const { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
+	bool is_scal_bn_identity() const override { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(0, 0);
 		if (this->_x.empty()) return ret;	// should have evaluated
@@ -523,7 +523,7 @@ public:
 		return ret;
 	}
 	product* clone() const override { return new product(*this); }
-	std::string to_s() const {
+	std::string to_s() const override {
 		if (this->_x.empty()) return "1";
 		const auto _size = this->_x.size();
 		if (1 == _size) return this->_x.front()->to_s();
@@ -541,7 +541,7 @@ public:
 		}
 		return ret;
 	}
-	virtual int precedence() const { return 2; }
+	int precedence() const override { return 2; }
 
 	bool _is_inf() const {
 		for (auto& x : this->_x) if (x->is_inf()) return true;
@@ -655,14 +655,14 @@ private:
 	}
 public:
 	// eval_shared_ptr
-	virtual smart_ptr destructive_eval() {
+	smart_ptr destructive_eval() override {
 		if (_denominator->is_one()) return _numerator;
 		if (_numerator->is_zero()) return _numerator;
 		return 0;
 	}
 
 	// fp_API
-	virtual bool self_eval() {
+	bool self_eval() override {
 		if (0 >= _heuristic.first) return false;
 		// \todo: greatest common integer factor exceeds one
 		// \todo: mutual cancellation of negative signs
@@ -700,22 +700,22 @@ public:
 			return false;
 		}
 	}
-	virtual bool is_zero() const {
+	bool is_zero() const override {
 		if (_numerator->is_zero()) return true;
 		if (_denominator->is_inf()) return true;
 		return false;
 	}
-	virtual bool is_one() const {
+	bool is_one() const override {
 		if (_numerator == _denominator) return true;	// we assume that if two std::shared_ptrs are binary-equal that they are the same, even if they are intervals
 		if (_numerator->is_one() && _denominator->is_one()) return true;
 		return false;
 	}
-	virtual int sgn() const {
+	int sgn() const override {
 		const auto n_sgn = _numerator->sgn();
 		if (const auto d_sgn = _denominator->sgn()) return n_sgn * d_sgn;
 		else return n_sgn;	// division by zero hard-errors so more like "don't know"
 	}
-	virtual bool is_scal_bn_identity() const { return false; };	// let evaluation handle this -- pathological behavior
+	bool is_scal_bn_identity() const override { return false; };	// let evaluation handle this -- pathological behavior
 	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return ret;
@@ -733,14 +733,14 @@ public:
 		return ret;
 	}
 	quotient* clone() const override { return new quotient(*this); };
-	virtual std::string to_s() const {
+	std::string to_s() const override {
 		auto n = _numerator->to_s();
 		if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';
 		auto d = _denominator->to_s();
 		if (precedence() >= _denominator->precedence()) d = std::string("(") + d + ')';
 		return n + '/' + d;
 	}
-	virtual int precedence() const { return 2; }
+	int precedence() const override { return 2; }
 
 	bool _is_inf() const {
 		return _numerator->is_inf();	// cf. _transform_fatal which requires finite denominator in this case

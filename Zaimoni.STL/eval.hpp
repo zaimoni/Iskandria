@@ -116,14 +116,14 @@ namespace zaimoni {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
 
-		virtual bool self_eval() { return false; };
+		bool self_eval() override { return false; };
 
-		virtual bool is_zero() const { return zaimoni::is_zero(value()); };
-		virtual bool is_one() const { return zaimoni::is_one(value()); };
-		virtual int sgn() const { return zaimoni::sgn(value()); };
+		bool is_zero() const override { return zaimoni::is_zero(value()); };
+		bool is_one() const override { return zaimoni::is_one(value()); };
+		int sgn() const override { return zaimoni::sgn(value()); };
 
-		virtual std::string to_s() const { return to_string(value()); }
-		virtual int precedence() const { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
+		std::string to_s() const override { return to_string(value()); }
+		int precedence() const override { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
 	};
 
 	template<class Derived>

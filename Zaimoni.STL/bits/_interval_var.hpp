@@ -30,7 +30,7 @@ namespace zaimoni {
 			_stats_u.invalidate_stats();
 		}
 
-		virtual bool is_scal_bn_identity() const {
+		bool is_scal_bn_identity() const override {
 			force_valid_stats();
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
@@ -109,7 +109,7 @@ namespace zaimoni {
 			_stats_u.invalidate_stats();
 		}
 
-		virtual bool is_scal_bn_identity() const {
+		bool is_scal_bn_identity() const override {
 			force_valid_stats();
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
@@ -185,7 +185,7 @@ namespace zaimoni {
 			_stats_u.invalidate_stats();
 		}
 
-		virtual bool is_scal_bn_identity() const {
+		bool is_scal_bn_identity() const override {
 			force_valid_stats();
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
