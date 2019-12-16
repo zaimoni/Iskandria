@@ -106,11 +106,9 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 #if 0
 	zaimoni::circle::angle a_priori(zaimoni::circle::ref_angle::span_half_circle);
 	for (auto& scan : *inverted) {
-		auto x = scan.first;
-		auto y = scan.second;
 		if (scan.second.contains(M_exact)) {
-		} else if (M_exact.lower() < scan.second.lower()) {
-		} else if (scan.second.upper() < M_exact.lower()) {
+		} else if (M_exact.lower_lt(scan.second)) {
+		} else if (scan.second.upper_lt(M_exact)) {
 		}
 	}
 #endif

@@ -377,6 +377,7 @@ void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::bas
 			return;
 		} else if (x > tmp.first) break;
 	} while (0 < i);
+	// at this point we could do a binary-search vs. the reference angles using the half-angle formulas and angle sum formulas
 
 	_radian_sincos(((x * 2.0) * interval_shim::pi) / 1125.0, _sin, _cos);
 	_sin.self_intersect(interval(ref_trig[i].second.first.lower(), ref_trig[i+1].second.first.upper()));

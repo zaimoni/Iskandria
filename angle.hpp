@@ -47,6 +47,8 @@ public:
 	bool contains(const angle& x) const { return _theta.contains(x._theta); }
 	friend void init(const angle& src, zaimoni::_fp_stats<double>& l_stat, zaimoni::_fp_stats<double>& u_stat);
 	bool container_lt(const angle& rhs) const;
+	bool lower_lt(const angle& rhs) const { return _theta.lower() < rhs._theta.lower(); }
+	bool upper_lt(const angle& rhs) const { return _theta.upper() < rhs._theta.upper(); }
 
 	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
 	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
