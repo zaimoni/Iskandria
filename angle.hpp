@@ -46,6 +46,7 @@ public:
 	bool is_exact() const { return _theta.lower() == _theta.upper(); }
 	bool contains(const angle& x) const { return _theta.contains(x._theta); }
 	friend void init(const angle& src, zaimoni::_fp_stats<double>& l_stat, zaimoni::_fp_stats<double>& u_stat);
+	bool container_lt(const angle& rhs) const;
 
 	friend bool operator==(const angle& lhs, const angle& rhs) { return lhs.is_exact() && rhs.is_exact() && lhs.lower() == rhs.lower(); }
 	friend angle operator-(const angle& x) { return angle(-x.upper(), -x.lower()); }
@@ -91,6 +92,10 @@ struct ref_angle {
 	inline static const angle half_circle = angle(angle::degree(180));
 	inline static const angle span_half_circle = angle(angle::degree(0, 180));
 	inline static const angle span_neg_half_circle = angle(angle::degree(-180,0));
+};
+
+struct angle_compare {
+	bool operator()(const angle& lhs, const angle& rhs) const { return lhs.container_lt(rhs); };
 };
 
 // some uses need to track "what kind of angle".

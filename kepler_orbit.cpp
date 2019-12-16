@@ -57,8 +57,8 @@ orbit::conic orbit::_from_perihelion_aphelion(const interval& barycentric_perihe
 
 static auto mean_to_eccentric_anomaly_cache()
 {
-	std::pair<std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::eccentric_anomaly, orbit::mean_anomaly> > >,	// reference angles
-		      std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::mean_anomaly, orbit::eccentric_anomaly> > > > _cache;	// calculated
+	std::pair<std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::eccentric_anomaly, orbit::mean_anomaly, zaimoni::circle::angle_compare> > >,	// reference angles
+		      std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::mean_anomaly, orbit::eccentric_anomaly, zaimoni::circle::angle_compare> > > > _cache;	// calculated
 	if (!_cache.first) {
 		_cache.first = std::unique_ptr<typename std::remove_reference<decltype(*_cache.first)>::type>(new typename std::remove_reference<decltype(*_cache.first)>::type);
 		_cache.second = std::unique_ptr<typename std::remove_reference<decltype(*_cache.second)>::type>(new typename std::remove_reference<decltype(*_cache.second)>::type);
@@ -75,7 +75,6 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	// \todo check cache (which has to be capable of expiring)
 	// two levels of cache: the reference angles M->E (which are hard-coded as very high precision)
 	// and the computed angles
-#if 0
 	// needs bool angle::operator<
 	auto M_to_E = mean_to_eccentric_anomaly_cache();
 	auto inverted = M_to_E.first->get(e_exact);
@@ -104,17 +103,17 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 	if (!forward->empty()) {
 		if (auto test = forward->find(M_exact); test != forward->end()) return test->second;	// already calculated
 	}
+#if 0
 	zaimoni::circle::angle a_priori(zaimoni::circle::ref_angle::span_half_circle);
 	for (auto& scan : *inverted) {
 		auto x = scan.first;
 		auto y = scan.second;
 		if (scan.second.contains(M_exact)) {
-		} else if (M_exact < scan.second) {
-		} else if (scan.second < M_exact) {
+		} else if (M_exact.lower() < scan.second.lower()) {
+		} else if (scan.second.upper() < M_exact.lower()) {
 		}
 	}
 #endif
-
 	// remove this stub later
 	return orbit::eccentric_anomaly(M_exact);
 }

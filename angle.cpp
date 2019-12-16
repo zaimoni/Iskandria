@@ -125,6 +125,21 @@ void static enforce_circle(interval_shim::interval& _sin, interval_shim::interva
 	if (_cos.lower()<test.lower() || _cos.upper()>test.upper()) _cos.assign((_cos.lower()<test.lower() ? test.lower() : _cos.lower()),(_cos.upper()>test.upper() ? test.upper() : _cos.upper()));
 }
 
+// not a proper < operator as the unit circle isn't ordered that way
+// we may want to delegate to our interval's container_lt once it bootstraps
+bool zaimoni::circle::angle::container_lt(const angle& rhs) const
+{	// disjoint cases first
+	if (_theta.upper() < rhs._theta.lower()) return true;
+	if (rhs._theta.upper() < _theta.lower()) return false;
+	// if not disjoint, go with lexical order
+	if (_theta.lower() < rhs._theta.lower()) return true;
+	if (rhs._theta.lower() < _theta.lower()) return false;
+	if (_theta.upper() < rhs._theta.upper()) return true;
+//	if (rhs._theta.upper() < _theta.upper()) return false;
+	return false;
+}
+
+
 zaimoni::circle::angle zaimoni::circle::angle::operator+=(const angle& src)
 {
 	_theta += src._theta;
