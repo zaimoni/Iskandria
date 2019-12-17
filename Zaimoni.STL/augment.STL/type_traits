@@ -43,6 +43,12 @@ struct precise_demote<long double>
 	enum { value = (sizeof(long double) == sizeof(double)) };
 };
 
+// count how many real-dimensional coordinates are needed to represent the type
+template<class T> struct R_coords
+{
+	enum { value = std::is_arithmetic<T>::value ? 1 : 0 };
+};
+
 // we don't have good compile-time detection for operators, and STL conflicts with mathematics at times anyway
 template<class T> struct op_works
 {
