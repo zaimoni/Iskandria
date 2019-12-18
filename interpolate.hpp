@@ -2,6 +2,7 @@
 #define INTERPOLATE_HPP 1
 
 #include <utility>
+#include <memory>
 #include "Zaimoni.STL/augment.STL/type_traits"
 
 namespace zaimoni {
@@ -47,29 +48,57 @@ public:
 // * identify the pair that are "most distant" in domain; re-order so that (x1,y1) and (xn,yn) are that pair
 // * the domain-span is then xn-x1; midpoint (xn+x1)/2 formally, if we subtract (xn-x1)/2 from all points we would land on a closed, symmetric interval
 // * on that closed symmetric interval, (yn+y1)/2 and (yn-y1)/2 would correspond to the odd and even parts of the function
+// * the kinds of transformations assume the range is compatible with the domain
 #if 0
-template<class DOM, class RANGE>
+template<class DOM>
 class quadratic
 {
 public:
 	static_assert(1 == R_coords<DOM>::value);
-	typedef std::pair<DOM, RANGE> datum;
+	typedef std::pair<DOM, DOM> datum;
 private:
+	std::array<datum, 3> _data;	// the fitting points
+	std::shared_ptr<std::array<DOM, 3> > _xn_coeff;	// if we have coefficients in our native domain
+	std::shared_ptr<std::pair<std::pair<DOM, DOM>, quadratic> > _forward;	// if we forwarded: linear transform first.first + x*first.second, then the target quadratic
+	unsigned char _bitmap;
 public:
-	quadratic() = default;
+	quadratic() : _bitmap(0) {};
 	quadratic(const quadratic& src) = default;
 	quadratic(quadratic&& src) = default;
 	~quadratic() = default;
 	quadratic& operator=(const quadratic& src) = default;
 	quadratic& operator=(quadratic&& src) = default;
+
+	void init(size_t n, const datum& src) {
+		assert(0 <= n && 3 > n);
+		if (!(_bitmap & (1ULL << n)) || src != _data[n]) {
+			_data[n] = src;
+			_bitmap &= 7ULL;	// erase all heuristic stages
+			_bitmap |= (1ULL << n);
+			_xn_coeff.reset(0);
+			if (src.first != _data[n].first) _forward.reset(0);
+			else if (_forward) _forward->init(n, std::pair(_forward->second._data[n].first, src.second));
+		}
+	}
+
+	bool can_eval() const {
+		return (_bitmap & 7ULL) == 7ULL && (_xn_coeff || _forward);
+	}
+
+	DOM operator()(const DOM& x) {
+		if (_xn_coeff) {
+		} else if (_forward) {
+		} else {
+		}
+	}
 };
 
-template<class DOM, class RANGE>
+template<class DOM>
 class cubic
 {
 public:
 	static_assert(1 == R_coords<DOM>::value);
-	typedef std::pair<DOM, RANGE> datum;
+	typedef std::pair<DOM, DOM> datum;
 private:
 public:
 	cubic() = default;
@@ -80,12 +109,12 @@ public:
 	cubic& operator=(cubic && src) = default;
 };
 
-template<class DOM, class RANGE>
+template<class DOM>
 class quartic
 {
 public:
 	static_assert(1 == R_coords<DOM>::value);
-	typedef std::pair<DOM, RANGE> datum;
+	typedef std::pair<DOM, DOM> datum;
 private:
 public:
 	quartic() = default;
