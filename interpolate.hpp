@@ -59,7 +59,7 @@ public:
 private:
 	std::array<datum, 3> _data;	// the fitting points
 	std::shared_ptr<std::array<DOM, 3> > _xn_coeff;	// if we have coefficients in our native domain
-	std::shared_ptr<std::pair<std::pair<DOM, DOM>, quadratic> > _forward;	// if we forwarded: linear transform first.first + x*first.second, then the target quadratic
+	std::shared_ptr<std::pair<DOM, quadratic> > _forward;	// if we forwarded: linear transform first.first + x, then the target quadratic
 	unsigned char _bitmap;
 public:
 	quadratic() : _bitmap(0) {};
@@ -81,15 +81,59 @@ public:
 		}
 	}
 
-	bool can_eval() const {
-		return (_bitmap & 7ULL) == 7ULL && (_xn_coeff || _forward);
-	}
+	bool can_eval() const { return (_bitmap & 7ULL) == 7ULL && (_xn_coeff || _forward); }
+	bool can_solve() const { return (_bitmap & 7ULL) == 7ULL; }
 
 	DOM operator()(const DOM& x) {
-		if (_xn_coeff) {
-		} else if (_forward) {
-		} else {
+		assert(can_solve());
+		if (!can_eval()) {
+			solve();
+			assert(can_eval());
 		}
+restart:
+		if (_xn_coeff) {
+			if (is_zero(x)) return (*_xn_coeff)[0];
+			if (is_zero((*_xn_coeff)[2])) {
+				if (is_zero((*_xn_coeff)[1]) return (*_xn_coeff)[0];
+				DOM ret((*_xn_coeff)[1]);
+				ret *= x;
+				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0]);
+				return ret;
+			} else {
+				DOM ret((*_xn_coeff)[2]);
+				if (is_zero((*_xn_coeff)[1])) {
+					ret *= square(x);
+				} else {
+					ret *= x;
+					ret += (*_xn_coeff)[1];
+					ret *= x;
+				}
+				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0]);
+				return ret;
+			}
+		} else if (_forward) return _forward->second(x - _forward->first);
+		else _fatal("quadratic solver did not do its job");
+	}
+private:
+	void solve() {
+		assert(can_solve());
+		// 1) safe translation
+		// Our proper interpolation domain is x1...xn.  We want to minimize the significant digits of our interpolation points, while
+		// not using moving much more than our "nearest to zero" element; that is, we do not want to lose precision just by repositioning
+		// the domain.
+		_forward = std::shared_ptr(solve_shift());
+		if (_forward) return;
+		// 2) matrix representation
+		// Treat the coefficients as a matrix arithmetic problem
+		_xn_coeff = std::shared_ptr(solve_coeff);
+		if (_xn_coeff) return;
+		_fatal("quadratic solver did not do its job");
+	}
+	std::pair<DOM, quadratic>* solve_shift() {
+		return 0;
+	}
+	std::array<DOM, 3>* solve_coeff() {
+		return 0;
 	}
 };
 
