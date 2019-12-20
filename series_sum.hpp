@@ -25,7 +25,7 @@ public:
 	{
 		assert(!isNaN(src));
 		// cf trivial_sum
-		if (exact_equals(src,0)) return;	// XXX fails for intervals: std::terminate
+		if (is_zero(src)) return;
 #ifdef ZAIMONI_USING_STACKTRACE
 		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
@@ -116,7 +116,7 @@ retry:
 					if (1<test_vertex-i) swap(_raw[i],_raw[test_vertex-1]);
 					if (test_vertex<_x.size()-1) swap(_raw[test_vertex],_raw[_x.size()-1]);
 					--test_vertex;
-					if (exact_equals(_raw[test_vertex],0))
+					if (is_zero(_raw[test_vertex]))
 						{
 						if (test_vertex<_x.size()-2) swap(_raw[test_vertex],_raw[_x.size()-2]);
 						_x.pop_back();

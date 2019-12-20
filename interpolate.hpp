@@ -1,9 +1,7 @@
 #ifndef INTERPOLATE_HPP
 #define INTERPOLATE_HPP 1
 
-#include <utility>
-#include <memory>
-#include "Zaimoni.STL/augment.STL/type_traits"
+#include "matrix.hpp"
 
 namespace zaimoni {
 namespace math {
@@ -134,6 +132,22 @@ private:
 	}
 	std::array<DOM, 3>* solve_coeff() {
 		return 0;
+		// matrix-based solver is core of this
+		// do have some very special-case shortcuts available
+		vector<DOM, 3> target;
+		matrix_square<DOM, 3> x;
+		int c = -1;
+		for (const auto& src : _data) {
+			c++;
+			target[c] = src.second;
+			size_t r = 3;
+			do {
+				--r;
+				x(r, c) = pow(src.first, r);
+			}
+			while(0 < r);
+		}
+//		auto res = /* matrix inverse */*target;
 	}
 };
 

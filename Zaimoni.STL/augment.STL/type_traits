@@ -451,19 +451,12 @@ struct numerical
 
 	static constexpr int error(typename const_param<T>::type src) {return 0;}
 	static constexpr bool causes_division_by_zero(typename const_param<T>::type src) {return int_as<0,T>()==src;};
-	static constexpr bool equals(typename const_param<T>::type lhs, typename const_param<exact_type>::type rhs) {return lhs==rhs;};
 };
 
 template<class T>
 constexpr bool causes_division_by_zero(T src)
 {
 	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::causes_division_by_zero(src);
-}
-
-template<class T>
-constexpr bool exact_equals(const T& lhs, typename const_param<typename numerical<T>::exact_type>::type rhs)
-{
-	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::equals(lhs,rhs);
 }
 
 template<uintmax_t n>
