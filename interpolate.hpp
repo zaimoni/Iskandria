@@ -136,17 +136,21 @@ private:
 		// do have some very special-case shortcuts available
 		vector<DOM, 3> target;
 		matrix_square<DOM, 3> x;
-		int c = -1;
+		// result of matrix multiplication should be 3 rows of ax^2_+bx+c
+		int r = -1;
 		for (const auto& src : _data) {
-			c++;
-			target[c] = src.second;
-			size_t r = 3;
+			r++;
+			target[r] = src.second;
+			size_t c = 3;
 			do {
-				--r;
-				x(r, c) = pow(src.first, r);
+				--c;
+				x(r, c) = pow(src.first, c);
 			}
-			while(0 < r);
+			while(1 < c);
+			x(r, 0) = 1;
 		}
+//		We should hint that the first column to normalize should be the first column (index 0)
+//		and if we know that one of our data points was at 0 then we should hint that as well
 //		auto res = /* matrix inverse */*target;
 	}
 };
