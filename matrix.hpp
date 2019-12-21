@@ -491,6 +491,24 @@ matrix_square<T,N> operator*(const vector<T,N>& lhs,const covector<T,N>& rhs)
 	return tmp;
 }
 
+#if 0
+template<class T, size_t N>
+matrix_square<T, N> mult_invert(matrix_square<T, N> src)
+{
+	matrix_square<T, N> dest(T(1));
+
+	// our priority is to avoid/minimize numerical error.
+	// start function extraction target
+	std::array<std::pair<typename zaimoni::types<T>::norm , size_t >, N> col_norms;
+	size_t col_norms_ub = 0;
+	size_t c_resolve = 0;	// column to resolve
+
+	// end function extraction target
+
+	return dest;
+}
+#endif
+
 template<class T, size_t R, size_t C>
 class matrix : public matrix_CRTP<matrix<T,R,C>, T>
 {
