@@ -80,30 +80,6 @@ ZAIMONI_OVERRIDE_TYPE_STRUCT(interval_type,long double, ISK_INTERVAL<long double
 // don't undefine after migrating to Zaimoni.STL
 #undef ZAIMONI_OVERRIDE_TYPE_STRUCT
 
-// extend numerical error support to boost::numeric::interval
-template<class T>
-struct numerical<ISK_INTERVAL<T> >
-{
-	enum {
-		error_tracking = 1
-	};
-	typedef typename std::remove_cv<T>::type exact_type;
-	typedef typename std::remove_cv<T>::type exact_arithmetic_type;
-
-	static long double error(const ISK_INTERVAL<T>& src) {
-		ISK_INTERVAL<long double> err(src.upper());
-		err -= src.lower();
-		return err.upper();
-	}
-	static bool causes_division_by_zero(const ISK_INTERVAL<T>& src)
-	{
-		if (int_as<0,T>() > src.lower() && int_as<0,T>() < src.upper()) return true;
-		if (int_as<0,T>() == src.lower() && int_as<0,T>() == src.upper()) return true;
-		return false;	
-	}
-	static constexpr bool equals(const ISK_INTERVAL<T>& lhs, exact_type rhs) {return lhs.lower()==rhs && lhs.upper()==rhs;};	// \todo obsolete, == operator generally ok here
-};
-
 // XXX anything using this class could be micro-optimized
 template<class T>
 struct fp_compare

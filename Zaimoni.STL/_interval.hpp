@@ -125,6 +125,24 @@ namespace zaimoni {
 		using zaimoni::isNaN;
 		using zaimoni::scalBn;
 
+		template<>
+		template<class T>
+		struct numerical<ISK_INTERVAL<T> >
+		{
+			enum {
+				error_tracking = 1
+			};
+			typedef typename std::remove_cv<T>::type exact_type;			// exact version of this type
+			typedef typename std::remove_cv<T>::type exact_arithmetic_type;	// exact version of the individual coordinates of this type
+
+			static auto error(typename const_param<ISK_INTERVAL<T> >::type src) {
+				auto err(src.upper());
+				err -= src.lower();
+				return err.upper();
+			}
+			static constexpr bool causes_division_by_zero(typename const_param<ISK_INTERVAL<T> >::type src) { return contains_zero(src); };
+		};
+
 		template<int code, class T>
 		class Interval : public ISK_INTERVAL<T> {
 		public:
