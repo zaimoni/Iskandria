@@ -125,7 +125,6 @@ namespace zaimoni {
 		using zaimoni::isNaN;
 		using zaimoni::scalBn;
 
-		template<>
 		template<class T>
 		struct numerical<ISK_INTERVAL<T> >
 		{
