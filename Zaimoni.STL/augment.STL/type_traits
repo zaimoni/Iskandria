@@ -459,6 +459,15 @@ constexpr bool causes_division_by_zero(T src)
 	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::causes_division_by_zero(src);
 }
 
+template<class T>
+struct mult_inv	// require implementation to not wipe out
+{
+};
+
+template<class T>
+auto mult_invert(const T& src) { return mult_inv<typename std::remove_reference<typename std::remove_cv<T>::type>::type>()(src); }
+
+// typical functions
 template<uintmax_t n>
 struct unsigned_fn
 {
