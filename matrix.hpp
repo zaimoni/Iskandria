@@ -493,11 +493,14 @@ matrix_square<T,N> operator*(const vector<T,N>& lhs,const covector<T,N>& rhs)
 
 #if 0
 template<class T, size_t N>
-struct mult_inv<matrix_square<T, N> >	// require implementation to not wipe out
+struct mult_inv<matrix_square<T, N> >
 {
 	typedef std::pair<typename zaimoni::types<T>::norm, size_t > norm_index;
 	typedef std::array<bool, N> already_index;
 	typedef std::vector<size_t> resolve_index;
+
+	mult_inv() = default;
+	~mult_inv() = default;
 
 	static bool matrix_op_ok(const T& x)
 	{
@@ -551,6 +554,8 @@ struct mult_inv<matrix_square<T, N> >	// require implementation to not wipe out
 		return true;
 	}
 
+private:
+	// may not actually need to be ACID
 	[[nodiscard]] static bool elementary_force_zero(matrix_square<T, N>& src, matrix_square<T, N>& dest, const size_t r_0, const size_t c_0, const size_t r_lever)
 	{
 		const auto& target = src(r_0, c_0);
@@ -604,13 +609,27 @@ struct mult_inv<matrix_square<T, N> >	// require implementation to not wipe out
 		return true;
 	}
 
-	static bool col_norms(const matrix_square<T, N>& src, const resolve_index& resolve_cols, size_t& col, std::vector<norm_index>& ret)
+public:
+	// not ACID; relies on caller using working copies to be reasonably safe
+	[[nodiscard]] static bool elementary_force_zero(matrix_square<T, N>& src, matrix_square<T, N>& dest, const size_t c_0, const size_t r_lever)
+	{
+		size_t r = N;
+		do {
+			if (r_lever == --r) continue;
+			if (!elementary_force_zero(src, dest, r, c_0, r_lever)) return false;
+		} while (0 < r);
+		return true;
+	}
+
+	static bool col_norms(const matrix_square<T, N>& src, resolve_index& resolve_cols, size_t& col, std::vector<norm_index>& ret)
 	{
 		assert(!resolve_cols.empty());
 
 		std::vector<norm_index> working(N);	// XXX C realloc looks tempting here for intervals; allocator not an option for that
 		size_t ub = 0;
+		size_t dies = SIZE_MAX;
 		for (auto c : resolve_cols) {
+			++dies;
 			size_t r = N;
 			do {
 				const auto& test = src(--r, c);
@@ -620,13 +639,14 @@ struct mult_inv<matrix_square<T, N> >	// require implementation to not wipe out
 		    if (0 < ub) {
 				col = c;
 				ret = std::move(std::vector<norm_index>(working.begin(), working.begin() + ub));
+				resolve_cols.erase(resolve_cols.begin(), resolve_cols.begin() + dies);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	matrix_square<T, N> operator()(const matrix_square<T, N>& src) {
+	matrix_square<T, N> operator()(matrix_square<T, N> src) {
 		matrix_square<T, N> dest(T(1));
 
 		size_t r = 0;
@@ -634,12 +654,20 @@ struct mult_inv<matrix_square<T, N> >	// require implementation to not wipe out
 		do resolve_cols[r] = r;
 		while (N > ++r);
 
-
 		// our priority is to avoid/minimize numerical error without truly excessive time.  In general, this entails depth n for an nxn matrix
 		size_t c_resolve = 0;	// column to resolve
 		while (!resolve_cols.empty()) {
 			resolve_index c_norms;
-			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) throw numeric_error("matrix inversion failed");
+			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) throw numeric_error("matrix inversion failed: lousy condition number?");
+			const size_t norm_options = c_norms.size();
+			if (1 == norm_options) {
+				if (!elementary_force_zero(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
+				if (!elementary_force_one(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
+				if (c_norms.front() != c_resolve) elementary_transpose(src, dest, c_norms.front(), c_resolve);
+			} else {
+				// \todo heapsort
+				// \todo iterate over options, use first one that works
+			}
 			// ....
 			break;	// so the stub doesn't hang
 		}
