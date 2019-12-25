@@ -491,7 +491,6 @@ matrix_square<T,N> operator*(const vector<T,N>& lhs,const covector<T,N>& rhs)
 	return tmp;
 }
 
-#if 0
 template<class T, size_t N>
 struct mult_inv<matrix_square<T, N> >
 {
@@ -621,7 +620,7 @@ public:
 		return true;
 	}
 
-	static bool col_norms(const matrix_square<T, N>& src, resolve_index& resolve_cols, size_t& col, std::vector<norm_index>& ret)
+	[[nodiscard]] static bool col_norms(const matrix_square<T, N>& src, resolve_index& resolve_cols, size_t& col, std::vector<norm_index>& ret)
 	{
 		assert(!resolve_cols.empty());
 
@@ -646,6 +645,53 @@ public:
 		return false;
 	}
 
+private:
+	[[nodiscard]] static bool sort_norms(const norm_index& lhs, const norm_index&rhs) {
+		if (rhs.first < lhs.first) return true;
+		if (lhs.first < rhs.first) return false;
+		return lhs.second < rhs.second;
+	}
+
+	// C error code convention
+	[[nodiscard]] static int complete_inversion(matrix_square<T, N>& src, matrix_square<T, N>& dest, resolve_index resolve_cols, const size_t row, const size_t c_resolve) {
+		assert(src);
+		assert(dest);
+		if (   !elementary_force_zero(src, dest, row, c_resolve)
+			|| !elementary_force_one(src, dest, row, c_resolve)) {
+			// something went wrong
+			return -1;
+		}
+		if (row != c_resolve) elementary_transpose(src, dest, row, c_resolve);
+		while (!resolve_cols.empty()) {
+			resolve_index c_norms;
+			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) return INT_MIN;
+			const size_t norm_options = c_norms.size();
+			if (1 == norm_options) {
+				if (   !elementary_force_zero(src, dest, c_norms.front().second, c_resolve)
+					|| !elementary_force_one(src, dest, c_norms.front().second, c_resolve)) return -1;
+				if (c_norms.front().second != c_resolve) elementary_transpose(src, dest, c_norms.front().second, c_resolve);
+			} else {
+				std::stable_sort(resolve_cols.begin(), resolve_cols.end(), sort_norms);
+				std::unique_ptr<matrix_square<T, N> > working_src(new matrix_square<T, N>(src));
+				std::unique_ptr<matrix_square<T, N> > working_dest(new matrix_square<T, N>(dest));
+
+				// iterate over options, use first one that works
+				for (const auto& x : resolve_cols) {
+					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x.second, c_resolve);
+					if (0 <= C_err_code) {
+						dest = std::move(*working_dest);
+						return 0;
+					}
+					*working_src = src;
+					*working_dest = dest;
+				}
+				return -1;
+			}
+		}
+		return 0;
+	}
+
+public:
 	matrix_square<T, N> operator()(matrix_square<T, N> src) {
 		matrix_square<T, N> dest(T(1));
 
@@ -661,69 +707,33 @@ public:
 			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) throw numeric_error("matrix inversion failed: lousy condition number?");
 			const size_t norm_options = c_norms.size();
 			if (1 == norm_options) {
-				if (!elementary_force_zero(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
-				if (!elementary_force_one(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
-				if (c_norms.front() != c_resolve) elementary_transpose(src, dest, c_norms.front(), c_resolve);
+				if (   !elementary_force_zero(src, dest, c_norms.front().second, c_resolve)
+				    || !elementary_force_one(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
+				if (c_norms.front().second != c_resolve) elementary_transpose(src, dest, c_norms.front().second, c_resolve);
 			} else {
-				// \todo heapsort
-				// \todo iterate over options, use first one that works
-			}
-			// ....
-			break;	// so the stub doesn't hang
-		}
+				std::stable_sort(resolve_cols.begin(), resolve_cols.end(), sort_norms);
+				{	// scoping brace
+				std::unique_ptr<matrix_square<T, N> > working_src(new matrix_square<T, N>(src));
+				std::unique_ptr<matrix_square<T, N> > working_dest(new matrix_square<T, N>(dest));
 
-		std::array<std::pair<typename zaimoni::types<T>::norm, size_t >, N> col_norms;
-		size_t col_norms_ub = 0;
-		while (col_norms_ub + c_resolve < N) {
-			col_norms[col_norms_ub] = std::pair(zaimoni::norm(src(col_norms_ub + c_resolve, c_resolve)), col_norms_ub);
-			if (2 <= ++col_norms_ub) std::push_heap(col_norms.begin(), col_norms.begin() + (col_norms_ub - 1));	// we will have to provide a comparison object
-		}
-
-		while (0 < col_norms_ub) {
-			if (0 >= col_norms_ub) throw std::runtime_error("matrix inversion failed");
-			// get a largest column coordinate value
-			if (2 <= col_norms_ub) std::pop_heap(col_norms.begin(), col_norms.begin() + col_norms_ub);
-			--col_norms_ub;
-			if (!isFinite(col_norms[col_norms_ub].first)) continue;	// fail-safe: do not propagate NaN or infinity damage
-			if (causes_division_by_zero(col_norms[col_norms_ub].first)) continue;	// do not risk division by zero
-
-			std::array<std::pair<T, size_t>, N - 1 > col_scales;
-			size_t col_scales_ub = 0;
-
-			bool ok = true;
-			r = N;
-			while (0 < r) {
-				--r;
-				if (r == col_norms[col_norms_ub].second) continue;	// viewpoint row
-				const auto& numerator = src(r, c_resolve);
-				if (is_zero(numerator)) continue;	// 0 scaling factor is no-op
-				col_scales[col_scales_ub++] = std::pair(numerator / src(col_norms[col_norms_ub].second, c_resolve), r);
-				if (is_zero(col_scales[col_scales_ub - 1].second) || (!isFinite(col_scales[col_scales_ub - 1].second) && isFinite(numerator))) {
-					ok = false;
-					break;
+				// iterate over options, use first one that works
+				for (const auto& x : resolve_cols) {
+					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x.second, c_resolve);
+					if (0 <= C_err_code) {
+						dest = std::move(*working_dest);
+						goto done;
+					}
+					*working_src = src;
+					*working_dest = dest;
 				}
+				}	// end scoping brace
+				throw numeric_error("matrix inversion failed: lousy condition number?");
 			}
-			if (!ok) continue;
-
-			matrix_square<T, N> test_src(src);
-			matrix_square<T, N> test_dest(dest);
-
-			while (0 < col_scales_ub) {
-				// \todo execute row operations
-			}
-			// \todo scale own row
-			if (col_norms[col_norms_ub].second != c_resolve) {
-				// \todo transpose rows so viewpoint is in standard position
-			}
-			c_resolve++;
-			src = std::move(test_src);
-			dest = std::move(test_dest);
 		}
-
+done:
 		return dest;
 	}
 };
-#endif
 
 template<class T, size_t R, size_t C>
 class matrix : public matrix_CRTP<matrix<T,R,C>, T>
