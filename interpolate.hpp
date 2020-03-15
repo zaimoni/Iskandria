@@ -47,7 +47,7 @@ public:
 // * the domain-span is then xn-x1; midpoint (xn+x1)/2 formally, if we subtract (xn-x1)/2 from all points we would land on a closed, symmetric interval
 // * on that closed symmetric interval, (yn+y1)/2 and (yn-y1)/2 would correspond to the odd and even parts of the function
 // * the kinds of transformations assume the range is compatible with the domain
-#if 0
+#if 2
 template<class DOM>
 class quadratic
 {
@@ -154,7 +154,9 @@ private:
 //		auto res = /* matrix inverse */*target;
 	}
 };
+#endif
 
+#if 0
 template<class DOM>
 class cubic
 {

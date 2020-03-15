@@ -100,6 +100,22 @@ static orbit::eccentric_anomaly _E(const orbit::mean_anomaly& M_exact, typename 
 		inverted = M_to_E.first->get(e_exact);	// XXX \todo alter return type of LRU cache set family
 		M_to_E.second->set(e_exact, std::move(working_forward));
 		forward = M_to_E.second->get(e_exact);
+#if 0
+		// test driver
+		for (const auto& x : *forward) {
+			INC_INFORM("mean anomaly: ");
+			INFORM(x.first.deg());
+			INC_INFORM("eccentric anomaly: ");
+			INFORM(x.second.deg());
+		}
+		INFORM("----");
+		for (const auto& x : *inverted) {
+			INC_INFORM("eccentric anomaly: ");
+			INFORM(x.first.deg());
+			INC_INFORM("mean anomaly: ");
+			INFORM(x.second.deg());
+		}
+#endif
 	}
 	if (!forward->empty()) {
 		if (auto test = forward->find(M_exact); test != forward->end()) return test->second;	// already calculated
