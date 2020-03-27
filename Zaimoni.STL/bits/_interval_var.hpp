@@ -35,7 +35,7 @@ namespace zaimoni {
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -44,7 +44,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
 			const auto rhs = _stats_u.ideal_scal_bn();
 			if (_stats_l.is_scal_bn_identity()) return rhs;
@@ -114,7 +114,7 @@ namespace zaimoni {
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -123,7 +123,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
 			const auto rhs = _stats_u.ideal_scal_bn();
 			if (_stats_l.is_scal_bn_identity()) return rhs;
@@ -190,7 +190,7 @@ namespace zaimoni {
 			return _stats_l.is_scal_bn_identity() && _stats_u.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -199,7 +199,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;	// inline this if/when micro-optimizing
 			const auto rhs = _stats_u.ideal_scal_bn();
 			if (_stats_l.is_scal_bn_identity()) return rhs;

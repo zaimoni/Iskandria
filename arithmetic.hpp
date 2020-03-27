@@ -371,7 +371,7 @@ public:
 		throw zaimoni::math::numeric_error("sum needs to evaluate enough to calculate sgn()");
 	}
 	bool is_scal_bn_identity() const override { return is_zero(); };	// let evaluation handle this, mostly
-	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		for(const auto& x : this->_x) {
 			if (x->is_scal_bn_identity()) continue;
@@ -381,7 +381,7 @@ public:
 		}
 		return ret;
 	}
-	virtual intmax_t ideal_scal_bn() const {
+	intmax_t ideal_scal_bn() const override {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
 		for (const auto& x : this->_x) {
@@ -500,7 +500,7 @@ public:
 		return ret;
 	}
 	bool is_scal_bn_identity() const override { return is_zero(); }	// let evaluation handle this -- pathological behavior anyway
-	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 		std::pair<intmax_t, intmax_t> ret(0, 0);
 		if (this->_x.empty()) return ret;	// should have evaluated
 		for(const auto& x : this->_x) {
@@ -512,7 +512,7 @@ public:
 		}
 		return ret;
 	}
-	virtual intmax_t ideal_scal_bn() const {
+	intmax_t ideal_scal_bn() const override {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
 		for (const auto& x : this->_x) {
@@ -716,7 +716,7 @@ public:
 		else return n_sgn;	// division by zero hard-errors so more like "don't know"
 	}
 	bool is_scal_bn_identity() const override { return false; };	// let evaluation handle this -- pathological behavior
-	virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const {
+	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 		std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return ret;
 
@@ -726,7 +726,7 @@ public:
 		clamped_diff_assign(ret.first, tmp.second);
 		return ret;
 	};
-	virtual intmax_t ideal_scal_bn() const {
+	intmax_t ideal_scal_bn() const override {
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return 0;
 		intmax_t ret = _numerator->ideal_scal_bn();
 		clamped_diff_assign(ret, _denominator->ideal_scal_bn());

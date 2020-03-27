@@ -9,6 +9,7 @@ namespace grid {
 
 // Cf. XCOM. We have two types of tiles: floor, and wall.
 // We want the isometric display mode to use approximately equilateral triangles; e.g. side length 8/height 7 or side length 15/height 13
+// * clean tiling with 15/13: result image is 30x27
 // We also want the side length to be even.
 // The voxel count per unit side should be a power of 2 (e.g. 16)
 // We are optimized for 3+1 Newtonian spacetime display

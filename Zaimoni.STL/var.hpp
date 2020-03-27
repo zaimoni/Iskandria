@@ -24,7 +24,7 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t,intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -32,7 +32,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;
 			return _stats.ideal_scal_bn();
 		}
@@ -71,7 +71,7 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t,intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -79,7 +79,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;
 			return _stats.ideal_scal_bn();
 		}
@@ -115,7 +115,7 @@ namespace zaimoni {
 			return _stats.is_scal_bn_identity();
 		}
 
-		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const {
+		std::pair<intmax_t,intmax_t> scal_bn_safe_range() const override {
 			// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
 			force_valid_stats();
 			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
@@ -123,7 +123,7 @@ namespace zaimoni {
 			return ret;
 		}
 
-		virtual intmax_t ideal_scal_bn() const {
+		intmax_t ideal_scal_bn() const override {
 			if (is_scal_bn_identity()) return 0;
 			return _stats.ideal_scal_bn();
 		}
