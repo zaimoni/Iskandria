@@ -39,7 +39,8 @@ fundamental_constants::fundamental_constants()
 #if CODATA_VERSION==2018
 	G(6.67400e-11, 6.67460e-11),	// CODATA 2018; m^3 kg^-1 s^-2
 	k(1.380649e-23),	//	CODATA 2018 (actually 2019)
-	h_bar(interval(6.62607015e-34)/interval(2.0*interval_shim::pi)),	// CODATA 2019 (h definition)
+	h(6.62607015e-34),	//	CODATA 2019 definition
+	h_bar(h/(2.0*interval_shim::pi)),	// CODATA 2019 (h definition)
 #elif CODATA_VERSION==2010
 	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
 	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
@@ -68,6 +69,9 @@ fundamental_constants::fundamental_constants()
 	// i.e. classical electrostatic/electrodynamic problems may be cleaner in CODATA 2014 than CODATA 2018
 #endif
 {
+#if CODATA_VERSION!=2018
+	h = 2.0 * interval_shim::pi * h_bar;
+#endif
 }
 
 void fundamental_constants::mult_scale_distance(interval x)
@@ -78,6 +82,7 @@ void fundamental_constants::mult_scale_distance(interval x)
 	G *= x;
 	G *= x2;
 	k *= x2;
+	h *= x2;
 	h_bar *= x2;
 }
 
@@ -89,6 +94,7 @@ void fundamental_constants::div_scale_distance(interval x)
 	G /= x;
 	G /= x2;
 	k /= x2;
+	h /= x2;
 	h_bar /= x2;
 }
 
@@ -99,6 +105,7 @@ void fundamental_constants::mult_scale_time(interval x)
 	c /= x;
 	G /= x2;
 	k /= x2;
+	h /= x;
 	h_bar /= x;
 }
 
@@ -109,6 +116,7 @@ void fundamental_constants::div_scale_time(interval x)
 	c *= x;
 	G *= x2;
 	k *= x2;
+	h *= x;
 	h_bar *= x;
 }
 
@@ -118,6 +126,7 @@ void fundamental_constants::mult_scale_mass(interval x)
 	amu_mass /= x;
 	G /= x;
 	k *= x;
+	h *= x;
 	h_bar *= x;
 }
 
@@ -127,6 +136,7 @@ void fundamental_constants::div_scale_mass(interval x)
 	amu_mass *= x;
 	G *= x;
 	k /= x;
+	h /= x;
 	h_bar /= x;
 }
 
@@ -207,6 +217,7 @@ void fundamental_constants::geometrize()
 	c = 1.0;
 	G = 1.0;
 	k = 1.0;
+	h = 2.0 * interval_shim::pi;
 	h_bar = 1.0;
 
 	// we do not include electric charge in geometrization because there is no valid consensus: 

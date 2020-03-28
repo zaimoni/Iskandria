@@ -39,6 +39,10 @@ public:
 	interval Schwarzschild_r() const;	// Schwarzschild radius
 	interval GM() const;	// standard gravitational parameter
 
+	// could convert these to additional definition modes if needed
+	interval restmass_zero_momentum() const;	// E/c
+	interval DeBroglie_wavelength() const;		// also known as Compton wavelength; E/h
+
 	friend bool operator==(const mass& lhs, const mass& rhs);
 };
 

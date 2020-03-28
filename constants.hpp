@@ -42,6 +42,7 @@ public:
 	interval G;	// Newtonian G
 	interval k;	// Boltzmann constant
 	// No source for this; equates General Relatvity momentum and Quantum Mechanics momentum.
+	interval h;	// Planck constant
 	interval h_bar;	// Planck constant/2pi
 
 #if 0

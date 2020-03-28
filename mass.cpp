@@ -70,6 +70,23 @@ mass::interval mass::GM() const
 	}
 }
 
+mass::interval mass::restmass_zero_momentum() const
+{
+	const auto u_code = system_code();
+	if (fundamental_constants::PLANCK == u_code) return _x;	// all correction multipliers are 1 in Planck units
+	const fundamental_constants& system = fundamental_constants::get(u_code);
+	return E() / system.c;
+}
+
+mass::interval mass::DeBroglie_wavelength() const
+{
+	const auto u_code = system_code();
+	if (fundamental_constants::PLANCK == u_code) return _x/(2.0*interval_shim::pi);	// h is 2pi in Planck units
+	const fundamental_constants& system = fundamental_constants::get(u_code);
+	return E() / system.h;
+}
+
+
 bool operator==(const mass& lhs, const mass& rhs)
 {
 	if (lhs._mode == rhs._mode && lhs._x.upper()==lhs._x.lower() && rhs._x==lhs._x.upper()) return true;
