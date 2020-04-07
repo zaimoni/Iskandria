@@ -28,6 +28,10 @@ private:
 	std::shared_ptr<sf::Font> _font;
 	std::shared_ptr<sf::RenderWindow> _window;
 	std::shared_ptr<css::box_dynamic> _css_root;
+
+	// graphics management
+	std::map<std::string, std::shared_ptr<sf::Image> > _image_cache;	// in main RAM
+	std::map<std::string, std::shared_ptr<sf::Texture> > _texture_cache;	// in graphics card
 public:
 	enum {
 		DESIGN_WIDTH = 1024,
