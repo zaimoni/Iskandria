@@ -36,7 +36,12 @@ public:
 	enum {
 		DESIGN_WIDTH = 1024,
 		DESIGN_HEIGHT = 768,
-		DESIGN_HEIGHT_CHAR = DESIGN_HEIGHT/(DESIGN_HEIGHT/24)
+		DESIGN_HEIGHT_CHAR = DESIGN_HEIGHT / (DESIGN_HEIGHT / 24),
+
+		ISOMETRIC_TRIANGLE_HEIGHT = 13,
+		ISOMETRIC_TRIANGLE_WIDTH  = 15,
+		ISOMETRIC_HEX_HEIGHT = 2 * ISOMETRIC_TRIANGLE_HEIGHT + 1,
+		ISOMETRIC_HEX_WIDTH  = 2 * ISOMETRIC_TRIANGLE_WIDTH
 	};
 
 	void swapBuffers();
@@ -63,6 +68,8 @@ public:
 
 	float charWidth() const { return (float)(_width_pixels)/(float)(_width_chars);};
 	float charHeight() const { return (float)(_height_pixels)/ DESIGN_HEIGHT_CHAR;};
+
+	std::shared_ptr<sf::Image> getImage(const std::string& src);
 };
 
 #include "singleton.off.hpp"

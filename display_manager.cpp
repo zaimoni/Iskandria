@@ -72,6 +72,18 @@ void DisplayManager::swapBuffers()
 	_window->clear(_background);
 }
 
+std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
+{
+	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
+	// 1) relative file path
+	std::shared_ptr<sf::Image> x(new sf::Image());
+	if (x->loadFromFile(src)) {
+		_image_cache[src] = x;
+		return x;
+	}
+	// \todo 2) CGI options
+	return 0;
+}
 
 }	// namespace isk
 
