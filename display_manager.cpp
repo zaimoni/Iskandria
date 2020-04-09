@@ -72,16 +72,58 @@ void DisplayManager::swapBuffers()
 	_window->clear(_background);
 }
 
+// reference data: pixels that belong to an isosceles triangle of height x-15, width y-13
+static constexpr const std::array<unsigned char,7> hex_triangle_steps = { 2,2,2,3,2,2,2 };
+
+template<class T, size_t N>
+constexpr std::array<T, N> triangle_sum(const std::array<T, N>& src)
+{
+	std::array<T, N> ret(src);
+	int ub = N - 1;
+	while (0 <= --ub) {
+		auto i = ub;
+		while (N > ++i) ret[i] += ret[ub];
+	}
+	return ret;
+}
+
+static constexpr auto hex_triangle_scanline = triangle_sum(hex_triangle_steps);
+
+template<class T, size_t N>
+constexpr size_t triangle_pixel_count(const std::array<T, N>& src) {
+	size_t ret = src[N - 1];
+	int ub = N - 1;
+	while (0 <= --ub) ret += 2 * src[ub];
+	return ret;
+}
+
+static constexpr auto hex_triangle_pixel_count = triangle_pixel_count(hex_triangle_scanline);
+
 std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 {
+#if PROTOTYPE
+	static const std::string cgi("cgi:");
+	static const std::string floor("floor:");
+	static const std::string lwall("lwall:");
+	static const std::string rwall("rwall:");
+#endif
+
 	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
-	// 1) relative file path
 	std::shared_ptr<sf::Image> x(new sf::Image());
+	// \todo 1) CGI options
+#if PROTOTYPE
+	if (cgi == src.substr(0, 4)) {
+		if (floor == src.substr(4, 6)) {
+		} else if (lwall == src.substr(4,6)) {
+		} else if (rwall == src.substr(4,6)) {
+		}
+	}
+#endif
+	// 2) relative file path
 	if (x->loadFromFile(src)) {
 		_image_cache[src] = x;
 		return x;
 	}
-	// \todo 2) CGI options
 	return 0;
 }
 
