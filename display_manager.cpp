@@ -1,6 +1,7 @@
 // display_manager.cpp
 
 #include "display_manager.hpp"
+#include "matrix.hpp"
 
 #include <new>
 
@@ -97,7 +98,27 @@ constexpr size_t triangle_pixel_count(const std::array<T, N>& src) {
 	return ret;
 }
 
-static constexpr auto hex_triangle_pixel_count = triangle_pixel_count(hex_triangle_scanline);
+static auto hex_triangle_pixels()
+{
+	std::array<zaimoni::math::vector<unsigned char, 2>, triangle_pixel_count(hex_triangle_scanline)> ret;
+	zaimoni::make<zaimoni::math::vector<unsigned char, 2> > factory;
+	size_t ub = 0;
+	int y = 0;
+	do	{
+		size_t j = DisplayManager::ISOMETRIC_TRIANGLE_WIDTH -hex_triangle_scanline[y];
+		do ret[ub++] = factory(j, y);
+		while (DisplayManager::ISOMETRIC_TRIANGLE_WIDTH > ++j);
+	} while(++y < hex_triangle_scanline.size());
+	--y;
+	while(0 <= --y) {
+		size_t j = DisplayManager::ISOMETRIC_TRIANGLE_WIDTH - hex_triangle_scanline[y];
+		do ret[ub++] = factory(j, (DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT-1)-y);
+		while (DisplayManager::ISOMETRIC_TRIANGLE_WIDTH > ++j);
+	}
+	return ret;
+}
+
+static auto _ref_hex_triangle_pixels(hex_triangle_pixels());
 
 std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 {
