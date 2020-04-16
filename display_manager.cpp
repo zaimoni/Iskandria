@@ -3,6 +3,7 @@
 #include "display_manager.hpp"
 #include "matrix.hpp"
 
+#include <functional>
 #include <new>
 
 #include "singleton.on.hpp"
@@ -120,6 +121,58 @@ static auto hex_triangle_pixels()
 
 static auto _ref_hex_triangle_pixels(hex_triangle_pixels());
 
+const char* const hex_digits = "0123456789ABCDEF";
+
+/// <returns>color, length of match for color parsing</returns>
+static std::pair<sf::Color,size_t> parse_css_color(const std::string& src)
+{
+	const size_t srclen = src.size();
+	if (4 <= srclen) {
+		if (9 >= srclen) {
+			unsigned char buffer[8];
+			size_t ub = 0;
+			const char* tmp = 0;
+			char x =  0;
+			if ('#' == src.front()) {	// one of the hex encodings; we do extended RGBA as well as RGB
+				while (8 > ub && srclen > ub + 1) if (tmp = strchr(hex_digits, (x = src[ub + 1]))) buffer[ub++] = *tmp - x;
+				if (ub + 1 == srclen) {
+					switch (ub) {
+					case 3: return std::pair(sf::Color(17*buffer[0], 17*buffer[1], 17*buffer[2]), 4);
+					case 4: return std::pair(sf::Color(17 * buffer[0], 17 * buffer[1], 17 * buffer[2], 17*buffer[3]), 5);
+					case 6: return std::pair(sf::Color(16 * buffer[0]+buffer[1], 16 * buffer[2]+buffer[3], 16 * buffer[4]+buffer[5]), 7);
+					case 8: return std::pair(sf::Color(16 * buffer[0] + buffer[1], 16 * buffer[2] + buffer[3], 16 * buffer[4] + buffer[5], 16 * buffer[6] + buffer[7]), 9);
+					}
+				}
+				return std::pair(sf::Color::Transparent, 0); // no-match
+			}
+		}
+		// \todo CSS-standard rgb color
+	}
+	return std::pair(sf::Color::Transparent,0); // no-match
+}
+
+template<class T>
+static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vector<int, 2>& origin, T& STL_mask, const sf::Color& src)
+{
+	if (!src.a) return;
+	const auto dims(dest.getSize());
+	for (const auto& offset : STL_mask) {
+		const auto target = origin + offset;
+		if (dims.x > target[0] && 0 <= target[0] && dims.y > target[1] && 0 <= target[1]) dest.setPixel(target[0], target[1], src);
+	}
+}
+
+template<class T>
+static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vector<int, 2>& origin, std::function<zaimoni::math::vector<int, 2> >& xform, T& STL_mask, const sf::Color& src)
+{
+	if (!src.a) return;
+	const auto dims(dest.getSize());
+	for (const auto& offset : STL_mask) {
+		const auto target = xform(origin + offset);
+		if (dims.x > target[0] && 0 <= target[0] && dims.y > target[1] && 0 <= target[1]) dest.setPixel(target[0], target[1], src);
+	}
+}
+
 std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 {
 #if PROTOTYPE
@@ -131,12 +184,32 @@ std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 
 	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
 	std::shared_ptr<sf::Image> x(new sf::Image());
+	zaimoni::make<zaimoni::math::vector<int, 2> > factory;
 	// \todo 1) CGI options
 #if PROTOTYPE
 	if (cgi == src.substr(0, 4)) {
+		// VAPORWARE \todo strictly speaking we should have a general expression parser and "evaluate" the image build instructions
 		if (floor == src.substr(4, 6)) {
+			auto c1(parse_css_color(src.substr(10)));
+			if (0 < c1.second) {
+				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+				draw_monochrome_STL_mask(*x, factory(0, ISOMETRIC_HEX_HEIGHT-ISOMETRIC_TRIANGLE_HEIGHT), _ref_hex_triangle_pixels, c1.first);
+				// ....
+			}
 		} else if (lwall == src.substr(4,6)) {
+			auto c1(parse_css_color(src.substr(10)));
+			if (0 < c1.second) {
+				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+				draw_monochrome_STL_mask(*x, factory(0, 0), _ref_hex_triangle_pixels, c1.first);
+				// ....
+			}
 		} else if (rwall == src.substr(4,6)) {
+			auto c1(parse_css_color(src.substr(10)));
+			if (0 < c1.second) {
+				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_TRIANGLE_HEIGHT/2+1), _ref_hex_triangle_pixels, c1.first);
+				// ....
+			}
 		}
 	}
 #endif

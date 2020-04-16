@@ -166,6 +166,12 @@ public:
 		zaimoni::math::pointwise::in_place_sum(_x.data(),src._x.data(),N);
 		return *this;
 	}
+	template<class U>
+	std::enable_if_t<sizeof(T)>=sizeof(U), vector&>
+	operator+=(const vector<U, N>& src) {
+		zaimoni::math::pointwise::in_place_sum(_x.data(), src.data(), N);
+		return *this;
+	}
 	vector& operator-=(const vector& src) {
 		zaimoni::math::pointwise::in_place_difference(_x.data(),src._x.data(),N);
 		return *this;
@@ -199,6 +205,13 @@ bool operator!=(const vector<T, N>& lhs, const vector<U, N>& rhs)
 
 template<class T,size_t N>
 vector<T,N> operator+(vector<T,N> lhs, const vector<T,N>& rhs)
+{
+	lhs += rhs;
+	return lhs;
+}
+
+template<class T, class U, size_t N>
+vector<T, N> operator+(vector<T, N> lhs, const vector<U, N>& rhs)
 {
 	lhs += rhs;
 	return lhs;
