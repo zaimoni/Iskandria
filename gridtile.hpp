@@ -111,6 +111,38 @@ bool exact_rotate(const T& origin_x, const T& origin_y, unsigned int offset_code
 	}
 }
 
+template<class T>
+bool exact_reflect(const T& origin_x, const T& origin_y, unsigned int offset_code, iskandria::compass::XCOMlike new_facing, T& x, T& y)
+{
+	if (origin_x == x && origin_y == y && 0 == offset_code) return true;	// no-op
+	// we're just interested in the reflection axis, not its orientation
+	const bool low_x = (x <= origin_x);
+	const bool low_y = (y <= origin_y);
+	const bool x_half = (offset_code & 1);
+	const bool y_half = (offset_code & 2);
+	std::pair<T, T> abs_delta(low_x ? origin_x - x : x - origin_x - x_half, low_y ? origin_y - y : y - origin_y - y_half);
+	switch (new_facing)
+	{
+	case iskandria::compass::N:		// y-axis
+	case iskandria::compass::S:
+		if (origin_y == y && !y_half) return true;	// no-op
+		y = low_y ? origin_y+y_half+abs_delta.second : origin_y - abs_delta.second;
+		return true;
+	case iskandria::compass::E:	// x-axis
+	case iskandria::compass::W:
+		if (origin_x == x && !x_half) return true;	// no-op
+		x = low_x ? origin_x + x_half + abs_delta.second : origin_x - abs_delta.second;
+		return true;
+	case iskandria::compass::NE:
+	case iskandria::compass::SW:
+		break;
+	case iskandria::compass::NW:
+	case iskandria::compass::SE:
+		break;
+	}
+	return false;	// not handled
+}
+
 }	// namespace grid
 }	// namespace iskandria
 #endif
