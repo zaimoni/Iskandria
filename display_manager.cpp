@@ -2,6 +2,7 @@
 
 #include "display_manager.hpp"
 #include "matrix.hpp"
+#include "gridtile.hpp"
 
 #include <functional>
 #include <new>
@@ -162,8 +163,15 @@ static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vecto
 	}
 }
 
-template<class T>
-static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vector<int, 2>& origin, std::function<zaimoni::math::vector<int, 2> >& xform, T& STL_mask, const sf::Color& src)
+zaimoni::math::vector<int, 2> triangle_v_reflect(const zaimoni::math::vector<int, 2>& src)
+{
+	auto ret(src);
+	iskandria::grid::exact_reflect((DisplayManager::ISOMETRIC_TRIANGLE_WIDTH - 1) / 2, (DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT - 1) / 2, (0== DisplayManager::ISOMETRIC_TRIANGLE_WIDTH%2)+2*(0 == DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT % 2), iskandria::compass::N, ret[0], ret[1]);
+	return ret;
+}
+
+template<class T, class U>
+static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vector<int, 2>& origin, U xform, T& STL_mask, const sf::Color& src)
 {
 	if (!src.a) return;
 	const auto dims(dest.getSize());
@@ -175,18 +183,15 @@ static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vecto
 
 std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 {
-#if PROTOTYPE
 	static const std::string cgi("cgi:");
 	static const std::string floor("floor:");
 	static const std::string lwall("lwall:");
 	static const std::string rwall("rwall:");
-#endif
 
 	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
 	std::shared_ptr<sf::Image> x(new sf::Image());
 	zaimoni::make<zaimoni::math::vector<int, 2> > factory;
 	// \todo 1) CGI options
-#if PROTOTYPE
 	if (cgi == src.substr(0, 4)) {
 		// VAPORWARE \todo strictly speaking we should have a general expression parser and "evaluate" the image build instructions
 		if (floor == src.substr(4, 6)) {
@@ -194,25 +199,30 @@ std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 			if (0 < c1.second) {
 				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
 				draw_monochrome_STL_mask(*x, factory(0, ISOMETRIC_HEX_HEIGHT-ISOMETRIC_TRIANGLE_HEIGHT), _ref_hex_triangle_pixels, c1.first);
-				// ....
+				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_HEX_HEIGHT - ISOMETRIC_TRIANGLE_HEIGHT), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+				_image_cache[src] = x;
+				return x;
 			}
 		} else if (lwall == src.substr(4,6)) {
 			auto c1(parse_css_color(src.substr(10)));
 			if (0 < c1.second) {
 				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
 				draw_monochrome_STL_mask(*x, factory(0, 0), _ref_hex_triangle_pixels, c1.first);
-				// ....
+				draw_monochrome_STL_mask(*x, factory(0, ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+				_image_cache[src] = x;
+				return x;
 			}
 		} else if (rwall == src.substr(4,6)) {
 			auto c1(parse_css_color(src.substr(10)));
 			if (0 < c1.second) {
 				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
-				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_TRIANGLE_HEIGHT/2+1), _ref_hex_triangle_pixels, c1.first);
-				// ....
+				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), _ref_hex_triangle_pixels, c1.first);
+				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, 0), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+				_image_cache[src] = x;
+				return x;
 			}
 		}
 	}
-#endif
 	// 2) relative file path
 	if (x->loadFromFile(src)) {
 		_image_cache[src] = x;
