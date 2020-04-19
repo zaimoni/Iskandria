@@ -112,27 +112,6 @@ inline constexpr uintmax_t gcd(uintmax_t lhs, uintmax_t rhs)
          : (lhs==rhs ? lhs
          : (lhs<rhs ? gcd(lhs,rhs%lhs) 
 				    : gcd(rhs,lhs%rhs))))));
-#if 0
-	if (0==rhs) return lhs;
-	if (0==lhs) return rhs;
-	if (1==rhs) return 1;
-	if (1==lhs) return 1;
-	if (lhs==rhs) return lhs;
-
-	do	{
-		if (lhs<rhs)
-			{
-			rhs %= lhs;
-			if (0==rhs) return lhs;
-			if (1==rhs) return 1;
-			continue;
-			}
-		lhs %= rhs;
-		if (0==lhs) return rhs;
-		if (1==lhs) return 1;
-		}
-	while(true);
-#endif
 }
 
 template<>

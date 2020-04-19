@@ -166,7 +166,7 @@ namespace zaimoni {
 
 	template<>
 	struct _type<_type_spec::_R_> : public _type<_type_spec::_C_>, public _type<_type_spec::_R_SHARP_> {
-		virtual int allow_infinity() const override { return 0; }
+		int allow_infinity() const override { return 0; }
 	};
 
 	template<>

@@ -276,7 +276,6 @@ restart:
 		}
 		return false;
 	}
-
 };
 
 // T is assumed to require zaimoni::fp_API in all of these classes

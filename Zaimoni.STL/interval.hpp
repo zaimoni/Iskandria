@@ -269,7 +269,6 @@ public:
 		// else if (are_mult_inverses(lhs, rhs)) return 3;	// requires <cmath> for floating point; example of further type-sensitive processing
 		return 0;
 	}
-
 };
 
 template<class T>
