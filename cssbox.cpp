@@ -627,11 +627,12 @@ restart:
 		size_t scan = 2;
 		do {
 			--scan;
-			if (-3 == geometry[scan] && r.br_c()[scan] < src.tl_c()[scan]) {
-				disjoint = true;
-				break;
-			}
-			if ( 3 == geometry[scan] && r.tl_c()[scan] > src.br_c()[scan]) {
+			if (-3 == geometry[scan]) {
+				if (r.br_c()[scan] < src.tl_c()[scan]) {
+					disjoint = true;
+					break;
+				}
+			} else if (3 == geometry[scan] && r.tl_c()[scan] > src.br_c()[scan]) {
 				disjoint = true;
 				break;
 			}
@@ -654,7 +655,10 @@ restart:
 			goto restart;
 		}
 		if (1 == r_eq_src.second.first) {
-			if (-3 == geometry[r_eq_src.second.second] || -2 == geometry[r_eq_src.second.second]) {
+			switch(geometry[r_eq_src.second.second])
+			{
+			case -3:
+			case -2:
 				// extends on this coordinate
 				if (1 == x.size()) {
 					r.br_c()[r_eq_src.second.second] = src.br_c()[r_eq_src.second.second];
@@ -663,8 +667,8 @@ restart:
 				src.tl_c()[r_eq_src.second.second] = r.tl_c()[r_eq_src.second.second];
 				x.erase(x.begin() + ub);
 				goto restart;
-			}
-			if ( 3 == geometry[r_eq_src.second.second] || 2 == geometry[r_eq_src.second.second]) {
+			case 2:
+			case 3:
 				// extends on this coordinate
 				if (1 == x.size()) {
 					r.tl_c()[r_eq_src.second.second] = src.tl_c()[r_eq_src.second.second];
