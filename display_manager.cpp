@@ -4,7 +4,6 @@
 #include "matrix.hpp"
 #include "gridtile.hpp"
 
-#include <functional>
 #include <new>
 
 #include "singleton.on.hpp"
@@ -181,47 +180,53 @@ static void draw_monochrome_STL_mask(sf::Image& dest, const zaimoni::math::vecto
 	}
 }
 
-std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
+bool CGI_load(std::shared_ptr<sf::Image>& x, const std::string& src)
 {
-	static const std::string cgi("cgi:");
 	static const std::string floor("floor:");
 	static const std::string lwall("lwall:");
 	static const std::string rwall("rwall:");
+	zaimoni::make<zaimoni::math::vector<int, 2> > factory;
+
+	if (floor == src.substr(0, 6)) {
+		auto c1(parse_css_color(src.substr(6)));
+		if (0 < c1.second) {
+			x->create(DisplayManager::ISOMETRIC_HEX_WIDTH, DisplayManager::ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+			draw_monochrome_STL_mask(*x, factory(0, DisplayManager::ISOMETRIC_HEX_HEIGHT - DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT), _ref_hex_triangle_pixels, c1.first);
+			draw_monochrome_STL_mask(*x, factory(DisplayManager::ISOMETRIC_TRIANGLE_WIDTH, DisplayManager::ISOMETRIC_HEX_HEIGHT - DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+			return true;
+		}
+	}
+	else if (lwall == src.substr(0, 6)) {
+		auto c1(parse_css_color(src.substr(6)));
+		if (0 < c1.second) {
+			x->create(DisplayManager::ISOMETRIC_HEX_WIDTH, DisplayManager::ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+			draw_monochrome_STL_mask(*x, factory(0, 0), _ref_hex_triangle_pixels, c1.first);
+			draw_monochrome_STL_mask(*x, factory(0, DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+			return true;
+		}
+	}
+	else if (rwall == src.substr(0, 6)) {
+		auto c1(parse_css_color(src.substr(6)));
+		if (0 < c1.second) {
+			x->create(DisplayManager::ISOMETRIC_HEX_WIDTH, DisplayManager::ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
+			draw_monochrome_STL_mask(*x, factory(DisplayManager::ISOMETRIC_TRIANGLE_WIDTH, DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), _ref_hex_triangle_pixels, c1.first);
+			draw_monochrome_STL_mask(*x, factory(DisplayManager::ISOMETRIC_TRIANGLE_WIDTH, 0), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
+			return true;
+		}
+	}
+	return false;
+}
+
+std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
+{
+	static const std::string cgi("cgi:");
 
 	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
 	std::shared_ptr<sf::Image> x(new sf::Image());
-	zaimoni::make<zaimoni::math::vector<int, 2> > factory;
-	// \todo 1) CGI options
-	if (cgi == src.substr(0, 4)) {
-		// VAPORWARE \todo strictly speaking we should have a general expression parser and "evaluate" the image build instructions
-		if (floor == src.substr(4, 6)) {
-			auto c1(parse_css_color(src.substr(10)));
-			if (0 < c1.second) {
-				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
-				draw_monochrome_STL_mask(*x, factory(0, ISOMETRIC_HEX_HEIGHT-ISOMETRIC_TRIANGLE_HEIGHT), _ref_hex_triangle_pixels, c1.first);
-				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_HEX_HEIGHT - ISOMETRIC_TRIANGLE_HEIGHT), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
-				_image_cache[src] = x;
-				return x;
-			}
-		} else if (lwall == src.substr(4,6)) {
-			auto c1(parse_css_color(src.substr(10)));
-			if (0 < c1.second) {
-				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
-				draw_monochrome_STL_mask(*x, factory(0, 0), _ref_hex_triangle_pixels, c1.first);
-				draw_monochrome_STL_mask(*x, factory(0, ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
-				_image_cache[src] = x;
-				return x;
-			}
-		} else if (rwall == src.substr(4,6)) {
-			auto c1(parse_css_color(src.substr(10)));
-			if (0 < c1.second) {
-				x->create(ISOMETRIC_HEX_WIDTH, ISOMETRIC_HEX_HEIGHT, sf::Color::Transparent);
-				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, ISOMETRIC_TRIANGLE_HEIGHT / 2 + 1), _ref_hex_triangle_pixels, c1.first);
-				draw_monochrome_STL_mask(*x, factory(ISOMETRIC_TRIANGLE_WIDTH, 0), triangle_v_reflect, _ref_hex_triangle_pixels, c1.first);
-				_image_cache[src] = x;
-				return x;
-			}
-		}
+	// 1) CGI options
+	if (cgi == src.substr(0, 4) && CGI_load(x, src.substr(4))) {
+		_image_cache[src] = x;
+		return x;
 	}
 	// 2) relative file path
 	if (x->loadFromFile(src)) {
