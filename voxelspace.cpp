@@ -1,16 +1,6 @@
 #include "voxelspace.hpp"
 #include "display_manager.hpp"
-
-namespace zaimoni {
-	template<class T1, class T2, class...Args>
-	constexpr auto min(const T1& x1, const T2& x2, Args...xn) {
-		if constexpr (0 < sizeof...(xn)) {
-			return min(x1 < x2 ? x1 : x2, xn...);
-		} else {
-			return x1 < x2 ? x1 : x2;
-		}
-	}
-}
+#include "Zaimoni.STL/flat_alg2.hpp"
 
 namespace isk {
 

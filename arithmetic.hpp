@@ -3,6 +3,7 @@
 
 #include "Zaimoni.STL/eval.hpp"
 #include "Zaimoni.STL/numeric_error.hpp"
+#include "Zaimoni.STL/flat_alg2.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -766,29 +767,32 @@ private:
 		auto numerator_scale = _numerator->ideal_scal_bn();
 		auto denominator_scale = _denominator->ideal_scal_bn();
 		// try to normalize the denominator first
-		if (0 < scale && 0 > denominator_scale) {
-			const auto _scale = (-scale > denominator_scale) ? -scale : denominator_scale;
-			this->__scal_bn(_denominator,_scale);
-			if (0 == (scale += _scale)) return;
-			denominator_scale -= _scale;
-		}
-		if (0 < scale && 0 < numerator_scale) {
-			const auto _scale = (scale < numerator_scale) ? scale : numerator_scale;
-			this->__scal_bn(_numerator,_scale);
-			if (0 == (scale -= _scale)) return;
-			numerator_scale -= _scale;
-		}
-		if (0 > scale && 0 < denominator_scale) {
-			const auto _scale = (-scale < denominator_scale) ? -scale : denominator_scale;
-			this->__scal_bn(_denominator, _scale);
-			if (0 == (scale += _scale)) return;
-			denominator_scale -= _scale;
-		}
-		if (0 > scale && 0 > numerator_scale) {
-			const auto _scale = (scale > numerator_scale) ? scale : numerator_scale;
-			this->__scal_bn(_numerator, _scale);
-			if (0 == (scale -= _scale)) return;
-			numerator_scale -= _scale;
+		if (0 < scale) {
+			if (0 > denominator_scale) {
+				const auto _scale = zaimoni::max(-scale, denominator_scale);
+				this->__scal_bn(_denominator, _scale);
+				if (0 == (scale += _scale)) return;
+				denominator_scale -= _scale;
+			}
+			if (0 < numerator_scale) {
+				const auto _scale = zaimoni::min(scale, numerator_scale);
+				this->__scal_bn(_numerator, _scale);
+				if (0 == (scale -= _scale)) return;
+				numerator_scale -= _scale;
+			}
+		} else if (0 > scale) {
+			if (0 < denominator_scale) {
+				const auto _scale = zaimoni::min(-scale, denominator_scale);
+				this->__scal_bn(_denominator, _scale);
+				if (0 == (scale += _scale)) return;
+				denominator_scale -= _scale;
+			}
+			if (0 > numerator_scale) {
+				const auto _scale = zaimoni::max(scale, numerator_scale);
+				this->__scal_bn(_numerator, _scale);
+				if (0 == (scale -= _scale)) return;
+				numerator_scale -= _scale;
+			}
 		}
 		const auto legal = _numerator->scal_bn_safe_range();
 		if (legal.first > scale) {
