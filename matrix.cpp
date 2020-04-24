@@ -67,14 +67,14 @@ int main(int argc, char* argv[])
 	// check rearrange arithmatic
 	double lhs = 1.0;
 	double rhs = 1.0;
-	int ok = zaimoni::math::rearrange_sum(lhs,rhs);
+	int ok = zaimoni::math::bits::rearrange_sum(lhs,rhs);
 	ZAIMONI_PASSTHROUGH_ASSERT(ok);
 	ZAIMONI_PASSTHROUGH_ASSERT(2.0==lhs);
 	STRING_LITERAL_TO_STDOUT("1,0+1.0 = 2.0\n");
 
 	lhs = 2.0;
 	rhs = 1.0;
-	ok = zaimoni::math::rearrange_sum(lhs,rhs);	
+	ok = zaimoni::math::bits::rearrange_sum(lhs,rhs);
 	ZAIMONI_PASSTHROUGH_ASSERT(ok);
 	ZAIMONI_PASSTHROUGH_ASSERT(3.0==lhs);
 	STRING_LITERAL_TO_STDOUT("2,0+1.0 = 3.0\n");

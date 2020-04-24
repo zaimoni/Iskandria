@@ -599,92 +599,6 @@ int trivial_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 // the rearrange_sum family returns true/1 iff rhs has been annihilated with exact arithmetic, 2 if any change
 // negative values are reserved for C-style error codes, should they be eventually needed.
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(T& lhs, T& rhs)
-{
-	assert(!trivial_sum(lhs,rhs));
-	bool any_change = false;
-#ifdef ZAIMONI_USING_STACKTRACE
-	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
-#endif
-
-	// 0: lhs
-	// 1: rhs
-hard_restart:
-	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-	const bool is_negative[2] = {std::signbit(lhs) , std::signbit(rhs)};
-
-	// epsilon exponent is simply -std::numeric_limits<T>::digits+1 (+1 from bias)
-	// remember: 1.0 maps to exponent 1, mantissa 0.5
-restart:
-	fp_stats<T> lhs_stats(lhs);
-	fp_stats<T> rhs_stats(rhs);
-	if (rhs_stats.exponent()>lhs_stats.exponent()) {
-		// force lhs larger than rhs
-		swap(lhs, rhs);
-		goto hard_restart;
-	}
-	const int exponent_delta = rhs_stats.exponent()-lhs_stats.exponent();
-
-	if (is_negative[0]==is_negative[1]) {
-		// same sign
-		if (lhs==rhs && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {
-			lhs = scalbn(lhs,1);
-			rhs = 0.0;
-			return true;
-		}
-		// a denormal acts like it has exponent std::numeric_limits<T>::min_exponent - 1
-		if (FP_SUBNORMAL == fp_type[0] /* && FP_SUBNORMAL == fp_type[1] */) {
-			T tmp = copysign(std::numeric_limits<T>::min(),lhs);
-			// lhs+rhs = (lhs+tmp)+(rhs-tmp)
-			rhs -= tmp;	// now opp-sign denormal
-			rhs += lhs;
-			lhs = tmp;
-			if (0.0 == rhs) return true;
-			any_change = true;
-			goto hard_restart;	// could be more clever here if breaking const
-		} else if (FP_SUBNORMAL == fp_type[1]) return 2 * any_change;	// MingW64 infinite loop stopper
-
-		if (0==exponent_delta && std::numeric_limits<T>::max_exponent>lhs_stats.exponent()) {	// same idea as above
-			T tmp = copysign(scalbn(1.0,lhs_stats.exponent()+1),(is_negative[0] ? -1.0 : 1.0));
-			rhs -= tmp;
-			rhs += lhs;
-			lhs = tmp;
-			any_change = true;
-			goto restart;
-		}
-		const std::pair<int,int> lhs_safe(lhs_stats.safe_add_exponents());
-		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
-		if (lhs_safe.first>rhs_safe.second) return 2*any_change;
-
-		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
-		any_change = true;
-		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-		goto restart;
-	} else {
-		// opposite sign: cancellation
-		if (0==exponent_delta) {
-			lhs += rhs;
-			rhs = 0.0;
-			return true;
-		}
-		if (    (FP_SUBNORMAL == fp_type[0] || lhs_stats.exponent()==std::numeric_limits<T>::min_exponent)
-		     && (FP_SUBNORMAL == fp_type[1] || lhs_stats.exponent()==std::numeric_limits<T>::min_exponent)) {
-			lhs += rhs;
-			rhs = 0.0;
-			return true;
-		}
-		const std::pair<int,int> lhs_safe(lhs_stats.safe_subtract_exponents());
-		const std::pair<int,int> rhs_safe(rhs_stats.safe_subtract_exponents());
-		// lhs larger
-		if (lhs_safe.first>rhs_safe.second) return 2*any_change;
-		if (delta_cancel(lhs,rhs,rhs_stats.delta(rhs_safe.second))) return true;
-		any_change = true;
-		if (std::numeric_limits<T>::min_exponent+std::numeric_limits<T>::digits >= rhs_stats.exponent()) goto hard_restart;	// may have just denormalized
-		goto restart;
-	}	
-}
-
-template<class T>
 typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!trivial_sum(lhs,rhs));
@@ -708,24 +622,6 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 	T tmp_bounds[4] = {lhs.lower(), rhs.lower(), lhs.upper(), rhs.upper()};
 	bool any_change = false;
 
-#if 0
-	switch(zero_code)
-	{
-	case 8:	// rhs.upper(), lhs.upper() zero
-		break;
-	case 6:	// rhs.upper() zero,
-		break;
-	case 4:	// rhs.lower() zero, lhs.lower() zero
-		break;
-	case 3:	// rhs.lower() zero
-		break;
-	case 2:	// lhs.upper() zero
-		break;
-	case 1:	// lhs.lower() zero
-		break;
-	case 0:	// no coordinates zero
-	}
-#endif
 #ifdef ZAIMONI_USING_STACKTRACE
 	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
@@ -736,7 +632,8 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 	case 6:	// rhs.upper() zero,
 	case 2:	// lhs.upper() zero
 	case 0:	// no coordinates zero
-		lower_rearrange_code = rearrange_sum(tmp_bounds[0],tmp_bounds[1]);
+		lower_rearrange_code = bits::rearrange_sum(tmp_bounds[0],tmp_bounds[1]);
+		if (0 > lower_rearrange_code) lower_rearrange_code = -lower_rearrange_code;	// historically non-negative
 		break;
 	case 1:	// lhs.lower() zero
 		swap(tmp_bounds[0],tmp_bounds[1]);	// intentional fall-through
@@ -751,7 +648,8 @@ typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_
 	case 3:	// rhs.lower() zero
 	case 1:	// lhs.lower() zero
 	case 0:	// no coordinates zero
-		upper_rearrange_code = rearrange_sum(tmp_bounds[2],tmp_bounds[3]);
+		upper_rearrange_code = bits::rearrange_sum(tmp_bounds[2],tmp_bounds[3]);
+		if (0 > upper_rearrange_code) upper_rearrange_code = -upper_rearrange_code;	// historically non-negative
 		break;
 	case 2:	// lhs.upper() zero
 		swap(tmp_bounds[2],tmp_bounds[3]);	// intentional fall-through		
