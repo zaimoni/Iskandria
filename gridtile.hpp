@@ -16,12 +16,22 @@ namespace grid {
 
 // anchor point for floor model is 0,0,0 x-y-z cartesian std orientation; unit box is (0,0,0),(16,16,16) i.e. legal coordinates 0..15
 
+// VAPORWARE: both floor and tile data are to be loaded from hard drive (e.g., JSON format).
+// the fact a tileset has been loaded is part of the savefile
+// the reference data in the tileset is *not* part of the savefile.
+
+// _img_path specifies a filepath or CGI transform instructions for DisplayManager
 class floor_model
 {
 private:
-	std::string _name;
+	std::string _id;	// should be unique
+	std::string _name;	// suitable for hovertext (fully identified)
 	cartesian<3> _voxel_bounds;
-	std::string _img_path;	// specifies either a filepath or a CGI generation process for top-down orientation N
+	std::string _img_path_nw;	// reference view; viewpoint facing NW
+	std::string _img_path_ne;	// viewpoint facing NE
+	std::string _img_path_se;	// viewpoint facing SE
+	std::string _img_path_sw;	// viewpoint facing SW
+	// VAPORWARE ceiling tiles are just floor tiles viewed from below
 
 	static std::vector<floor_model> _models;
 public:
@@ -35,15 +45,23 @@ public:
 	floor_model(floor_model&& src) = default;
 	floor_model& operator=(const floor_model& src) = default;
 	floor_model& operator=(floor_model && src) = default;
+
+	static const floor_model* get(const std::string& id) {
+		for (const auto& x : _models) if (id == x._id) return &x;
+		return 0;
+	}
 };
 
 class wall_model
 {
 private:
-	std::string _name;
+	std::string _id;	// should be unique
+	std::string _name;	// suitable for hovertext (fully identified)
 	cartesian<3> _voxel_bounds;
-	std::string _img_path_outside;	// specifies either a filepath or a CGI generation process
-	std::string _img_path_inside;	// specifies either a filepath or a CGI generation process
+	std::string _img_path_outside_w;	// reference orientation NW for these
+	std::string _img_path_outside_n;
+	std::string _img_path_inside_e;	// reference orientation SE for these
+	std::string _img_path_inside_s;
 
 	static std::vector<wall_model> _models;
 public:
@@ -57,6 +75,11 @@ public:
 	wall_model(wall_model && src) = default;
 	wall_model& operator=(const wall_model & src) = default;
 	wall_model& operator=(wall_model && src) = default;
+
+	static const wall_model* get(const std::string& id) {
+		for (const auto& x : _models) if (id == x._id) return &x;
+		return 0;
+	}
 };
 
 // standard orientation is N (this does not line up with trigonometry)
