@@ -573,7 +573,7 @@ final_exit:
 	template std::shared_ptr<_type<_type_spec::_R_SHARP_> > eval_sum<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 #else
 	template<class F>
-	typename std::enable_if<std::is_floating_point<F>::value, int>::type sum_score(const ISK_INTERVAL<F>& x)
+	typename std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const ISK_INTERVAL<F>& x)
 	{
 		fp_stats<F> test_l(x.lower());
 		fp_stats<F> test_r(x.upper());
@@ -581,10 +581,23 @@ final_exit:
 	}
 
 	template<class F>
-	typename std::enable_if<std::is_floating_point<F>::value, int>::type sum_score(const F& x)
+	typename std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const F& x)
 	{
 		fp_stats<F> test(x);
 		return std::numeric_limits<long double>::max_exponent - test.exponent();
+	}
+
+	template<class T>
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T>, int> sum_score(const std::shared_ptr<T>& lhs)
+	{
+		auto src = lhs.get();
+		if (auto l = dynamic_cast<_access<float>*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<_access<double>*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<_access<long double>*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->value());
+		return std::numeric_limits<int>::min();
 	}
 
 	template<> int sum_implemented<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& x)
@@ -600,34 +613,22 @@ final_exit:
 	}
 
 	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
+	typename std::enable_if<std::is_base_of_v<fp_API, T> && std::is_floating_point_v<F>, int>::type sum_score(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
-		const int r_score = sum_score(rhs);
-		int l_score = std::numeric_limits<int>::min();
-		auto src = lhs.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<double>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) l_score = sum_score(l->value());
-		if (std::numeric_limits<int>::min() < l_score) return l_score<r_score ? l_score : r_score;
+		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
+			const int r_score = sum_score(rhs);
+			return l_score < r_score ? l_score : r_score;
+		}
 		return std::numeric_limits<int>::min();
 	}
 
 	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const F& rhs)
+	typename std::enable_if<std::is_base_of_v<fp_API, T> && std::is_floating_point_v<F>, int>::type sum_score(const std::shared_ptr<T>& lhs, const F& rhs)
 	{
-		const int r_score = sum_score(rhs);
-		int l_score = std::numeric_limits<int>::min();
-		auto src = lhs.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<double>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) l_score = sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) l_score = sum_score(l->value());
-		if (std::numeric_limits<int>::min() < l_score) return l_score < r_score ? l_score : r_score;
+		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
+			const int r_score = sum_score(rhs);
+			return l_score < r_score ? l_score : r_score;
+		}
 		return std::numeric_limits<int>::min();
 	}
 
