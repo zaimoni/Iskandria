@@ -16,6 +16,7 @@ class InputManager
 ISK_SINGLETON_HEADER(InputManager);
 private:
 	std::vector<textmenu> menus;
+	bool cancel_menu;
 public:
 	void getInput();
 
@@ -23,6 +24,8 @@ public:
 	void install(textmenu&& src) { menus.push_back(std::move(src)); }
 
 	void draw() const;
+
+	void close_menu() { cancel_menu = true; }
 };
 
 }	// namespace isk

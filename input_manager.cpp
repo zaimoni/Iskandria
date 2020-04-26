@@ -46,10 +46,13 @@ void InputManager::getInput()
 			{
 			size_t ub = menus.size();
 			while (0 < ub) {
+				cancel_menu = false;
 				if (menus[--ub].handle(e.key)) {
+					if (cancel_menu) {
+						while(menus.size() > ub) menus.pop_back();	// this menu is done
+					}
 					ub = 0;	// done
 					if (GameManager::get().gameOver()) return;	// hard-stop
-					// \todo handlers must have a way to cause the menu to self-destruct (and possibly all menus above them)
 					// \todo do menus need a modal option that lets them block lower menus, or is this subsumed by pause?
 				}
 				if (GameManager::get().isPaused()) break;	// the unpause menu will be the very top menu
