@@ -25,7 +25,7 @@ public:
 
 	void draw() const;
 
-	void close_menu() { cancel_menu = true; }
+	static bool close_menu() { get().cancel_menu = true; return true; }
 };
 
 }	// namespace isk

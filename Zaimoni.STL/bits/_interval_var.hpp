@@ -1,5 +1,5 @@
 #ifndef ZAIMONI_STL_BITS_INTERVAL_VAR_HPP
-#define ZAIMONI_STL_BITS_INTERVAL_VAR_HPP
+#define ZAIMONI_STL_BITS_INTERVAL_VAR_HPP 1
 
 #ifndef _INTERVAL_HPP
 #error assumed _interval.hpp was included
@@ -8,6 +8,8 @@
 #error assumed var.hpp was included
 #endif
 
+#include <type_traits>
+
 namespace zaimoni {
 
 	template<class T>
@@ -15,6 +17,11 @@ namespace zaimoni {
 	{
 		typedef typename _type_of<T>::type type;
 	};
+
+	// get something intelligible out if the C preprocessor is buggy
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<float> >, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<double> >, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<long double> >, _type<_type_spec::_R_SHARP_> >);
 
 	// we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of

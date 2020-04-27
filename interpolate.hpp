@@ -106,7 +106,7 @@ restart:
 					ret += (*_xn_coeff)[1];
 					ret *= x;
 				}
-				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0]);
+				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0];
 				return ret;
 			}
 		} else if (_forward) return _forward->second(x - _forward->first);

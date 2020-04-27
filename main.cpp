@@ -9,6 +9,8 @@
 #include "wrap.hpp"
 #include "text_menu.hpp"
 
+std::function<bool(void)> test_drivers();	// defined in test_drivers.cpp
+
 int main(int argc, char* argv[])
 {
 	// Order of world registration of game objects, is their order in the savefile.
@@ -22,9 +24,9 @@ int main(int argc, char* argv[])
 	isk::textmenu start_game(true);
 
 	sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::T, false, false, false, false };
-	start_game.add_entry("T)est", hotkey, isk::GameManager::quit_handler);	// eventually provides access to various test drivers
+	start_game.add_entry("T)est", hotkey, test_drivers());	// eventually provides access to various test drivers
 	hotkey.shift = true;
-	start_game.add_entry(hotkey, isk::GameManager::quit_handler);
+	start_game.add_entry(hotkey, test_drivers());
 
 	hotkey = { sf::Keyboard::Key::Q, false, false, false, false };
 	start_game.add_entry("Q)uit", hotkey, isk::GameManager::quit_handler);
