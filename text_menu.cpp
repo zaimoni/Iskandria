@@ -7,7 +7,7 @@ namespace isk {
 
 static void _remove_gui(std::shared_ptr<css::box>& src)
 {
-	if (src && 1<src.use_count()) DisplayManager::get().remove(src);
+	if (src) DisplayManager::get().remove(src);
 }
 
 textmenu::~textmenu()
@@ -24,9 +24,9 @@ bool textmenu::handle(const sf::Event::KeyEvent& hotkey)
 		if (hotkey.alt != test.alt) continue;
 		if (hotkey.control != test.control) continue;
 		if (hotkey.system != test.system) continue;
-		const auto ret = std::get<3>(entry)();
-		if (remove_self_after_handling) _remove_gui(_gui_top);
-		return ret;
+		auto handler(std::get<3>(entry));
+		if (remove_self_after_handling) _remove_gui(_gui_top);	// installing menus can invalidate the iterator
+		return handler();
 	}
 	return false;
 }
