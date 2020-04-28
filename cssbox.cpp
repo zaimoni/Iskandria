@@ -219,7 +219,7 @@ void box_dynamic::append(std::shared_ptr<box>& src) {
 
 void box_dynamic::append(box* _src) {
 	if (_src) {
-		std::shared_ptr<box> src(_src);
+		std::remove_reference_t<decltype(_contents.front())> src(_src);
 		bool resize_ok = parent() ? true : false;
 		// absolute positioning will prevent resizing; possibly other cases
 		if (resize_ok) {

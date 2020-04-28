@@ -260,6 +260,8 @@ class box_dynamic : public box, public std::enable_shared_from_this<box_dynamic>
 {
 private:
 	std::vector<std::shared_ptr<box> > _contents;
+	// _self is EXTREMELY destabilizing: has to be initialized w/this but this causes reference count failure even with above
+	// either change architecture, or hand-roll a shared_ptr replacement that can cope
 	std::shared_ptr<box_dynamic> _self;
 	size_t _redo_layout;	// the lowest index of a box that needs its position finalized
 public:
