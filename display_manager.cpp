@@ -33,8 +33,9 @@ DisplayManager::DisplayManager()
 	_height_pixels(DESIGN_HEIGHT),
 	_width_chars(80),
 	_font(new sf::Font()),
-	_css_root(new css::box_dynamic(true))
+	_css_root(new css::box_dynamic())
 {
+	_css_root->set_self(_css_root);
 	// \todo load starting dimensions from configuration?
 	_window = decltype(_window)(new sf::RenderWindow(sf::VideoMode(1024,768), "Iskandria")),
 	_css_root->min_width(DESIGN_WIDTH);

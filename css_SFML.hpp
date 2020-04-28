@@ -30,7 +30,7 @@ public:
 	auto screen_dimensions() const { return _x->getGlobalBounds(); }
 
 	void disconnect() override {};
-	void set_self() override {};
+	void set_self(std::shared_ptr<box>& src) override {};
 	void draw() const override {
 		if (_x) isk::DisplayManager::get().getWindow()->draw(*_x);
 	}

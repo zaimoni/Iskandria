@@ -214,13 +214,13 @@ public:
 	// these should be abstract, but bringing up a new implementation may need waiving that
 #ifdef PROTOTYPING_CSS
 	virtual void disconnect() {};
-	virtual void set_self() {};
+	virtual void set_self(std::shared_ptr<box>& src) {};
 	virtual bool flush() { return false; };
 	virtual int need_recalc() const { return 0; };	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const {};
 #else
 	virtual void disconnect() = 0;
-	virtual void set_self() = 0;
+	virtual void set_self(std::shared_ptr<box>& src) = 0;
 	virtual bool flush() = 0;
 	virtual layout_op need_recalc() const = 0;	// return value is C error code convention; 0 no-action, negative error, positive action code
 	virtual void draw() const = 0;
@@ -255,27 +255,25 @@ private:
 	void inherit(int i, std::shared_ptr<box_dynamic> src) {};
 };
 
-// std::enable_shared_from_this prevents MSVC++ std::shared_ptr double-deallocation crashes just by being derived from
-class box_dynamic : public box, public std::enable_shared_from_this<box_dynamic>
+class box_dynamic : public box
 {
 private:
 	std::vector<std::shared_ptr<box> > _contents;
-	// _self is EXTREMELY destabilizing: has to be initialized w/this but this causes reference count failure even with above
-	// either change architecture, or hand-roll a shared_ptr replacement that can cope
-	std::shared_ptr<box_dynamic> _self;
+	std::shared_ptr<box_dynamic> _self;	// don't assign keyword this to any std::shared_ptr; not even documented enablers work
 	size_t _redo_layout;	// the lowest index of a box that needs its position finalized
 public:
 	// have to allow public default-construction because the top-level box isn't tied to content
-	box_dynamic(bool bootstrap = false);
+	box_dynamic();
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box_dynamic);
-	~box_dynamic();
+	~box_dynamic() = default;
 
 	// content management
 	void append(std::shared_ptr<box>& src);
 	void append(box* _src);
 	void remove(const std::shared_ptr<box>& gone) override;
-	void disconnect() override { _self.reset(); };
-	void set_self() override { if (!_self) _self = decltype(_self)(this); };
+	void disconnect() override { _self.reset(); }
+	void set_self(std::shared_ptr<box>& src) override { _self = std::static_pointer_cast<box_dynamic>(src); }
+	void set_self(std::shared_ptr<box_dynamic>& src) { _self = src; }
 
 	void draw() const override;
 	void screen_coords(point logical_origin) override;

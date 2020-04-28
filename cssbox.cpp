@@ -147,19 +147,20 @@ box::position_legal box::position() const {
 	return (position_legal)((_clear_float >> 4) & 7U);
 }
 
-box_dynamic::box_dynamic(bool bootstrap) : _redo_layout(0) {
-	if (bootstrap) _self = decltype(_self)(this);
+box_dynamic::box_dynamic() : _redo_layout(0) {
 }
 
+#if OBSOLETE
 box_dynamic::~box_dynamic()
 {
 //	if (!_contents.empty()) for (auto& x : _contents) if (x) x->disconnect();
 }
+#endif
 
 // content management
 void box_dynamic::set_parent(std::shared_ptr<box>& src) {
 	if (src) {
-		src->set_self();
+		src->set_self(src);
 		src->set_parent(_self);
 		if (_auto & (1ULL << WIDTH)) _reflow |= (1ULL << css::property::WIDTH);
 		if (_auto & (1ULL << HEIGHT)) _reflow |= (1ULL << css::property::HEIGHT);
