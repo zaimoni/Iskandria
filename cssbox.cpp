@@ -19,11 +19,7 @@ unsigned int box::_recalc_fakelock = 0;
 
 box::box()
 : _auto((1ULL << HEIGHT) | (1ULL << WIDTH)), _clear_float(0), _inherited(0), _reflow((1ULL << css::property::HEIGHT) | (1ULL << css::property::WIDTH)),
-#if POINT_IS_Z_VECTOR
   _origin(0), _screen(0), _size(0), _size_min(0), _size_max(std::numeric_limits<int>::max())
-#else
-  _origin(0, 0), _screen(0, 0), _size(0, 0), _size_min(0, 0), _size_max(std::numeric_limits<int>::max(), std::numeric_limits<int>::max())
-#endif
 {
 	memset(_margin, 0, sizeof(_margin));
 	memset(_padding, 0, sizeof(_padding));
@@ -44,21 +40,12 @@ void box::width(int w) {
 }
 
 // we intentionally choose implementation-reserved names
-#if POINT_IS_Z_VECTOR
 #define __width _size[0]
 #define __height _size[1]
 #define __min_width _size_min[0]
 #define __min_height _size_min[1]
 #define __max_width _size_max[0]
 #define __max_height _size_max[1]
-#else
-#define __width _size.first
-#define __height _size.second
-#define __min_width _size_min.first
-#define __min_height _size_min.second
-#define __max_width _size_max.first
-#define __max_height _size_max.second
-#endif
 
 void box::_width(int w) {
 	_reflow &= ~(1ULL << css::property::WIDTH);

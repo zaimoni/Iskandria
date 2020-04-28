@@ -1,36 +1,14 @@
 #ifndef CSSBOX_HPP
 #define CSSBOX_HPP 1
-/* (C)2019 Kenneth Boyd, license: LICENSE_BOOST.txt */
+/* (C)2019, 2020 Kenneth Boyd, license: LICENSE_BOOST.txt */
 
 #include <utility>
 #include <memory>
 #include <vector>
 
 #include "Zaimoni.STL/c_bitmap.hpp"
-#define POINT_IS_Z_VECTOR 1
-#if POINT_IS_Z_VECTOR
 #include "matrix.hpp"
 #include "Zaimoni.STL/GDI/box.hpp"
-#else
-#include "Zaimoni.STL/Compiler.h"
-
-// XXX These are not Rust-coherent
-template<class T>
-std::pair<T, T> operator+(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
-{
-	lhs.first += rhs.first;
-	lhs.second += rhs.second;
-	return rhs;
-}
-
-template<class T>
-std::pair<T, T> operator-(std::pair<T, T> lhs, const std::pair<T, T>& rhs)
-{
-	lhs.first -= rhs.first;
-	lhs.second -= rhs.second;
-	return rhs;
-}
-#endif
 
 #define MULTITHREAD_DRAW 1
 
@@ -80,12 +58,8 @@ class box {
 #undef HEIGHT
 #undef REFLOW
 public:
-#if POINT_IS_Z_VECTOR
 	typedef zaimoni::math::vector<int, 2> point;
 	typedef zaimoni::gdi::box<point> rect;
-#else
-	typedef std::pair<int, int> point;
-#endif
 	typedef std::pair<int,size_t> layout_op;
 	enum auto_legal {
 		LEFT = 0,
@@ -119,6 +93,7 @@ public:
 	enum {
 		POS_MIN_NOFLOW = POS_FIXED
 	};
+
 protected:
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
@@ -126,6 +101,7 @@ protected:
 	typename zaimoni::bitmap<css::property::COUNT>::type _reflow;
 	point _origin;	// (x,y) i.e. (left,top): relative to container
 	point _screen;	// (x,y) i.e. (left,top): global
+
 private:
 	point _size;
 	point _size_min;
@@ -137,9 +113,11 @@ private:
 #if MULTITHREAD_DRAW
 	static unsigned int _recalc_fakelock;
 #endif
+
 protected:
 	box();
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box);
+
 public:
 	virtual ~box() = default;
 
@@ -150,21 +128,12 @@ public:
 	// width/height
 	auto size() const { return _size; }
 	auto max_size() const { return _size_max; }
-#if POINT_IS_Z_VECTOR
 	int width() const { return _size[0]; }
 	int height() const { return _size[1]; }
 	int min_width() const { return _size_min[0]; }
 	int min_height() const { return _size_min[1]; }
 	int max_width() const { return _size_max[0]; }
 	int max_height() const { return _size_max[1]; }
-#else
-	int width() const { return _size.first; }
-	int height() const { return _size.second; }
-	int min_width() const { return _size_min.first; }
-	int min_height() const { return _size_min.second; }
-	int max_width() const { return _size_max.first; }
-	int max_height() const { return _size_max.second; }
-#endif
 
 	void width(int w);
 	void height(int h);
@@ -185,11 +154,7 @@ public:
 
 	template<int src, int src2> auto padding() const {
 		static_assert(0 <= src && WIDTH > src2 && src+1==src2);
-#if POINT_IS_Z_VECTOR
 		return point(_padding + src);
-#else
-		return point(_padding[src], _padding[src2]);
-#endif
 	}
 
 	template<int src> int margin() const {
@@ -198,11 +163,7 @@ public:
 	}
 	template<int src, int src2> auto margin() const {
 		static_assert(0 <= src && WIDTH > src2&& src + 1 == src2);
-#if POINT_IS_Z_VECTOR
 		return point(_margin + src);
-#else
-		return point(_margin[src], _margin[src2]);
-#endif
 	}
 	template<int src> void _set_margin(int x) {
 		static_assert(0 <= src && WIDTH > src);
@@ -226,12 +187,10 @@ public:
 	auto outer_anchor() const { return _origin - padding<LEFT, TOP>() - margin<LEFT, TOP>(); }
 
 	// layout boxes
-#if POINT_IS_Z_VECTOR
 	auto inner_box() const { return rect(_origin, _origin + _size); }
 	auto clickable_box() const { return rect(_origin - padding<LEFT, TOP>(), _origin + _size + padding<RIGHT, BOTTOM>()); }
 	auto border_box() const { return rect(_origin - padding<LEFT, TOP>(), _origin + _size + padding<RIGHT, BOTTOM>()); }
 	auto outer_box() const { return rect(_origin - padding<LEFT,TOP>() - margin<LEFT,TOP>(), _origin + _size+ padding<RIGHT, BOTTOM>() + margin<RIGHT, BOTTOM>()); }
-#endif
 
 	// clear/float
 	clear_float_legal CSS_clear() const { return (clear_float_legal)(_clear_float & 3U); }
@@ -320,6 +279,7 @@ public:
 	void screen_coords(point logical_origin) override;
 	void force_size(int w, int h) override;
 	void schedule_reflow() override;
+
 private:
 	bool flush() override;
 	layout_op need_recalc() const override;

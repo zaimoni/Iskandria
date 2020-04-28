@@ -39,11 +39,7 @@ public:
 		box::screen_coords(logical_origin);
 		const auto scale = isk::DisplayManager::get().inverseScale();
 		_x->setScale(scale.first * _scale.first, scale.second * _scale.second);
-#if POINT_IS_Z_VECTOR
 		_x->setPosition(_screen[0] * scale.first, _screen[1] * scale.second);
-#else
-		_x->setPosition(_screen.first * scale.first, _screen.second * scale.second);
-#endif
 	}
 private:
 	layout_op assign_bootstrap_code() const {

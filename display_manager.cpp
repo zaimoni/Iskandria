@@ -53,11 +53,7 @@ DisplayManager::~DisplayManager()
 
 void DisplayManager::draw() {
 	_css_root->recalc();
-#if POINT_IS_Z_VECTOR
 	_css_root->screen_coords(css::box::point(0));
-#else
-	_css_root->screen_coords(css::box::point(0, 0));
-#endif
 	_css_root->draw();
 }
 
