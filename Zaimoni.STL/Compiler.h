@@ -47,6 +47,16 @@
 /* size of a static array */
 #define STATIC_SIZE(A) (sizeof(A)/sizeof(*A))
 
+/* How to report a function name */
+#ifdef __GNUC__
+#	define ZAIMONI_FUNCNAME __PRETTY_FUNCTION__
+#elif 1300<=_MSC_VER	/* __FUNCDNAME__ extension cuts in at Visual C++ .NET 2002 */
+#	define ZAIMONI_FUNCNAME __FUNCDNAME__
+#else
+/* if no extensions, assume C99 */
+#	define ZAIMONI_FUNCNAME __func__
+#endif
+
 /* some macros to help with aggregate initialization */
 #define DICT_STRUCT(A) { (A), sizeof(A)-1 }
 #define DICT2_STRUCT(A,B) { (A), sizeof(A)-1, (B) }
