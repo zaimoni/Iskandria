@@ -5,13 +5,37 @@
 #include "game_manager.hpp"
 #include "singleton.on.hpp"
 
+std::function<bool(void)> test_drivers();	// defined in test_drivers.cpp
+
 namespace isk {
 
 ISK_SINGLETON_BODY(InputManager)
 
+static const textmenu& start_menu()
+{
+	static textmenu* oaoo = 0;
+	if (!oaoo) {
+		oaoo = new isk::textmenu(true);
+
+		sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::T, false, false, false, false };
+		oaoo->add_entry("T)est", hotkey, test_drivers());	// eventually provides access to various test drivers
+		hotkey.shift = true;
+		oaoo->add_entry(hotkey, test_drivers());
+
+		hotkey = { sf::Keyboard::Key::Q, false, false, false, false };
+		oaoo->add_entry("Q)uit", hotkey, isk::GameManager::quit_handler);
+		hotkey.shift = true;
+		oaoo->add_entry(hotkey, isk::GameManager::quit_handler);
+	}
+	return *oaoo;
+}
+
+static void force_start_menu(InputManager& x) { x.install(start_menu()); }
+
 InputManager::InputManager()
 {
 	DisplayManager::get().getWindow()->setKeyRepeatEnabled(false);
+	force_start_menu(*this);
 }
 
 InputManager::~InputManager()
@@ -57,6 +81,7 @@ void InputManager::getInput()
 				}
 				if (GameManager::get().isPaused()) break;	// the unpause menu will be the very top menu
 			}
+			if (menus.empty()) force_start_menu(*this);
 			}
 			break;
 //		case sf::Event::MouseWheelMoved: break;

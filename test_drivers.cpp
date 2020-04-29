@@ -11,7 +11,7 @@ static bool AA_chessboard()
 	AA_map_controls.add_entry("E)scape", hotkey, isk::InputManager::close_menu);	// remove this once we have real content
 	AA_map_controls.add_entry(hotkey, isk::InputManager::close_menu);	// wrap this in lambda function responsible for cleanup
 	isk::InputManager::get().install(AA_map_controls);
-	return false;
+	return true;
 }
 
 std::function<bool(void)> test_drivers()	// VAPORWARE referenced in main.cpp
