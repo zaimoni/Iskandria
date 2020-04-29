@@ -17,6 +17,7 @@ ISK_SINGLETON_HEADER(InputManager);
 private:
 	std::vector<textmenu> menus;
 	bool cancel_menu;
+	bool cancel_menus;
 public:
 	void getInput();
 
@@ -26,6 +27,7 @@ public:
 	void draw() const;
 
 	static bool close_menu() { get().cancel_menu = true; return true; }
+	static bool close_menus() { get().cancel_menus = true; return true; }
 };
 
 }	// namespace isk

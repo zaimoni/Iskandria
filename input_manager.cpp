@@ -72,13 +72,13 @@ void InputManager::getInput()
 			while (0 < ub) {
 				cancel_menu = false;
 				if (menus[--ub].handle(e.key)) {
-					if (cancel_menu) {
+					if (cancel_menus) {
 						while(menus.size() > ub) menus.pop_back();	// this menu is done
-					}
+					} else if (cancel_menu) menus.erase(menus.begin() + ub);
 					ub = 0;	// done
 					if (GameManager::get().gameOver()) return;	// hard-stop
 					// \todo do menus need a modal option that lets them block lower menus, or is this subsumed by pause?
-				} else if (cancel_menu) menus.erase(menus.begin()+ub);
+				}
 				if (GameManager::get().isPaused()) break;	// the unpause menu will be the very top menu
 			}
 			if (menus.empty()) force_start_menu(*this);
