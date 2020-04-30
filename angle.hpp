@@ -28,6 +28,7 @@ private:
 
 	constexpr explicit angle(typename interval::base_type x) : _theta(x) {}
 	constexpr explicit angle(typename interval::base_type lb, typename interval::base_type ub) : _theta(lb, ub) {}
+
 public:
 	angle() = default;
 	explicit angle(const degree& src) : _theta(src) { _degree_to_standard_form(); };
@@ -67,6 +68,7 @@ public:
 	size_t contains_ref_angles(angle* dest) const;
 
 	void sincos(interval& _sin, interval& _cos) const;
+
 private:
 	void _standard_form();
 	void _degree_to_standard_form();

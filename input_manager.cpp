@@ -103,7 +103,6 @@ void InputManager::getInput()
 		default: continue;	// something we don't handle
 		}
 	}
-
 }
 
 void InputManager::draw() const

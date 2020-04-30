@@ -57,7 +57,6 @@ ONLY_IF_NUMERICALLY_COMPATIBLE(typename T1::value_type,typename T2::value_type) 
 		// intentional fall-through
 		case 1:
 			if (lhs_term == 0.0) continue;		// ignore additive identity 0
-
 		}
 		if (rearranged_product || rearrange_product(lhs_term,rhs_term))	// may throw runtime errors which would indicate need to do something else
 			{	// evaluated

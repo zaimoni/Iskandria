@@ -129,7 +129,6 @@ private:
 		ZAIMONI_FWRITE_OR_DIE(size_t, tmp, dest)
 		for (auto& i : _cache) zaimoni::write(i->_x,dest);
 	}
-
 };
 
 }	// namespace isk

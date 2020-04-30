@@ -49,7 +49,6 @@ namespace property {
 	};
 }
 
-class box {
 #undef LEFT
 #undef TOP
 #undef RIGHT
@@ -57,6 +56,7 @@ class box {
 #undef WIDTH
 #undef HEIGHT
 #undef REFLOW
+class box {
 public:
 	typedef zaimoni::math::vector<int, 2> point;
 	typedef zaimoni::gdi::box<point> rect;
@@ -241,6 +241,7 @@ public:
 	bool request_vert_margins();
 	int need_horz_margins() const;
 	int need_vert_margins() const;
+
 protected:
 	virtual void schedule_reflow();
 	void _width(int w);

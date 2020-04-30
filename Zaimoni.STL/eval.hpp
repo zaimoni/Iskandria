@@ -87,6 +87,7 @@ namespace zaimoni {
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
 		virtual std::string to_s() const = 0;
 		virtual int precedence() const = 0;
+
 	protected:
 		template<class T>
 		typename std::enable_if<std::is_base_of<fp_API, T>::value, void >::type
@@ -95,6 +96,7 @@ namespace zaimoni {
 			working->scal_bn(scale);
 			dest = working;
 		}
+
 	private:
 		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
 		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation

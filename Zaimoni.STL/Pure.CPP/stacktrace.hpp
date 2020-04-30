@@ -15,6 +15,7 @@ private:
 	std::vector<frame> _x;
 	stacktrace() = default;
 	~stacktrace() = default;
+
 public:
 	stacktrace(const stacktrace& src) = delete;
 	stacktrace(stacktrace&& src) = delete;
@@ -39,6 +40,7 @@ public:
 	}
 
 	static stacktrace& get();
+
 private:
 	void _append(const char* src) const;
 	void _append(const std::string& src) const { _append(src.c_str()); };
