@@ -24,10 +24,19 @@ template<class T> struct return_copy
 
 // work around when we need constructors that aren't generic enough to template
 // placeholder; forces compile error without specialization.  Idea is STL make_pair or make_tuple
-template<class T>
-struct make
-{
-};
+template<class T> struct _make {};
+
+template<class T, class... Args>
+auto __make(Args... args) {
+	static _make<T> staging;
+	return staging(args...);
+}
+
+template<class T, class... Args>
+auto make(Args... args) {
+	using R = std::remove_cv_t<std::remove_reference_t<T> >;
+	return __make<R>(args...);
+}
 
 // type demotion.
 template<class T> struct precise_demote

@@ -199,14 +199,14 @@ int main(int argc, char* argv[])
 	SUCCEED_OR_DIE(dest == quadrant_1);
 
 	// verify that S i.e 180 degrees is period 2
-	const auto Q1_S0(zaimoni::make<decltype(dest)>()(6, 6));
-	const auto Q1_S1(zaimoni::make<decltype(dest)>()(7, 6));
-	const auto Q1_S2(zaimoni::make<decltype(dest)>()(6, 7));
-	const auto Q1_S3(zaimoni::make<decltype(dest)>()(7, 7));
-	const auto Q3_S0(zaimoni::make<decltype(dest)>()(8, 8));
-	const auto Q3_S1(zaimoni::make<decltype(dest)>()(9, 8));
-	const auto Q3_S2(zaimoni::make<decltype(dest)>()(8, 9));
-	const auto Q3_S3(zaimoni::make<decltype(dest)>()(9, 9));
+	const auto Q1_S0(zaimoni::make<decltype(dest)>(6, 6));
+	const auto Q1_S1(zaimoni::make<decltype(dest)>(7, 6));
+	const auto Q1_S2(zaimoni::make<decltype(dest)>(6, 7));
+	const auto Q1_S3(zaimoni::make<decltype(dest)>(7, 7));
+	const auto Q3_S0(zaimoni::make<decltype(dest)>(8, 8));
+	const auto Q3_S1(zaimoni::make<decltype(dest)>(9, 8));
+	const auto Q3_S2(zaimoni::make<decltype(dest)>(8, 9));
+	const auto Q3_S3(zaimoni::make<decltype(dest)>(9, 9));
 
 	dest = quadrant_1;
 	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::S, dest[0], dest[1]));
@@ -246,14 +246,14 @@ int main(int argc, char* argv[])
 
 	// \todo verify that E i.e 270 degrees is period 4
 	// \todo verify that W i.e 90 degrees is period 4
-	const auto Q1_E0(zaimoni::make<decltype(dest)>()(8, 6));
-	const auto Q1_E3(zaimoni::make<decltype(dest)>()(8, 7));
-	const auto Q1_W0(zaimoni::make<decltype(dest)>()(6, 8));
-	const auto Q1_W3(zaimoni::make<decltype(dest)>()(7, 8));
-	const auto Q3_E0(zaimoni::make<decltype(dest)>()(6, 8));
-	const auto Q3_E3(zaimoni::make<decltype(dest)>()(6, 9));
-	const auto Q3_W0(zaimoni::make<decltype(dest)>()(8, 6));
-	const auto Q3_W3(zaimoni::make<decltype(dest)>()(9, 6));
+	const auto Q1_E0(zaimoni::make<decltype(dest)>(8, 6));
+	const auto Q1_E3(zaimoni::make<decltype(dest)>(8, 7));
+	const auto Q1_W0(zaimoni::make<decltype(dest)>(6, 8));
+	const auto Q1_W3(zaimoni::make<decltype(dest)>(7, 8));
+	const auto Q3_E0(zaimoni::make<decltype(dest)>(6, 8));
+	const auto Q3_E3(zaimoni::make<decltype(dest)>(6, 9));
+	const auto Q3_W0(zaimoni::make<decltype(dest)>(8, 6));
+	const auto Q3_W3(zaimoni::make<decltype(dest)>(9, 6));
 
 	dest = quadrant_1;
 	SUCCEED_OR_DIE(iskandria::grid::exact_rotate(origin[0], origin[1], 0, iskandria::compass::E, dest[0], dest[1]));

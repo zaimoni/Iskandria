@@ -19,7 +19,7 @@ namespace isk {
 
 class WorldManager
 {
-ISK_SINGLETON_HEADER(WorldManager);
+	ISK_SINGLETON_HEADER_DEFAULT_CONSTRUCTOR_DESTRUCTOR(WorldManager);
 	typedef void (*file_handler)(FILE*);
 	typedef void (*gc_handler)();
 	// want one set of these for each type of game object

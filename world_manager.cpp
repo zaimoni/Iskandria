@@ -10,14 +10,6 @@ namespace isk {
 
 ISK_SINGLETON_BODY(WorldManager)
 
-WorldManager::WorldManager()
-{
-}
-
-WorldManager::~WorldManager()
-{
-}
-
 void WorldManager::update()
 {
 	if (_update_handlers.empty()) return;
@@ -87,6 +79,7 @@ void WorldManager::draw()
 	// XXX this one is...ugly
 	// 1) identify viewpoint
 	// 2) then render from that viewpoint
+	// DisplayManager: register optimistic/largest UI clipping rectangle
 }
 
 }	// namespace isk

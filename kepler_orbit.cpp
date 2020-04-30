@@ -33,7 +33,7 @@ orbit::vector orbit::v(const orbit::true_anomaly& theta) const {
 	interval _cos;
 	theta.sincos(_sin, _cos);
 	interval tmp = m_div_specific_angular_momentum();
-	return zaimoni::make<vector>()(-_sin * tmp, tmp * (_orbit.e() + _cos));
+	return zaimoni::make<vector>(-_sin * tmp, tmp * (_orbit.e() + _cos));
 }
 
 orbit::interval orbit::d_polar_r_dt(const orbit::true_anomaly& theta) const {

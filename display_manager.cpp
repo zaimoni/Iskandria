@@ -29,8 +29,7 @@ ISK_SINGLETON_BODY(DisplayManager)
 
 DisplayManager::DisplayManager()
 :	_background(sf::Color::Black),
-	_width_pixels(DESIGN_WIDTH),
-	_height_pixels(DESIGN_HEIGHT),
+	_pixel_dim(zaimoni::make<decltype(_pixel_dim)>(DESIGN_WIDTH, DESIGN_HEIGHT)),
 	_width_chars(80),
 	_font(new sf::Font()),
 	_css_root(new css::box_dynamic())
@@ -58,9 +57,9 @@ void DisplayManager::draw() {
 	_css_root->draw();
 }
 
+// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
 void DisplayManager::resize(int w, int h) {
-	_width_pixels = w;	// SFML: this isn't changing the coordinates being reported to us (oops), just the physical pixels on screen
-	_height_pixels = h;
+	_pixel_dim = zaimoni::make<decltype(_pixel_dim)>(w, h);
 	_css_root->force_size(w, h);
 	// \todo any other triggered calculations e.g. character-based stats
 }
@@ -99,7 +98,7 @@ constexpr size_t triangle_pixel_count(const std::array<T, N>& src) {
 static auto hex_triangle_pixels()
 {
 	std::array<zaimoni::math::vector<unsigned char, 2>, triangle_pixel_count(hex_triangle_scanline)> ret;
-	zaimoni::make<zaimoni::math::vector<unsigned char, 2> > factory;
+	zaimoni::_make<zaimoni::math::vector<unsigned char, 2> > factory;
 	size_t ub = 0;
 	int y = 0;
 	do	{
@@ -182,7 +181,7 @@ bool CGI_load(std::shared_ptr<sf::Image>& x, const std::string& src)
 	static const std::string floor("floor:");
 	static const std::string lwall("lwall:");
 	static const std::string rwall("rwall:");
-	zaimoni::make<zaimoni::math::vector<int, 2> > factory;
+	zaimoni::_make<zaimoni::math::vector<int, 2> > factory;
 
 	if (floor == src.substr(0, 6)) {
 		auto c1(parse_css_color(src.substr(6)));
