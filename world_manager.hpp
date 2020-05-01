@@ -5,7 +5,9 @@
 
 #include <stdio.h>
 #include <vector>
+#include <memory>
 
+#include "world_view.hpp"
 #include "singleton.on.hpp"
 
 namespace isk {
@@ -28,6 +30,7 @@ private:
 	std::vector<gc_handler> _gc_handlers;
 	std::vector<file_handler> _load_handlers;
 	std::vector<file_handler> _save_handlers;
+	std::vector<std::weak_ptr<WorldView> > _cameras;
 public:
 	void update();
 	void gc();	// request removing all dead objects

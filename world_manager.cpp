@@ -1,8 +1,7 @@
 // world_manager.cpp
 
 #include "world_manager.hpp"
-
-#include <algorithm>
+#include "display_manager.hpp"
 
 #include "singleton.on.hpp"
 
@@ -76,10 +75,18 @@ void WorldManager::register_save(file_handler src)
 
 void WorldManager::draw()
 {
-	// XXX this one is...ugly
-	// 1) identify viewpoint
-	// 2) then render from that viewpoint
-	// DisplayManager: register optimistic/largest UI clipping rectangle
+	auto ub = _cameras.size();
+	if (0 >= ub) return;
+	auto clip = DisplayManager::get().clip_rect_logical();
+	// countdown loop theoretically allows pushing on new world views within a world view safely,
+	// not just realtime cleanup
+	do {
+		if (auto view = _cameras[--ub].lock()) {
+			if (view->draw(clip)) break;
+		} else {
+			_cameras.erase(_cameras.begin() + ub);
+		}
+	} while (0 < ub);
 }
 
 }	// namespace isk
