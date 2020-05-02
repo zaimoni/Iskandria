@@ -217,7 +217,10 @@ std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 {
 	static const std::string cgi("cgi:");
 
-	if (1 == _image_cache.count(src)) return _image_cache[src];	// 0: already loaded
+	if (1 == _image_cache.count(src)) {
+		if (auto ret = _image_cache[src].lock()) return ret;
+		_image_cache.erase(src);
+	}
 	std::shared_ptr<sf::Image> x(new sf::Image());
 	// 1) CGI options
 	if (cgi == src.substr(0, 4) && CGI_load(x, src.substr(4))) {
