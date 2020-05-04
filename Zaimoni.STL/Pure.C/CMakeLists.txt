@@ -10,26 +10,33 @@ add_custom_command(OUTPUT auto_int.h
 add_subdirectory(compile.test)
 add_subdirectory(stdio.log)
 
-add_custom_command(OUTPUT comptest.h
+if(${CMAKE_CURRENT_SOURCE_DIR}/comptest.in IS_NEWER_THAN ${CMAKE_CURRENT_BINARY_DIR}/comptest.h)
 	configure_file(comptest.in comptest.h COPYONLY)
+endif()
+
+add_custom_command(OUTPUT comptest.h
 	COMMAND realloc_0 >> comptest.h
+	DEPENDS realloc_0
 	VERBATIM)
 
 if ($CACHE{ZSTL_HAVE_MS_IO_H})
 add_custom_command(OUTPUT comptest.h
 	COMMAND exists_MS_io_h >> comptest.h
+	DEPENDS exists_MS_io_h
 	VERBATIM APPEND)
 endif()
 
 if ($CACHE{ZSTL_HAVE_TIMESPEC})
 add_custom_command(OUTPUT comptest.h
 	COMMAND exists_timespec >> comptest.h
+	DEPENDS exists_timespec
 	VERBATIM APPEND)
 endif()
 
 if ($CACHE{ZSTL_HAVE_NANOSLEEP})
 add_custom_command(OUTPUT comptest.h
 	COMMAND exists_nanosleep >> comptest.h
+	DEPENDS exists_nanosleep
 	VERBATIM APPEND)
 endif()
 
