@@ -19,9 +19,9 @@ namespace zaimoni {
 	};
 
 	// get something intelligible out if the C preprocessor is buggy
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<float> >, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<double> >, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<long double> >, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<float> >::type, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<double> >::type, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<long double> >::type, _type<_type_spec::_R_SHARP_> >);
 
 	// we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of
