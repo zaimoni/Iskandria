@@ -18,12 +18,7 @@ textmenu::~textmenu()
 bool textmenu::handle(const sf::Event::KeyEvent& hotkey)
 {
 	for (const auto& entry : entries) {
-		const auto& test = std::get<1>(entry);	// HMM...why no == operator for a struct?
-		if (hotkey.code != test.code) continue;
-		if (hotkey.shift != test.shift) continue;
-		if (hotkey.alt != test.alt) continue;
-		if (hotkey.control != test.control) continue;
-		if (hotkey.system != test.system) continue;
+		if (hotkey != std::get<1>(entry)) continue;
 		auto handler(std::get<3>(entry));
 		if (remove_self_after_handling) _remove_gui(_gui_top);	// installing menus can invalidate the iterator
 		return handler();

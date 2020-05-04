@@ -16,11 +16,12 @@ static const textmenu& start_menu()
 	static textmenu* oaoo = 0;
 	if (!oaoo) {
 		oaoo = new isk::textmenu(true);
+		auto tests = test_drivers();
 
 		sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::T, false, false, false, false };
-		oaoo->add_entry("T)est", hotkey, test_drivers());	// eventually provides access to various test drivers
+		oaoo->add_entry("T)est", hotkey, tests);	// eventually provides access to various test drivers
 		hotkey.shift = true;
-		oaoo->add_entry(hotkey, test_drivers());
+		oaoo->add_entry(hotkey, tests);
 
 		hotkey = { sf::Keyboard::Key::Q, false, false, false, false };
 		oaoo->add_entry("Q)uit", hotkey, isk::GameManager::quit_handler);
@@ -71,6 +72,7 @@ void InputManager::getInput()
 			size_t ub = menus.size();
 			while (0 < ub) {
 				cancel_menu = false;
+				cancel_menus = false;
 				if (menus[--ub].handle(e.key)) {
 					if (cancel_menus) {
 						while(menus.size() > ub) menus.pop_back();	// this menu is done

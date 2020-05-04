@@ -6,6 +6,17 @@
 #include "cssbox.hpp"
 #include <functional>
 
+// HMM...why no == operator for a struct in SFML 2.5.1?
+inline bool operator==(const sf::Event::KeyEvent& lhs, const sf::Event::KeyEvent& rhs) {
+	return lhs.code == rhs.code
+		&& lhs.shift == rhs.shift
+		&& lhs.alt == rhs.alt
+		&& lhs.control == rhs.control
+		&& lhs.system == rhs.system;
+}
+
+inline bool operator!=(const sf::Event::KeyEvent& lhs, const sf::Event::KeyEvent& rhs) { return !(lhs == rhs); }
+
 namespace isk {
 
 class textmenu {
@@ -44,6 +55,12 @@ public:
 	void add_entry(const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler) {
 		add_entry(std::vector<std::string>(), hotkey, handler);
 	};
+
+	// currently unused, but would be expected from CRUD
+	void update_entry(const sf::Event::KeyEvent& hotkey, const std::function<bool(void)>& handler)
+	{
+		for (decltype(auto) x : entries) if (std::get<1>(x) == hotkey) std::get<3>(x) = handler;
+	}
 
 	bool handle(const sf::Event::KeyEvent& hotkey);
 	void draw() const;
