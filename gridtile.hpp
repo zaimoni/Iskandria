@@ -1,8 +1,11 @@
 #ifndef GRIDTILE_HPP
 #define GRIDTILE_HPP 1
 
-#include "gridspace.hpp"
+//#include "gridspace.hpp"
 #include "XCOMlike.hpp"
+#include <string>
+#include <vector>
+#include <memory>
 
 namespace iskandria {
 namespace grid {
@@ -20,20 +23,22 @@ namespace grid {
 // the fact a tileset has been loaded is part of the savefile
 // the reference data in the tileset is *not* part of the savefile.
 
+// DATA DESIGN: while voxel bounds needs to be synchronized with Cartesian<3>, actually depending on Cartesian
+// causes an include graph cycle. [also, the typical value is (1,1,1) so this should be sparse data]
+
 // _img_path specifies a filepath or CGI transform instructions for DisplayManager
 class floor_model
 {
 private:
 	std::string _id;	// should be unique
 	std::string _name;	// suitable for hovertext (fully identified)
-	cartesian<3> _voxel_bounds;
 	std::string _img_path_nw;	// reference view; viewpoint facing NW
 	std::string _img_path_ne;	// viewpoint facing NE
 	std::string _img_path_se;	// viewpoint facing SE
 	std::string _img_path_sw;	// viewpoint facing SW
 	// VAPORWARE ceiling tiles are just floor tiles viewed from below
 
-	static std::vector<floor_model> _models;
+	static std::vector<std::weak_ptr<floor_model> > _models;
 public:
 	enum reserved {
 		NONE = 0
@@ -46,9 +51,17 @@ public:
 	floor_model& operator=(const floor_model& src) = default;
 	floor_model& operator=(floor_model && src) = default;
 
-	static const floor_model* get(const std::string& id) {
-		for (const auto& x : _models) if (id == x._id) return &x;
-		return 0;
+	static auto get(const std::string& id) {
+		size_t ub = _models.size();
+		while (0 < ub) {
+			auto x = _models[--ub].lock();
+			if (!x) {
+				_models.erase(_models.begin() + ub);
+				continue;
+			}
+			if (id == x->_id) return x;
+		}
+		return decltype(_models.front().lock())();
 	}
 };
 
@@ -57,13 +70,12 @@ class wall_model
 private:
 	std::string _id;	// should be unique
 	std::string _name;	// suitable for hovertext (fully identified)
-	cartesian<3> _voxel_bounds;
 	std::string _img_path_outside_w;	// reference orientation NW for these
 	std::string _img_path_outside_n;
 	std::string _img_path_inside_e;	// reference orientation SE for these
 	std::string _img_path_inside_s;
 
-	static std::vector<wall_model> _models;
+	static std::vector<std::weak_ptr<wall_model> > _models;
 public:
 	enum reserved {
 		NONE = 0
@@ -76,10 +88,35 @@ public:
 	wall_model& operator=(const wall_model & src) = default;
 	wall_model& operator=(wall_model && src) = default;
 
-	static const wall_model* get(const std::string& id) {
-		for (const auto& x : _models) if (id == x._id) return &x;
-		return 0;
+	static auto get(const std::string& id) {
+		size_t ub = _models.size();
+		while (0 < ub) {
+			auto x = _models[--ub].lock();
+			if (!x) {
+				_models.erase(_models.begin() + ub);
+				continue;
+			}
+			if (id == x->_id) return x;
+		}
+		return decltype(_models.front().lock())();
 	}
+};
+
+// this will have to transcode to FILE*
+class map_cell
+{
+private:
+	// raw pointers lose on tile loading
+	std::shared_ptr<floor_model> _floor;
+	std::shared_ptr<wall_model> _wall_w;
+	std::shared_ptr<wall_model> _wall_n;
+public:
+	map_cell() = default;
+	~map_cell() = default;
+	map_cell(const map_cell& src) = default;
+	map_cell(map_cell&& src) = default;
+	map_cell& operator=(const map_cell & src) = default;
+	map_cell& operator=(map_cell&& src) = default;
 };
 
 // standard orientation is N (this does not line up with trigonometry)

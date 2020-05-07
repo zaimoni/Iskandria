@@ -1,4 +1,5 @@
 #include "gridtile.hpp"
+#include "gridspace.hpp"
 
 #include "test_driver.h"
 
