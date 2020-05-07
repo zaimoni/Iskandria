@@ -64,7 +64,7 @@ public:
 		return decltype(_models.front().lock())();
 	}
 
-	std::shared_ptr<floor_model> read_synthetic_id(FILE* src)
+	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src)
 	{
 		decltype(auto) _cache = cache();
 		uintmax_t new_id = read_uintmax(_cache.size(), src);
@@ -73,7 +73,7 @@ public:
 		return _cache[new_id - 1].lock();
 	}
 
-	void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest)
+	static void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest)
 	{
 		decltype(auto) _cache = cache();
 		const size_t ub = _cache.size();
@@ -132,16 +132,16 @@ public:
 		return decltype(_models.front().lock())();
 	}
 
-	std::shared_ptr<wall_model> read_synthetic_id(FILE* src)
+	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src)
 	{
 		decltype(auto) _cache = cache();
 		uintmax_t new_id = read_uintmax(_cache.size(), src);
-		SUCCEED_OR_DIE(_cache.size() >= new_id);
+		SUCCEED_OR_DIE(_cache.size() >= new_id);	// XXX \todo something more recoverable
 		SUCCEED_OR_DIE(0 < new_id);
 		return _cache[new_id - 1].lock();
 	}
 
-	void write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest)
+	static void write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest)
 	{
 		decltype(auto) _cache = cache();
 		const size_t ub = _cache.size();
@@ -178,6 +178,17 @@ public:
 	map_cell(map_cell&& src) = default;
 	map_cell& operator=(const map_cell & src) = default;
 	map_cell& operator=(map_cell&& src) = default;
+
+	map_cell(FILE* src)
+	: _floor(floor_model::read_synthetic_id(src)),
+	  _wall_w(wall_model::read_synthetic_id(src)),
+	  _wall_n(wall_model::read_synthetic_id(src)) {}
+
+	void save(FILE* dest) const {
+		floor_model::write_synthetic_id(_floor, dest);
+		wall_model::write_synthetic_id(_wall_w, dest);
+		wall_model::write_synthetic_id(_wall_n, dest);
+	}
 };
 
 // standard orientation is N (this does not line up with trigonometry)
