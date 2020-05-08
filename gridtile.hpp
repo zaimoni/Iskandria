@@ -38,6 +38,7 @@ private:
 	std::string _img_path_se;	// viewpoint facing SE
 	std::string _img_path_sw;	// viewpoint facing SW
 	// VAPORWARE ceiling tiles are just floor tiles viewed from below
+
 public:
 	enum reserved {
 		NONE = 0
@@ -50,49 +51,12 @@ public:
 	floor_model& operator=(const floor_model& src) = default;
 	floor_model& operator=(floor_model && src) = default;
 
-	static auto get(const std::string& id) {
-		decltype(auto) _models = cache();
-		size_t ub = _models.size();
-		while (0 < ub) {
-			auto x = _models[--ub].lock();
-			if (!x) {
-				_models.erase(_models.begin() + ub);
-				continue;
-			}
-			if (id == x->_id) return x;
-		}
-		return decltype(_models.front().lock())();
-	}
-
-	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src)
-	{
-		decltype(auto) _cache = cache();
-		uintmax_t new_id = read_uintmax(_cache.size(), src);
-		SUCCEED_OR_DIE(_cache.size() >= new_id);
-		SUCCEED_OR_DIE(0 < new_id);
-		return _cache[new_id - 1].lock();
-	}
-
-	static void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest)
-	{
-		decltype(auto) _cache = cache();
-		const size_t ub = _cache.size();
-		size_t i = ub;
-		do  {
-			decltype(auto) x = _cache[--i];
-			if (x.lock() == src) {
-				write_uintmax(ub, i, dest);
-				return;
-			}
-		} while(0 < ub);
-	}
+	static std::shared_ptr<floor_model> get(const std::string& id);
+	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src);
+	static void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest);
 
 private:
-	static std::vector<std::weak_ptr<floor_model> >& cache()
-	{
-		static std::vector<std::weak_ptr<floor_model> > ooao;
-		return ooao;
-	}
+	static std::vector<std::weak_ptr<floor_model> >& cache();
 };
 
 class wall_model
@@ -106,6 +70,7 @@ private:
 	std::string _img_path_inside_s;
 
 	static std::vector<std::weak_ptr<wall_model> > _models;
+
 public:
 	enum reserved {
 		NONE = 0
@@ -118,49 +83,12 @@ public:
 	wall_model& operator=(const wall_model & src) = default;
 	wall_model& operator=(wall_model && src) = default;
 
-	static auto get(const std::string& id) {
-		decltype(auto) _models = cache();
-		size_t ub = _models.size();
-		while (0 < ub) {
-			auto x = _models[--ub].lock();
-			if (!x) {
-				_models.erase(_models.begin() + ub);
-				continue;
-			}
-			if (id == x->_id) return x;
-		}
-		return decltype(_models.front().lock())();
-	}
-
-	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src)
-	{
-		decltype(auto) _cache = cache();
-		uintmax_t new_id = read_uintmax(_cache.size(), src);
-		SUCCEED_OR_DIE(_cache.size() >= new_id);	// XXX \todo something more recoverable
-		SUCCEED_OR_DIE(0 < new_id);
-		return _cache[new_id - 1].lock();
-	}
-
-	static void write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest)
-	{
-		decltype(auto) _cache = cache();
-		const size_t ub = _cache.size();
-		size_t i = ub;
-		do {
-			decltype(auto) x = _cache[--i];
-			if (x.lock() == src) {
-				write_uintmax(ub, i, dest);
-				return;
-			}
-		} while (0 < ub);
-	}
+	static std::shared_ptr<wall_model> get(const std::string& id);
+	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src);
+	static void write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest);
 
 private:
-	static std::vector<std::weak_ptr<wall_model> >& cache()
-	{
-		static std::vector<std::weak_ptr<wall_model> > ooao;
-		return ooao;
-	}
+	static std::vector<std::weak_ptr<wall_model> >& cache();
 };
 
 // this will have to transcode to FILE*
@@ -171,6 +99,7 @@ private:
 	std::shared_ptr<floor_model> _floor;
 	std::shared_ptr<wall_model> _wall_w;
 	std::shared_ptr<wall_model> _wall_n;
+
 public:
 	map_cell() = default;
 	~map_cell() = default;
