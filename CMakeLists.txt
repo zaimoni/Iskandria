@@ -81,7 +81,7 @@ add_dependencies(cyclic_fn.test AutoDetect)
 target_link_libraries(dicounter.test z_log_adapter)
 
 target_compile_definitions(gridtile.test PRIVATE TEST_APP)
-target_link_libraries(gridtile.test z_log_adapter z_stdio_c)
+target_link_libraries(gridtile.test z_log_adapter z_stdio_c z_json)
 add_dependencies(gridtile.test AutoDetect)
 
 target_compile_definitions(heat_engine.test PRIVATE TEST_APP3)

@@ -8,6 +8,10 @@
 #include <vector>
 #include <memory>
 
+namespace zaimoni {
+	class JSON;
+}
+
 namespace iskandria {
 namespace grid {
 
@@ -51,6 +55,8 @@ public:
 	floor_model& operator=(const floor_model& src) = default;
 	floor_model& operator=(floor_model && src) = default;
 
+	explicit floor_model(const zaimoni::JSON& src);
+
 	static std::shared_ptr<floor_model> get(const std::string& id);
 	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src);
 	static void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest);
@@ -82,6 +88,8 @@ public:
 	wall_model(wall_model && src) = default;
 	wall_model& operator=(const wall_model & src) = default;
 	wall_model& operator=(wall_model && src) = default;
+
+	explicit wall_model(const zaimoni::JSON& src);
 
 	static std::shared_ptr<wall_model> get(const std::string& id);
 	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src);
