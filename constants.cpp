@@ -74,10 +74,19 @@ fundamental_constants::fundamental_constants()
 #endif
 }
 
+#define SCALE_BY(OP,VAR)	\
+	distance_unit.OP(VAR);	\
+	time_unit.OP(VAR);	\
+	mass_unit.OP(VAR);	\
+	temperature_unit.OP(VAR);	\
+	charge_unit.OP(VAR);	\
+	amu_mass.OP(VAR);	\
+	Q_e.OP(VAR)
+
 void fundamental_constants::mult_scale_distance(interval x)
 {
 	const interval x2(square(x));
-	distance_unit /= x;
+	SCALE_BY(mult_scale_length, x);
 	c *= x;
 	G *= x;
 	G *= x2;
@@ -89,7 +98,7 @@ void fundamental_constants::mult_scale_distance(interval x)
 void fundamental_constants::div_scale_distance(interval x)
 {
 	const interval x2(square(x));
-	distance_unit *= x;
+	SCALE_BY(div_scale_length, x);
 	c /= x;
 	G /= x;
 	G /= x2;
@@ -101,7 +110,7 @@ void fundamental_constants::div_scale_distance(interval x)
 void fundamental_constants::mult_scale_time(interval x)
 {
 	const interval x2(square(x));
-	time_unit /= x;
+	SCALE_BY(mult_scale_time, x);
 	c /= x;
 	G /= x2;
 	k /= x2;
@@ -112,7 +121,7 @@ void fundamental_constants::mult_scale_time(interval x)
 void fundamental_constants::div_scale_time(interval x)
 {
 	const interval x2(square(x));
-	time_unit *= x;
+	SCALE_BY(div_scale_time, x);
 	c *= x;
 	G *= x2;
 	k *= x2;
@@ -122,8 +131,7 @@ void fundamental_constants::div_scale_time(interval x)
 
 void fundamental_constants::mult_scale_mass(interval x)
 {
-	mass_unit /= x;
-	amu_mass /= x;
+	SCALE_BY(mult_scale_mass, x);
 	G /= x;
 	k *= x;
 	h *= x;
@@ -132,8 +140,7 @@ void fundamental_constants::mult_scale_mass(interval x)
 
 void fundamental_constants::div_scale_mass(interval x)
 {
-	mass_unit *= x;
-	amu_mass *= x;
+	SCALE_BY(div_scale_mass, x);
 	G *= x;
 	k /= x;
 	h /= x;
@@ -142,28 +149,25 @@ void fundamental_constants::div_scale_mass(interval x)
 
 void fundamental_constants::mult_scale_temperature(interval x)
 {
-	temperature_unit /= x;
+	SCALE_BY(mult_scale_temperature, x);
 	k /= x;
 }
 
 void fundamental_constants::div_scale_temperature(interval x)
 {
-	temperature_unit *= x;
+	SCALE_BY(div_scale_temperature, x);
 	k *= x;
 }
 
 void fundamental_constants::mult_scale_charge(interval x)
 {
-	charge_unit /= x;
-	Q_e /= x;
+	SCALE_BY(mult_scale_charge, x);
 }
 
 void fundamental_constants::div_scale_charge(interval x)
 {
-	charge_unit *= x;
-	Q_e *= x;
+	SCALE_BY(div_scale_charge, x);
 }
-
 
 void fundamental_constants::geometrize()
 {

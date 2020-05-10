@@ -5,6 +5,7 @@
 #define CONSTANTS_HPP
 
 #include "interval_shim.hpp"
+#include "dim_anal.hpp"
 
 // This class does not directly reach the savefile.
 
@@ -30,11 +31,11 @@ public:
 	static const interval alpha;	// fine structure constant
 
 	// tracking representative units
-	interval distance_unit;	// in meters
-	interval time_unit;	// in seconds
-	interval mass_unit;	// in kilograms; problematic for solar system units due to overprecision of the Sun's GM
-	interval temperature_unit;	// in kelvin
-	interval charge_unit;	// in coulomb; not geometrizable, have to choose between clean force law and charge of electron=1
+	dim_analysis::length distance_unit;	// in meters
+	dim_analysis::time time_unit;	// in seconds
+	dim_analysis::mass mass_unit;	// in kilograms; problematic for solar system units due to overprecision of the Sun's GM
+	dim_analysis::temperature temperature_unit;	// in kelvin
+	dim_analysis::charge charge_unit;	// in coulomb; not geometrizable, have to choose between clean force law and charge of electron=1
 
 	// these four are the geometrizable constants: set all four to 1 to uniquely solve the above units.
 	// These three are from Misner/Thorne/Wheeler
@@ -57,9 +58,12 @@ public:
 	interval epsilon_0;	// permittivity of free space; electric constant
 #endif
 	// atomic units
-	interval amu_mass;
-	interval Q_e;	// electron charge; while this is numerically the same as the electron-volt energy unit in MKS, 
+	dim_analysis::mass amu_mass;
+	dim_analysis::charge Q_e;	// electron charge; while this is numerically the same as the electron-volt energy unit in MKS, 
 					// the dimensions are different so they scale differently.
+
+	// empirical units of particle physics
+
 
 	fundamental_constants();	// default-constructs to SI units.
 
