@@ -63,7 +63,12 @@ public:
 					// the dimensions are different so they scale differently.
 
 	// empirical units of particle physics
-
+	interval eV;	// electron-volt: energy unit
+	dim_analysis::mass eV_mass;	// eV/c^2
+	interval eV_momentum;	// eV/c
+	dim_analysis::temperature eV_temperature;	// eV/k
+	dim_analysis::time eV_time;	// h-bar/eV
+	dim_analysis::length eV_distance;	// (h-bar c)/eV
 
 	fundamental_constants();	// default-constructs to SI units.
 
@@ -78,6 +83,7 @@ public:
 	void mult_scale_charge(interval x);
 	void div_scale_charge(interval x);
 	void geometrize();
+	void rebuild_eV_units();
 };
 
 const fundamental_constants& SI_units();	// i.e. MKS

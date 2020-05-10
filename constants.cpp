@@ -53,7 +53,7 @@ fundamental_constants::fundamental_constants()
 	// atomic units
 #if CODATA_VERSION==2018
 	amu_mass(1.66053906560e-27, 1.66053906760e-27),	// CODATA 2018; kg 1.660 539 066 60 e-27    0.000 000 000 50 e-27
-	Q_e(1.602176634e-19)	// CODATA 2019 (definition); C
+	Q_e(1.602176634e-19),	// CODATA 2019 (definition); C
 #elif CODATA_VERSION==2010
 	amu_mass(1.660538775e-27, 1.660539018e-27),	// 2010 CODATA: 1.660 538 921 e-27       0.000 000 073 e-27
 	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C	// should fix this
@@ -68,11 +68,17 @@ fundamental_constants::fundamental_constants()
 	// in CODATA 2018/2019, epsilon_0 is computed from the fine structure constant as the other quantities are defined
 	// i.e. classical electrostatic/electrodynamic problems may be cleaner in CODATA 2014 than CODATA 2018
 #endif
+	eV(Q_e.x())	// electron-volt: energy unit
 {
 #if CODATA_VERSION!=2018
 	h = 2.0 * interval_shim::pi * h_bar;
 #endif
+	rebuild_eV_units();
 }
+
+dim_analysis::temperature eV_temperature;	// eV/k
+dim_analysis::time eV_time;	// h-bar/eV
+dim_analysis::length eV_distance;	// (h-bar c)/eV
 
 #define SCALE_BY(OP,VAR)	\
 	distance_unit.OP(VAR);	\
@@ -81,7 +87,11 @@ fundamental_constants::fundamental_constants()
 	temperature_unit.OP(VAR);	\
 	charge_unit.OP(VAR);	\
 	amu_mass.OP(VAR);	\
-	Q_e.OP(VAR)
+	Q_e.OP(VAR);	\
+	eV_mass.OP(VAR);	\
+	eV_temperature.OP(VAR);	\
+	eV_time.OP(VAR);	\
+	eV_distance.OP(VAR)
 
 void fundamental_constants::mult_scale_distance(interval x)
 {
@@ -231,6 +241,16 @@ void fundamental_constants::geometrize()
 	// so maybe the problem can be shoved into epsilon_0?
 }
 
+void fundamental_constants::rebuild_eV_units()
+{
+	eV_mass = eV / square(c);
+	eV_momentum = eV / c;
+	eV_temperature = eV /k ;
+	eV_time = h_bar / eV;
+	eV_distance = (h_bar * c) / eV;
+}
+
+
 const fundamental_constants& SI_units()
 {
 	static fundamental_constants* x = NULL;
@@ -250,6 +270,7 @@ const fundamental_constants& CGS_units()
 	x->mult_scale_charge(10*SI_CODATA_C);	// mass^1/2 length^3/2 time^-1 (!) due force law F = q1q2/r^2 rather than F = q1q1/[4pi epsilon_0 r^2]
 	// electromagnetic version has an extra factor of 4pi; same dimensionality, however
 	// The electrostatic conversion is exact only when epsilon_0 is an exact constant by construction (CODATA 2014-).
+	x->rebuild_eV_units();
 	return *x;
 }
 
@@ -259,6 +280,8 @@ const fundamental_constants& geometrized_units()
 	if (x) return *x;
 	x = new fundamental_constants();
 	x->geometrize();
+
+	x->rebuild_eV_units();
 	return *x;
 }
 
@@ -282,6 +305,8 @@ const fundamental_constants& solar_system_units()
 	x->div_scale_distance(1.495978707e11);	// AU definition
 	x->div_scale_time(86400*365.25636);	// sidereal year, quasar reference frame
 	x->div_scale_mass(fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G);
+
+	x->rebuild_eV_units();
 	return *x;
 }
 
