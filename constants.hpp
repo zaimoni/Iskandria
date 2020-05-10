@@ -30,6 +30,14 @@ public:
 	static const interval inv_alpha;	// inverse fine structure constant
 	static const interval alpha;	// fine structure constant
 
+	// electroweak theory
+	static const interval Z0_mass_GeV;
+	static const interval W_mass_GeV;	// both W+ and W-
+	static const interval cos_of_weak_mixing_angle;
+	static const interval sin2_of_weak_mixing_angle;
+	static const interval PDG_sin2_of_weak_mixing_angle;
+	static const interval PDG_sin2_of_weak_mixing_angle_effective;
+
 	// tracking representative units
 	dim_analysis::length distance_unit;	// in meters
 	dim_analysis::time time_unit;	// in seconds
@@ -72,6 +80,7 @@ public:
 
 	fundamental_constants();	// default-constructs to SI units.
 
+	// unit system rescaling operations
 	void mult_scale_distance(interval x);
 	void div_scale_distance(interval x);
 	void mult_scale_time(interval x);

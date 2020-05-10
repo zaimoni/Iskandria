@@ -10,6 +10,9 @@
 #ifndef CODATA_VERSION
 #define CODATA_VERSION 2018
 #endif
+#ifndef PDG_VERSION
+#define PDG_VERSION 2018
+#endif
 
 // interval entries done at +/1 standard deviation [sic]
 
@@ -22,6 +25,15 @@ const fundamental_constants::interval fundamental_constants::N_A(6.022140787e23,
 const fundamental_constants::interval fundamental_constants::inv_alpha(137.035999108, 137.035999170);	// CODATA 2014
 const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e-3, 7.2973525661e-3);	// electron-charge^2/[(4pi epsilon_0 h-bar c]
 #endif
+
+// electroweak theory, PDG 2018
+const fundamental_constants::interval fundamental_constants::Z0_mass_GeV(80.355, 80.403);	// 80.379(12)
+const fundamental_constants::interval fundamental_constants::W_mass_GeV(91.1823, 91.1909);	// 91.1867(21) both W+ and W-
+const fundamental_constants::interval fundamental_constants::cos_of_weak_mixing_angle(Z0_mass_GeV/W_mass_GeV);
+const fundamental_constants::interval fundamental_constants::sin2_of_weak_mixing_angle(1.0-zaimoni::math::square(cos_of_weak_mixing_angle));
+const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle(0.23114, 0.23130);	// 0.23122(4)
+const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective(0.23145, 0.23165);	// 0.23155(5)
+
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -44,7 +56,7 @@ fundamental_constants::fundamental_constants()
 #elif CODATA_VERSION==2010
 	G(6.67304e-11,6.67464e-11),	// CODATA 2010; m^3 kg^-1 s^-2
 	k(1.3806475e-23,1.3806501e-23),	// CODATA 2010; J/K i.e. m^2 kg s^-2 K^-1
-	h_bar(1.054571679e-34,1.054571773e-34)	// CODATA 2010; J s i.e. m^2 kg s^-1
+	h_bar(1.054571679e-34,1.054571773e-34),	// CODATA 2010; J s i.e. m^2 kg s^-1
 #else
 	G(6.67377e-11, 6.67439e-11),	// CODATA 2014; m^3 kg^-1 s^-2
 	k(1.38064773e-23, 1.38064921e-23),	// CODATA 2014; J/K i.e. m^2 kg s^-2 K^-1
@@ -56,10 +68,10 @@ fundamental_constants::fundamental_constants()
 	Q_e(1.602176634e-19),	// CODATA 2019 (definition); C
 #elif CODATA_VERSION==2010
 	amu_mass(1.660538775e-27, 1.660539018e-27),	// 2010 CODATA: 1.660 538 921 e-27       0.000 000 073 e-27
-	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C	// should fix this
+	Q_e(1.6021766110e-19, 1.6021766306e-19),	// CODATA 2014; C	// should fix this
 #else
 	amu_mass(1.660539000e-27, 1.660539080e-27),	// 2014 CODATA: 1.660 539 040 e - 27       0.000 000 020 e - 27
-	Q_e(1.6021766110e-19, 1.6021766306e-19)	// CODATA 2014; C
+	Q_e(1.6021766110e-19, 1.6021766306e-19),	// CODATA 2014; C
 #endif
 #if 0
 	m_e(9.10938345e-31, 9.10938367e-31),	// CODATA 2014; kg
@@ -68,17 +80,17 @@ fundamental_constants::fundamental_constants()
 	// in CODATA 2018/2019, epsilon_0 is computed from the fine structure constant as the other quantities are defined
 	// i.e. classical electrostatic/electrodynamic problems may be cleaner in CODATA 2014 than CODATA 2018
 #endif
-	eV(Q_e.x())	// electron-volt: energy unit
+	eV(Q_e.x()),	// electron-volt: energy unit
+	eV_mass(eV / pow<2>(c)),
+	eV_momentum(eV / c),
+	eV_temperature(eV / k),
+	eV_time(h_bar / eV),
+	eV_distance((h_bar* c) / eV)
 {
 #if CODATA_VERSION!=2018
 	h = 2.0 * interval_shim::pi * h_bar;
 #endif
-	rebuild_eV_units();
 }
-
-dim_analysis::temperature eV_temperature;	// eV/k
-dim_analysis::time eV_time;	// h-bar/eV
-dim_analysis::length eV_distance;	// (h-bar c)/eV
 
 #define SCALE_BY(OP,VAR)	\
 	distance_unit.OP(VAR);	\
@@ -217,11 +229,11 @@ void fundamental_constants::geometrize()
 
 void fundamental_constants::rebuild_eV_units()
 {
-	eV_mass = eV / pow<2>(c);
-	eV_momentum = eV / c;
-	eV_temperature = eV /k ;
-	eV_time = h_bar / eV;
-	eV_distance = (h_bar * c) / eV;
+	eV_mass = intersect(eV_mass, eV / pow<2>(c));
+	eV_momentum = intersect(eV_momentum, eV / c);
+	eV_temperature = intersect(eV_temperature, eV /k);
+	eV_time = intersect(eV_time, h_bar / eV);
+	eV_distance = intersect(eV_distance, (h_bar * c) / eV);
 }
 
 
@@ -278,7 +290,7 @@ const fundamental_constants& solar_system_units()
 	
 	x->div_scale_distance(1.495978707e11);	// AU definition
 	x->div_scale_time(86400*365.25636);	// sidereal year, quasar reference frame
-	x->div_scale_mass((fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G).x());
+	x->mult_scale_mass((fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G).x());
 
 	x->rebuild_eV_units();
 	return *x;
@@ -314,7 +326,7 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(fundamental_constants::alpha, "\n");
 
 	STRING_LITERAL_TO_STDOUT("\npi\n");
-	INTERVAL_TO_STDOUT(interval_shim::pi, " \n");
+	INTERVAL_TO_STDOUT(interval_shim::pi, "\n");
 
 	STRING_LITERAL_TO_STDOUT("\nspeed of light\n");
 	INTERVAL_TO_STDOUT(SI_units().c," m/s\n");
@@ -369,15 +381,23 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(geo_temperature," K\n");
 
 	fundamental_constants test_geometrization;
-	test_geometrization.div_scale(sqrt(geo_dist_squared));
-	test_geometrization.div_scale(sqrt(geo_time_squared));
-	test_geometrization.div_scale(sqrt(geo_mass_squared));
-	test_geometrization.div_scale(geo_temperature);
+	test_geometrization.mult_scale(sqrt(geo_dist_squared));
+	test_geometrization.mult_scale(sqrt(geo_time_squared));
+	test_geometrization.mult_scale(sqrt(geo_mass_squared));
+	test_geometrization.mult_scale(geo_temperature);
 	STRING_LITERAL_TO_STDOUT("\nCross-check geometrization\n");
 	INTERVAL_TO_STDOUT(test_geometrization.c,"\n");
 	INTERVAL_TO_STDOUT(test_geometrization.G,"\n");
 	INTERVAL_TO_STDOUT(test_geometrization.k,"\n");
 	INTERVAL_TO_STDOUT(test_geometrization.h_bar,"\n");	
+
+	STRING_LITERAL_TO_STDOUT("\nElectroweak theory\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Z0_mass_GeV, " GeV : Z0 rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::W_mass_GeV, " GeV : W+/- rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::cos_of_weak_mixing_angle, " cos(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::sin2_of_weak_mixing_angle, " sin^2(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle, " PDG sin^2(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective, " PDG sin^2(weak mixing angle), effective\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }
