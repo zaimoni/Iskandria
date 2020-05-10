@@ -53,7 +53,7 @@ public:
 
 	interval efficiency() const {
 		auto q_in = _Q_in.E();
-		return (q_in - _Q_out.E()) / q_in;
+		return scalar((q_in - _Q_out.E()) / q_in);
 	}
 
 	bool syntax_ok() const

@@ -86,87 +86,58 @@ dim_analysis::length eV_distance;	// (h-bar c)/eV
 	mass_unit.OP(VAR);	\
 	temperature_unit.OP(VAR);	\
 	charge_unit.OP(VAR);	\
+	c.OP(VAR);	\
+	G.OP(VAR);	\
+	k.OP(VAR);	\
+	h.OP(VAR);	\
+	h_bar.OP(VAR);	\
 	amu_mass.OP(VAR);	\
 	Q_e.OP(VAR);	\
+	eV.OP(VAR);	\
 	eV_mass.OP(VAR);	\
+	eV_momentum.OP(VAR);	\
 	eV_temperature.OP(VAR);	\
 	eV_time.OP(VAR);	\
 	eV_distance.OP(VAR)
 
 void fundamental_constants::mult_scale_distance(interval x)
 {
-	const interval x2(square(x));
 	SCALE_BY(mult_scale_length, x);
-	c *= x;
-	G *= x;
-	G *= x2;
-	k *= x2;
-	h *= x2;
-	h_bar *= x2;
 }
 
 void fundamental_constants::div_scale_distance(interval x)
 {
-	const interval x2(square(x));
 	SCALE_BY(div_scale_length, x);
-	c /= x;
-	G /= x;
-	G /= x2;
-	k /= x2;
-	h /= x2;
-	h_bar /= x2;
 }
 
 void fundamental_constants::mult_scale_time(interval x)
 {
-	const interval x2(square(x));
 	SCALE_BY(mult_scale_time, x);
-	c /= x;
-	G /= x2;
-	k /= x2;
-	h /= x;
-	h_bar /= x;
 }
 
 void fundamental_constants::div_scale_time(interval x)
 {
-	const interval x2(square(x));
 	SCALE_BY(div_scale_time, x);
-	c *= x;
-	G *= x2;
-	k *= x2;
-	h *= x;
-	h_bar *= x;
 }
 
 void fundamental_constants::mult_scale_mass(interval x)
 {
 	SCALE_BY(mult_scale_mass, x);
-	G /= x;
-	k *= x;
-	h *= x;
-	h_bar *= x;
 }
 
 void fundamental_constants::div_scale_mass(interval x)
 {
 	SCALE_BY(div_scale_mass, x);
-	G *= x;
-	k /= x;
-	h /= x;
-	h_bar /= x;
 }
 
 void fundamental_constants::mult_scale_temperature(interval x)
 {
 	SCALE_BY(mult_scale_temperature, x);
-	k /= x;
 }
 
 void fundamental_constants::div_scale_temperature(interval x)
 {
 	SCALE_BY(div_scale_temperature, x);
-	k *= x;
 }
 
 void fundamental_constants::mult_scale_charge(interval x)
@@ -202,30 +173,33 @@ void fundamental_constants::geometrize()
     G*h_bar/c^3: dist^2
     h_bar*c/G: mass^2   
  */
-	const interval geo_dist_squared_1 = (G/pow(c,3))*h_bar;
-	const interval geo_dist_squared_2 = (h_bar/pow(c,3))*G;
-	const interval geo_dist_squared_3 = (G*h_bar)/pow(c,3);
-	const interval geo_dist_squared = intersect(intersect(geo_dist_squared_1,geo_dist_squared_2),geo_dist_squared_3);
+	const auto c_3 = pow<3>(c);
+	const auto geo_dist_squared_1 = (G/ c_3)*h_bar;
+	const auto geo_dist_squared_2 = (h_bar/ c_3)*G;
+	const auto geo_dist_squared_3 = (G*h_bar)/ c_3;
+	const auto geo_dist_squared = intersect(intersect(geo_dist_squared_1,geo_dist_squared_2),geo_dist_squared_3);
 
-	const interval geo_time_squared_1 = (G/pow(c,5))*h_bar;
-	const interval geo_time_squared_2 = (h_bar/pow(c,5))*G;
-	const interval geo_time_squared_3 = (G*h_bar)/pow(c,5);
-	const interval geo_time_squared = intersect(intersect(geo_time_squared_1,geo_time_squared_2),geo_time_squared_3);
+	const auto c_5 = pow<5>(c);
+	const auto geo_time_squared_1 = (G/ c_5)*h_bar;
+	const auto geo_time_squared_2 = (h_bar/ c_5)*G;
+	const auto geo_time_squared_3 = (G*h_bar)/ c_5;
+	const auto geo_time_squared = intersect(intersect(geo_time_squared_1,geo_time_squared_2),geo_time_squared_3);
 
-	const interval geo_mass_squared_1 = (h_bar/G)*c;
-	const interval geo_mass_squared_2 = (c/G)*h_bar;
-	const interval geo_mass_squared_3 = (h_bar*c)/G;
-	const interval geo_mass_squared = intersect(intersect(geo_mass_squared_1,geo_mass_squared_2),geo_mass_squared_3);
+	const auto geo_mass_squared_1 = (h_bar/G)*c;
+	const auto geo_mass_squared_2 = (c/G)*h_bar;
+	const auto geo_mass_squared_3 = (h_bar*c)/G;
+	const auto geo_mass_squared = intersect(intersect(geo_mass_squared_1,geo_mass_squared_2),geo_mass_squared_3);
 
-	const interval geo_temperature_1 = (square(c)/k)*sqrt(geo_mass_squared);
-	const interval geo_temperature_2 = (sqrt(geo_mass_squared)/k)*square(c);
-	const interval geo_temperature_3 = (square(c)*sqrt(geo_mass_squared))/k;
-	const interval geo_temperature = intersect(intersect(geo_temperature_1,geo_temperature_2),geo_temperature_3);
+	const auto c_2 = pow<2>(c);
+	const auto geo_temperature_1 = (c_2 /k)*sqrt(geo_mass_squared);
+	const auto geo_temperature_2 = (sqrt(geo_mass_squared)/k)* c_2;
+	const auto geo_temperature_3 = (c_2 *sqrt(geo_mass_squared))/k;
+	const auto geo_temperature = intersect(intersect(geo_temperature_1,geo_temperature_2),geo_temperature_3);
 
-	div_scale_distance(sqrt(geo_dist_squared));
-	div_scale_time(sqrt(geo_time_squared));
-	div_scale_mass(sqrt(geo_mass_squared));
-	div_scale_temperature(geo_temperature);
+	div_scale(sqrt(geo_dist_squared));
+	div_scale(sqrt(geo_time_squared));
+	div_scale(sqrt(geo_mass_squared));
+	div_scale(geo_temperature);
 
 	// set geometrized constants to 1
 	c = 1.0;
@@ -243,7 +217,7 @@ void fundamental_constants::geometrize()
 
 void fundamental_constants::rebuild_eV_units()
 {
-	eV_mass = eV / square(c);
+	eV_mass = eV / pow<2>(c);
 	eV_momentum = eV / c;
 	eV_temperature = eV /k ;
 	eV_time = h_bar / eV;
@@ -290,7 +264,7 @@ const fundamental_constants& solar_system_units()
 	static fundamental_constants* x = NULL;
 	if (x) return *x;
 	x = new fundamental_constants();
-	const fundamental_constants::interval SI_G(x->G);
+	const auto SI_G(x->G);
 
 	// time unit: 1 Earth year
 	// distance unit: 1 AU (semimajor axis of Earth's orbit)
@@ -304,7 +278,7 @@ const fundamental_constants& solar_system_units()
 	
 	x->div_scale_distance(1.495978707e11);	// AU definition
 	x->div_scale_time(86400*365.25636);	// sidereal year, quasar reference frame
-	x->div_scale_mass(fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G);
+	x->div_scale_mass((fundamental_constants::interval(1.32712440010e20,1.32712440026e20)/SI_G).x());
 
 	x->rebuild_eV_units();
 	return *x;
@@ -378,27 +352,27 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(geometrized_units().mass_unit," kg\n");
 	INTERVAL_TO_STDOUT(geometrized_units().temperature_unit," K\n");
 
-	const fundamental_constants::interval geo_dist_squared = SI_units().G*SI_units().h_bar/(SI_units().c*square(SI_units().c));
+	const auto geo_dist_squared = SI_units().G*SI_units().h_bar/pow<3>(SI_units().c);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized distance unit squared\n");
 	INTERVAL_TO_STDOUT(geo_dist_squared," m^2\n");
 
-	const fundamental_constants::interval geo_time_squared = geo_dist_squared/square(SI_units().c);
+	const auto geo_time_squared = geo_dist_squared/pow<2>(SI_units().c);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized time unit squared\n");
 	INTERVAL_TO_STDOUT(geo_time_squared," s^2\n");
 
-	const fundamental_constants::interval geo_mass_squared = SI_units().h_bar*SI_units().c/SI_units().G;
+	const auto geo_mass_squared = SI_units().h_bar*SI_units().c/SI_units().G;
 	STRING_LITERAL_TO_STDOUT("\nGeometrized mass unit squared\n");
 	INTERVAL_TO_STDOUT(geo_mass_squared," kg^2\n");
 
-	const fundamental_constants::interval geo_temperature = square(SI_units().c)/SI_units().k*sqrt(geo_mass_squared);
+	const auto geo_temperature = pow<2>(SI_units().c)/SI_units().k*sqrt(geo_mass_squared);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized temperature unit\n");
 	INTERVAL_TO_STDOUT(geo_temperature," K\n");
 
 	fundamental_constants test_geometrization;
-	test_geometrization.div_scale_distance(sqrt(geo_dist_squared));
-	test_geometrization.div_scale_time(sqrt(geo_time_squared));
-	test_geometrization.div_scale_mass(sqrt(geo_mass_squared));
-	test_geometrization.div_scale_temperature(geo_temperature);
+	test_geometrization.div_scale(sqrt(geo_dist_squared));
+	test_geometrization.div_scale(sqrt(geo_time_squared));
+	test_geometrization.div_scale(sqrt(geo_mass_squared));
+	test_geometrization.div_scale(geo_temperature);
 	STRING_LITERAL_TO_STDOUT("\nCross-check geometrization\n");
 	INTERVAL_TO_STDOUT(test_geometrization.c,"\n");
 	INTERVAL_TO_STDOUT(test_geometrization.G,"\n");

@@ -34,14 +34,14 @@ public:
 	measured measurement_code() const { return (measured)((_mode%SCHWARZSCHILD_RADIUS)+1); }
 
 	// readouts of interest
-	interval m() const;	// mass
-	interval E() const;	// energy
-	interval Schwarzschild_r() const;	// Schwarzschild radius
+	dim_analysis::mass m() const;	// mass
+	dim_analysis::energy E() const;	// energy
+	dim_analysis::length Schwarzschild_r() const;	// Schwarzschild radius
 	interval GM() const;	// standard gravitational parameter
 
 	// could convert these to additional definition modes if needed
-	interval restmass_zero_momentum() const;	// E/c
-	interval DeBroglie_wavelength() const;		// also known as Compton wavelength; E/h
+	dim_analysis::momentum restmass_zero_momentum() const;	// E/c
+	dim_analysis::length DeBroglie_wavelength() const;		// also known as Compton wavelength; hc/E
 
 	friend bool operator==(const mass& lhs, const mass& rhs);
 };

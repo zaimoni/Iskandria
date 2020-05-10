@@ -39,12 +39,12 @@ public:
 
 	// these four are the geometrizable constants: set all four to 1 to uniquely solve the above units.
 	// These three are from Misner/Thorne/Wheeler
-	interval c;	// speed of light in vacuum
-	interval G;	// Newtonian G
-	interval k;	// Boltzmann constant
+	dim_analysis::speed c;	// speed of light in vacuum
+	dim_analysis::mult<dim_analysis::power<dim_analysis::speed, 3>::type, dim_analysis::div<dim_analysis::time, dim_analysis::mass>::type>::type G;	// Newtonian G
+	dim_analysis::div<dim_analysis::energy, dim_analysis::temperature>::type k;	// Boltzmann constant
 	// No source for this; equates General Relatvity momentum and Quantum Mechanics momentum.
-	interval h;	// Planck constant
-	interval h_bar;	// Planck constant/2pi
+	dim_analysis::mult<dim_analysis::energy, dim_analysis::time>::type h;	// Planck constant
+	dim_analysis::mult<dim_analysis::energy, dim_analysis::time>::type h_bar;	// Planck constant/2pi
 
 #if 0
 	// following are from atomic units
@@ -63,9 +63,9 @@ public:
 					// the dimensions are different so they scale differently.
 
 	// empirical units of particle physics
-	interval eV;	// electron-volt: energy unit
+	dim_analysis::energy eV;	// electron-volt: energy unit
 	dim_analysis::mass eV_mass;	// eV/c^2
-	interval eV_momentum;	// eV/c
+	dim_analysis::momentum eV_momentum;	// eV/c
 	dim_analysis::temperature eV_temperature;	// eV/k
 	dim_analysis::time eV_time;	// h-bar/eV
 	dim_analysis::length eV_distance;	// (h-bar c)/eV
@@ -82,6 +82,18 @@ public:
 	void div_scale_temperature(interval x);
 	void mult_scale_charge(interval x);
 	void div_scale_charge(interval x);
+
+	void mult_scale(const dim_analysis::mass& x) { mult_scale_mass(x.x()); }
+	void div_scale(const dim_analysis::mass& x) { div_scale_mass(x.x()); }
+	void mult_scale(const dim_analysis::length& x) { mult_scale_distance(x.x()); }
+	void div_scale(const dim_analysis::length& x) { div_scale_distance(x.x()); }
+	void mult_scale(const dim_analysis::time& x) { mult_scale_time(x.x()); }
+	void div_scale(const dim_analysis::time& x) { div_scale_time(x.x()); }
+	void mult_scale(const dim_analysis::temperature& x) { mult_scale_temperature(x.x()); }
+	void div_scale(const dim_analysis::temperature& x) { div_scale_temperature(x.x()); }
+	void mult_scale(const dim_analysis::charge& x) { mult_scale_charge(x.x()); }
+	void div_scale(const dim_analysis::charge& x) { div_scale_charge(x.x()); }
+
 	void geometrize();
 	void rebuild_eV_units();
 };

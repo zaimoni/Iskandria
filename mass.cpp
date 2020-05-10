@@ -6,7 +6,7 @@ mass::mass(measured _m, fundamental_constants::units _u, const interval& src)
 {
 }
 
-mass::interval mass::m() const 
+dim_analysis::mass mass::m() const
 {
 	const auto m_code = measurement_code();
 	if (MASS == m_code) return _x;
@@ -15,14 +15,14 @@ mass::interval mass::m() const
 	const fundamental_constants& system = fundamental_constants::get(u_code);
 	switch (m_code)
 	{
-	case ENERGY: return _x / square(system.c);
-	case ASTRODYNAMIC: return _x / system.G;
-	case SCHWARZSCHILD_RADIUS: return _x / system.G * square(system.c);
+	case ENERGY: return dim_analysis::energy(_x) / pow<2>(system.c);
+	case ASTRODYNAMIC: return _x / system.G.x();
+	case SCHWARZSCHILD_RADIUS: return dim_analysis::length(_x) / system.G * pow<2>(system.c);
 	default: _fatal_code("unhandled measurement code", 3);
 	}
 }
 
-mass::interval mass::E() const
+dim_analysis::energy mass::E() const
 {
 	const auto m_code = measurement_code();
 	if (ENERGY == m_code) return _x;
@@ -31,14 +31,14 @@ mass::interval mass::E() const
 	const fundamental_constants& system = fundamental_constants::get(u_code);
 	switch (m_code)
 	{
-	case MASS: return _x * square(system.c);
-	case ASTRODYNAMIC: return _x / system.G * square(system.c);
-	case SCHWARZSCHILD_RADIUS: return _x / system.G * square(square(system.c));
+	case MASS: return dim_analysis::mass(_x) * pow<2>(system.c);
+	case ASTRODYNAMIC: return _x / system.G.x() * pow<2>(system.c).x();
+	case SCHWARZSCHILD_RADIUS: return dim_analysis::length(_x) / system.G * pow<4>(system.c);
 	default: _fatal_code("unhandled measurement code", 3);
 	}
 }
 
-mass::interval mass::Schwarzschild_r() const
+dim_analysis::length mass::Schwarzschild_r() const
 {
 	const auto m_code = measurement_code();
 	if (SCHWARZSCHILD_RADIUS == m_code) return _x;
@@ -47,9 +47,9 @@ mass::interval mass::Schwarzschild_r() const
 	const fundamental_constants& system = fundamental_constants::get(u_code);
 	switch (m_code)
 	{
-	case MASS: return _x * system.G / square(system.c);
-	case ENERGY: return _x * system.G / square(square(system.c));
-	case ASTRODYNAMIC: return _x / square(system.c);
+	case MASS: return dim_analysis::mass(_x) * system.G / pow<2>(system.c);
+	case ENERGY: return dim_analysis::energy(_x) * system.G / pow<4>(system.c);
+	case ASTRODYNAMIC: return _x / pow<2>(system.c).x();
 	default: _fatal_code("unhandled measurement code", 3);
 	}
 }
@@ -63,14 +63,14 @@ mass::interval mass::GM() const
 	const fundamental_constants& system = fundamental_constants::get(u_code);
 	switch (m_code)
 	{
-	case MASS: return _x * system.G;
-	case ENERGY:  return _x * system.G / square(system.c);
-	case SCHWARZSCHILD_RADIUS: return _x * square(system.c);
+	case MASS: return _x * system.G.x();
+	case ENERGY:  return _x * system.G.x() / pow<2>(system.c).x();
+	case SCHWARZSCHILD_RADIUS: return _x * pow<2>(system.c).x();
 	default: _fatal_code("unhandled measurement code", 3);
 	}
 }
 
-mass::interval mass::restmass_zero_momentum() const
+dim_analysis::momentum mass::restmass_zero_momentum() const
 {
 	const auto u_code = system_code();
 	if (fundamental_constants::PLANCK == u_code) return _x;	// all correction multipliers are 1 in Planck units
@@ -78,12 +78,12 @@ mass::interval mass::restmass_zero_momentum() const
 	return E() / system.c;
 }
 
-mass::interval mass::DeBroglie_wavelength() const
+dim_analysis::length mass::DeBroglie_wavelength() const
 {
 	const auto u_code = system_code();
 	if (fundamental_constants::PLANCK == u_code) return _x/(2.0*interval_shim::pi);	// h is 2pi in Planck units
 	const fundamental_constants& system = fundamental_constants::get(u_code);
-	return E() / system.h;
+	return system.h* system.c / E();
 }
 
 

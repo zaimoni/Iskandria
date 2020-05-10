@@ -78,7 +78,7 @@ public:
 	interval specific_orbital_energy() const { return -0.5*m_div_a(); }
 	mass orbital_energy(const mass& m) const {
 		assert(_m.system_code() == m.system_code());	// \todo we could handle mis-matched unit systems here
-		return mass(mass::ENERGY, _m.system_code(), specific_orbital_energy() * m.m());
+		return mass(mass::ENERGY, _m.system_code(), specific_orbital_energy() * m.m().x());
 	}
 	interval specific_relative_angular_momentum() const { return sqrt((1.0 - square(_orbit.e()) * _m.GM() * _orbit.a())); }	// again, wants support from conic class
 	interval geometric_mean_of_v_pericenter_v_apocenter() const { return sqrt(m_div_a()); }
