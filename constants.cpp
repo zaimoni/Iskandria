@@ -3,7 +3,7 @@
 #include "constants.hpp"
 #include "Zaimoni.STL/Logging.h"
 
-#include <cmath>	// do not need augmentations here
+#include "Zaimoni.STL/augment.STL/cmath"
 
 // note that CODATA estimates are released the year after their name (they are named after the cutoff point which is usually late December)
 // so e.g. wikipedia commentary on the changes is under CODATA 2019
@@ -27,13 +27,23 @@ const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e
 #endif
 
 // electroweak theory, PDG 2018
-const fundamental_constants::interval fundamental_constants::Z0_mass_GeV(80.355, 80.403);	// 80.379(12)
-const fundamental_constants::interval fundamental_constants::W_mass_GeV(91.1823, 91.1909);	// 91.1867(21) both W+ and W-
-const fundamental_constants::interval fundamental_constants::cos_of_weak_mixing_angle(Z0_mass_GeV/W_mass_GeV);
+const fundamental_constants::interval fundamental_constants::W_mass_GeV(80.355, 80.403);	// 80.379(12)
+const fundamental_constants::interval fundamental_constants::Z0_mass_GeV(91.1823, 91.1909);	// 91.1867(21) both W+ and W-
+const fundamental_constants::interval fundamental_constants::Higgs_mass_GeV(124.86, 125.50);	// 125.18(16)
+// weak mixing angle theta_W stats
+const fundamental_constants::interval fundamental_constants::cos_of_weak_mixing_angle(W_mass_GeV/Z0_mass_GeV);
 const fundamental_constants::interval fundamental_constants::sin2_of_weak_mixing_angle(1.0-zaimoni::math::square(cos_of_weak_mixing_angle));
+const fundamental_constants::interval fundamental_constants::CODATA_sin2_of_weak_mixing_angle(0.22230, 0.22350);	// 0.22290(30); 2018
 const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle(0.23114, 0.23130);	// 0.23122(4)
 const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective(0.23145, 0.23165);	// 0.23155(5)
-
+// Higgs Lagrangian:
+// expectation value of Higgs field : <phi^0> i.e. v
+// Lagrangian coefficients: lambda (self-coupling strength) > 0, mu^2 > 0
+// mu^2 := lambda*v
+// Lagrangian also has g (g2, SU(2) gauge coupling) for W_i and g' (g1, U(1) gauge coupling) for B/Y electroweak boson components
+// other gauge coupling is gs, g3, SU(3) gauge coupling
+// note: g1/g2 = tan(theta_W)
+// note: fine structure constant alpha is 1/(4pi) (g1 g2)^2/(g1^2 + g2^2)
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -208,10 +218,15 @@ void fundamental_constants::geometrize()
 	const auto geo_temperature_3 = (c_2 *sqrt(geo_mass_squared))/k;
 	const auto geo_temperature = intersect(intersect(geo_temperature_1,geo_temperature_2),geo_temperature_3);
 
-	div_scale(sqrt(geo_dist_squared));
-	div_scale(sqrt(geo_time_squared));
-	div_scale(sqrt(geo_mass_squared));
-	div_scale(geo_temperature);
+	mult_scale(sqrt(geo_dist_squared));
+	mult_scale(sqrt(geo_time_squared));
+	mult_scale(sqrt(geo_mass_squared));
+	mult_scale(geo_temperature);
+
+	assert(c.x().contains(1.0));
+	assert(G.x().contains(1.0));
+	assert(k.x().contains(1.0));
+	assert(h_bar.x().contains(1.0));
 
 	// set geometrized constants to 1
 	c = 1.0;
@@ -228,12 +243,27 @@ void fundamental_constants::geometrize()
 }
 
 void fundamental_constants::rebuild_eV_units()
-{
+{	// 2020-05-11 something going wrong with Planck units only...eV not NaN but may be suspect
+	assert(!zaimoni::isNaN(eV_mass.x()));
 	eV_mass = intersect(eV_mass, eV / pow<2>(c));
+	if (zaimoni::isNaN(eV_mass.x())) eV_mass = eV / pow<2>(c);
+	assert(!zaimoni::isNaN(eV_mass.x()));
+	assert(!zaimoni::isNaN(eV_momentum.x()));
 	eV_momentum = intersect(eV_momentum, eV / c);
+	if (zaimoni::isNaN(eV_momentum.x())) eV_momentum = eV / c;
+	assert(!zaimoni::isNaN(eV_momentum.x()));
+	assert(!zaimoni::isNaN(eV_temperature.x()));
 	eV_temperature = intersect(eV_temperature, eV /k);
+	if (zaimoni::isNaN(eV_temperature.x())) eV_temperature = eV / k;
+	assert(!zaimoni::isNaN(eV_temperature.x()));
+	assert(!zaimoni::isNaN(eV_time.x()));
 	eV_time = intersect(eV_time, h_bar / eV);
+	if (zaimoni::isNaN(eV_time.x())) eV_time = h_bar / eV;
+	assert(!zaimoni::isNaN(eV_time.x()));
+	assert(!zaimoni::isNaN(eV_distance.x()));
 	eV_distance = intersect(eV_distance, (h_bar * c) / eV);
+	if (zaimoni::isNaN(eV_distance.x())) eV_distance = (h_bar * c) / eV;
+	assert(!zaimoni::isNaN(eV_distance.x()));
 }
 
 
@@ -394,10 +424,18 @@ int main(int argc, char* argv[])
 	STRING_LITERAL_TO_STDOUT("\nElectroweak theory\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::Z0_mass_GeV, " GeV : Z0 rest mass\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::W_mass_GeV, " GeV : W+/- rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_mass_GeV, " GeV : Higgs rest mass\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::cos_of_weak_mixing_angle, " cos(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::sin2_of_weak_mixing_angle, " sin^2(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::CODATA_sin2_of_weak_mixing_angle, " CODATA sin^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle, " PDG sin^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective, " PDG sin^2(weak mixing angle), effective\n");
+
+	STRING_LITERAL_TO_STDOUT("\nHiggs Lagrangian mu^2\n");
+	INTERVAL_TO_STDOUT(SI_units().Higgs_Lagrangian_mu_squared(), " kg^2\n");
+	INTERVAL_TO_STDOUT(CGS_units().Higgs_Lagrangian_mu_squared(), " g^2\n");
+	INTERVAL_TO_STDOUT(geometrized_units().Higgs_Lagrangian_mu_squared(), " Planck mass^2\n");
+	INTERVAL_TO_STDOUT(solar_system_units().Higgs_Lagrangian_mu_squared(), " solar mass^2\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

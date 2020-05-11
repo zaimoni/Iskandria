@@ -33,8 +33,10 @@ public:
 	// electroweak theory
 	static const interval Z0_mass_GeV;
 	static const interval W_mass_GeV;	// both W+ and W-
+	static const interval Higgs_mass_GeV;
 	static const interval cos_of_weak_mixing_angle;
 	static const interval sin2_of_weak_mixing_angle;
+	static const interval CODATA_sin2_of_weak_mixing_angle;
 	static const interval PDG_sin2_of_weak_mixing_angle;
 	static const interval PDG_sin2_of_weak_mixing_angle_effective;
 
@@ -79,6 +81,12 @@ public:
 	dim_analysis::length eV_distance;	// (h-bar c)/eV
 
 	fundamental_constants();	// default-constructs to SI units.
+
+	// Higgs Lagrangian stats
+	auto Higgs_Lagrangian_mu_squared() const {
+		auto H_mass(1e9 * eV_mass * Higgs_mass_GeV);
+		return H_mass * H_mass / 2.0;
+	}
 
 	// unit system rescaling operations
 	void mult_scale_distance(interval x);
