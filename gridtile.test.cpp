@@ -8,15 +8,15 @@ namespace grid {
 
 floor_model::floor_model(const zaimoni::JSON& src) : floor_model()
 {
-	if (decltype(auto) x = src.get("id"); x->is_scalar()) _id = x->scalar();
+	if (decltype(auto) x = src.get("id"); x && x->is_scalar()) _id = x->scalar();
 	else throw std::runtime_error("did not load floor tile");
-	if (decltype(auto) x = src.get("name"); x->is_scalar()) _name = x->scalar();
+	if (decltype(auto) x = src.get("name"); x && x->is_scalar()) _name = x->scalar();
 	else throw std::runtime_error("did not load floor tile");
-	if (decltype(auto) x = src.get("path"); zaimoni::JSON::object == x->mode()) {
-		if (decltype(auto) facing_img = x->get("nw"); facing_img->is_scalar()) _img_path_nw = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("ne"); facing_img->is_scalar()) _img_path_ne = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("se"); facing_img->is_scalar()) _img_path_se = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("sw"); facing_img->is_scalar()) _img_path_sw = facing_img->scalar();
+	if (decltype(auto) x = src.get("path"); x && zaimoni::JSON::object == x->mode()) {
+		if (decltype(auto) facing_img = x->get("nw"); facing_img && facing_img->is_scalar()) _img_path_nw = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("ne"); facing_img && facing_img->is_scalar()) _img_path_ne = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("se"); facing_img && facing_img->is_scalar()) _img_path_se = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("sw"); facing_img && facing_img->is_scalar()) _img_path_sw = facing_img->scalar();
 	}
 }
 
@@ -38,6 +38,13 @@ std::shared_ptr<floor_model> floor_model::get(const std::string& id) {
 		if (id == x->_id) return x;
 	}
 	return decltype(_models.front().lock())();
+}
+
+std::shared_ptr<floor_model> floor_model::get(const zaimoni::JSON& src)
+{
+	std::shared_ptr<floor_model> ret(new floor_model(src));
+	cache().push_back(ret);	// \todo handle duplicate-id configs
+	return ret;
 }
 
 std::shared_ptr<floor_model> floor_model::read_synthetic_id(FILE* src)
@@ -65,15 +72,15 @@ void floor_model::write_synthetic_id(const std::shared_ptr<floor_model>& src, FI
 
 wall_model::wall_model(const zaimoni::JSON& src) : wall_model()
 {
-	if (decltype(auto) x = src.get("id"); x->is_scalar()) _id = x->scalar();
+	if (decltype(auto) x = src.get("id"); x && x->is_scalar()) _id = x->scalar();
 	else throw std::runtime_error("did not load wall tile");
-	if (decltype(auto) x = src.get("name"); x->is_scalar()) _name = x->scalar();
+	if (decltype(auto) x = src.get("name"); x && x->is_scalar()) _name = x->scalar();
 	else throw std::runtime_error("did not load wall tile");
-	if (decltype(auto) x = src.get("path"); zaimoni::JSON::object == x->mode()) {
-		if (decltype(auto) facing_img = x->get("out_n"); facing_img->is_scalar()) _img_path_outside_n = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("out_w"); facing_img->is_scalar()) _img_path_outside_w = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("in_e"); facing_img->is_scalar()) _img_path_inside_e = facing_img->scalar();
-		if (decltype(auto) facing_img = x->get("in_s"); facing_img->is_scalar()) _img_path_inside_s = facing_img->scalar();
+	if (decltype(auto) x = src.get("path"); x && zaimoni::JSON::object == x->mode()) {
+		if (decltype(auto) facing_img = x->get("out_n"); facing_img && facing_img->is_scalar()) _img_path_outside_n = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("out_w"); facing_img && facing_img->is_scalar()) _img_path_outside_w = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("in_e"); facing_img && facing_img->is_scalar()) _img_path_inside_e = facing_img->scalar();
+		if (decltype(auto) facing_img = x->get("in_s"); facing_img && facing_img->is_scalar()) _img_path_inside_s = facing_img->scalar();
 	}
 }
 
@@ -96,6 +103,13 @@ std::shared_ptr<wall_model> wall_model::get(const std::string& id)
 		if (id == x->_id) return x;
 	}
 	return decltype(_models.front().lock())();
+}
+
+std::shared_ptr<wall_model> wall_model::get(const zaimoni::JSON& src)
+{
+	std::shared_ptr<wall_model> ret(new wall_model(src));
+	cache().push_back(ret);	// \todo handle duplicate-id configs
+	return ret;
 }
 
 std::shared_ptr<wall_model> wall_model::read_synthetic_id(FILE* src)

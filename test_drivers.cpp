@@ -1,5 +1,7 @@
 #include "input_manager.hpp"
 #include "display_manager.hpp"
+#include "gridtile.hpp"
+#include "Zaimoni.STL/Pure.CPP/json.hpp"
 
 // VAPORWARE: isometric view test driver, with a boardable AA gun
 static bool AA_chessboard()
@@ -7,24 +9,52 @@ static bool AA_chessboard()
 	isk::InputManager::close_menu();	// request closing our invoking menu only
 
 	// \todo load required grid tiles
-	// for now, exercise the CGI image generation
-	auto w_floor = isk::DisplayManager::get().getImage("cgi:floor:#CCC");
-	auto g_floor = isk::DisplayManager::get().getImage("cgi:floor:#999999");
-	auto w_wall_front = isk::DisplayManager::get().getImage("cgi:lwall:#F00");
-	auto w_wall_back = isk::DisplayManager::get().getImage("cgi:rwall:#00FF00");
-	auto n_wall_front = isk::DisplayManager::get().getImage("cgi:rwall:#0000FF");
-	auto n_wall_back = isk::DisplayManager::get().getImage("cgi:lwall:#FFFF00");
+	zaimoni::JSON paths;
+	zaimoni::JSON tile_config;
+	tile_config.set("id", "lg_floor");
+	tile_config.set("name", "light gray floor");
+	paths.set("nw", "cgi:floor:#CCC");
+	tile_config.set("path", paths);
+
+	auto w_floor = iskandria::grid::floor_model::get(tile_config);
+
+	tile_config.set("id", "g_floor");
+	tile_config.set("name", "gray floor");
+	paths.set("nw", "cgi:floor:#999999");
+	tile_config.set("path", paths);
+
+	auto g_floor = iskandria::grid::floor_model::get(tile_config);
+
+	tile_config.set("id", "by_wall");
+	tile_config.set("name", "blue-yellow wall");
+	paths.reset();
+	paths.set("out_n", "cgi:rwall:#0000FF");
+	paths.set("in_s", "cgi:lwall:#FFFF00");
+	paths.set("out_w", "cgi:lwall:#0000FF");	// in theory computable from out_n
+	paths.set("in_e", "cgi:rwall:#FFFF00");		// in theory computable from in_s
+	tile_config.set("path", paths);
+
+	auto by_wall = iskandria::grid::wall_model::get(tile_config);
+
+	tile_config.set("id", "rg_wall");
+	tile_config.set("name", "red-green wall");
+	paths.reset();
+	paths.set("out_n", "cgi:rwall:#F00");
+	paths.set("in_s", "cgi:lwall:#00FF00");
+	paths.set("out_w", "cgi:lwall:#F00");	// in theory computable from out_n
+	paths.set("in_e", "cgi:rwall:#00FF00");		// in theory computable from in_s
+	tile_config.set("path", paths);
+
+	auto rg_wall = iskandria::grid::wall_model::get(tile_config);
 
 	// \todo set up map data mockup and camera viewpoint
 	// \todo install command processing menu
 	auto terminate_menu = [=]() mutable {	// must capture by value so that std::weak_ptrs don't wink out prematurely
 		w_floor.reset();
 		g_floor.reset();
-		w_wall_front.reset();
-		w_wall_back.reset();
-		n_wall_front.reset();
-		n_wall_back.reset();
-		return isk::InputManager::close_menus();	// close everything at/above our menu (fails loop cycling)
+		by_wall.reset();
+		rg_wall.reset();
+		return isk::InputManager::close_menus();	// close everything at/above our menu
 	};
 
 	isk::textmenu AA_map_controls;

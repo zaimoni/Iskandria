@@ -58,6 +58,7 @@ public:
 	explicit floor_model(const zaimoni::JSON& src);
 
 	static std::shared_ptr<floor_model> get(const std::string& id);
+	static std::shared_ptr<floor_model> get(const zaimoni::JSON& src);
 	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src);
 	static void write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest);
 
@@ -92,6 +93,7 @@ public:
 	explicit wall_model(const zaimoni::JSON& src);
 
 	static std::shared_ptr<wall_model> get(const std::string& id);
+	static std::shared_ptr<wall_model> get(const zaimoni::JSON& src);
 	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src);
 	static void write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest);
 
