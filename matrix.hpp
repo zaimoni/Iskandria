@@ -6,10 +6,63 @@
 #include "Zaimoni.STL/rw.hpp"
 #include "slice.hpp"
 #include "Euclidean.hpp"
+#include "Zaimoni.STL/zero.hpp"
 #include <array>
 #include <algorithm>
 
 namespace zaimoni {
+
+template<class T>
+auto linear_encode(const T* lb, const T* ub, T* src, size_t n) -> unconditional_t<size_t, typename types<T>::norm>
+{
+	size_t ret = 0;
+	size_t prior_span = 1;
+	size_t i = n;
+	while (0 < n) {
+		assert(*lb < *ub);
+		assert(*lb <= *src);
+		assert(*src < *ub);
+		auto max_delta = pos_diff(*ub, *lb);
+		if (1 < max_delta) {
+			auto delta = pos_diff(*src, *lb);
+			ret *= prior_span;
+			ret += delta;
+			prior_span *= max_delta;
+		}
+		if (0 >= --n) break;
+		++ub;
+		++lb;
+		++src;
+	}
+	return ret;
+}
+
+template<class T>
+auto linear_decode(const T* lb, const T* ub, size_t code, T* dest, size_t n) -> unconditional_t<void, typename types<T>::norm>
+{
+	size_t ret = 0;
+	size_t i = n;
+	lb += (n - 1);
+	lb += (n - 1);
+	lb += (n - 1);
+	while (0 < n) {
+		assert(*lb < *ub);
+		assert(*lb <= *src);
+		assert(*src < *ub);
+		auto max_delta = pos_diff(*ub, *lb);
+		if (1 < max_delta) {
+			auto delta = pos_diff(*src, *lb);
+			*dest = code % max_delta;
+			code /= max_delta;
+		}
+		if (0 >= --n) break;
+		--ub;
+		--lb;
+		--dest;
+	}
+	return ret;
+}
+
 namespace math {
 
 template<class T, class U>
