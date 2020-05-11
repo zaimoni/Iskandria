@@ -16,31 +16,6 @@
 namespace zaimoni {
 namespace math {
 
-// testing indicates Boost's numeric interval Does The Wrong Thing here (crashes sin by div-by-zero)
-template<class T>
-struct static_cache<ISK_INTERVAL<T> >
-{
-	template<intmax_t n> 
-	static const ISK_INTERVAL<T>& as()
-	{
-		static const ISK_INTERVAL<T> ret((T)n);
-		return ret;
-	}
-
-	template<uintmax_t n> 
-	static typename std::enable_if<
-			std::numeric_limits<intmax_t>::max()<n,
-		const ISK_INTERVAL<T>& >::type as2()
-	{
-		static const ISK_INTERVAL<T> ret((T)n);
-		return ret;
-	}
-
-	static ISK_INTERVAL<T> as3(intmax_t n) { return ISK_INTERVAL<T>(T(n)); }
-	static ISK_INTERVAL<T> as4(uintmax_t n) { return ISK_INTERVAL<T>(T(n)); }
-};
-
-
 // identify interval-arithmetic type suitable for degrading to
 // default to pass-through
 template<class T> struct interval_type
