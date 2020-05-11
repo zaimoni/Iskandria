@@ -63,14 +63,22 @@ Cross-check geometrization
 [0.9999101069727006, 1.000089901108782]
 
 Electroweak theory
-[91.1823, 91.1909] GeV : Z0 rest mass
-[80.355, 80.40300000000001] GeV : W+/- rest mass
-[124.86, 125.5] GeV : Higgs rest mass
+[91.1823, 91.1909] GeV/c^2 : Z0 rest mass
+[80.355, 80.40300000000001] GeV/c^2 : W+/- rest mass
+[124.86, 125.5] GeV/c^2 : Higgs rest mass
 [0.8811734504210398, 0.8817829776173667] cos(weak mixing angle)
+[0.7764666497269206, 0.7775412196157494] cos^2(weak mixing angle)
 [0.2224587803842506, 0.2235333502730794] sin^2(weak mixing angle)
 [0.2223, 0.2235] CODATA sin^2(weak mixing angle)
 [0.23114, 0.2313] PDG sin^2(weak mixing angle)
 [0.23145, 0.23165] PDG sin^2(weak mixing angle), effective
+[0.5348882591816239, 0.536549457596452] tan(weak mixing angle)
+[0.286105449810348, 0.2878853204470469] tan^2(weak mixing angle)
+[0.4096681981456305, 0.4127872326545123] Higgs Lagrangian g2^2
+[0.6400532775836949, 0.6424852003388968] Higgs Lagrangian g2
+[0.1172083041034504, 0.118835384749194] Higgs Lagrangian g1^2
+[0.3423569834302352, 0.3447250857555829] Higgs Lagrangian g1
+[250.1380575229266, 251.2384603467211] Higgs vacuum expectation value GeV/c^2
 
 Higgs Lagrangian mu^2
 [2.477163323483656e-50, 2.502623000916466e-50] kg^2

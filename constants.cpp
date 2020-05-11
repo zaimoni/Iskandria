@@ -32,7 +32,10 @@ const fundamental_constants::interval fundamental_constants::Z0_mass_GeV(91.1823
 const fundamental_constants::interval fundamental_constants::Higgs_mass_GeV(124.86, 125.50);	// 125.18(16)
 // weak mixing angle theta_W stats
 const fundamental_constants::interval fundamental_constants::cos_of_weak_mixing_angle(W_mass_GeV/Z0_mass_GeV);
-const fundamental_constants::interval fundamental_constants::sin2_of_weak_mixing_angle(1.0-zaimoni::math::square(cos_of_weak_mixing_angle));
+const fundamental_constants::interval fundamental_constants::cos2_of_weak_mixing_angle(zaimoni::math::square(cos_of_weak_mixing_angle));
+const fundamental_constants::interval fundamental_constants::sin2_of_weak_mixing_angle(1.0- cos2_of_weak_mixing_angle);	// other way (1 + cos(...))(1 - cos(...)) is strictly lower precision
+const fundamental_constants::interval fundamental_constants::tan_of_weak_mixing_angle(sqrt(sin2_of_weak_mixing_angle)/cos_of_weak_mixing_angle);
+const fundamental_constants::interval fundamental_constants::tan2_of_weak_mixing_angle(sin2_of_weak_mixing_angle/cos2_of_weak_mixing_angle);
 const fundamental_constants::interval fundamental_constants::CODATA_sin2_of_weak_mixing_angle(0.22230, 0.22350);	// 0.22290(30); 2018
 const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle(0.23114, 0.23130);	// 0.23122(4)
 const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective(0.23145, 0.23165);	// 0.23155(5)
@@ -44,6 +47,11 @@ const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mi
 // other gauge coupling is gs, g3, SU(3) gauge coupling
 // note: g1/g2 = tan(theta_W)
 // note: fine structure constant alpha is 1/(4pi) (g1 g2)^2/(g1^2 + g2^2)
+// i.e.: 4pi alpha = (g1 g2)^2/(g1^2 + g2^2) = g2^2 tan^2(theta_W)/(1+tan^2(theta_W))
+// 4pi alpha (1 + tan^2(theta_w))/tan^2(theta_W) = g2^2
+const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_g2_squared((4.0 * interval_shim::pi * alpha * (1 + tan2_of_weak_mixing_angle)) / tan2_of_weak_mixing_angle);
+const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_g1_squared(tan2_of_weak_mixing_angle* Higgs_Lagrangian_g2_squared);
+const fundamental_constants::interval fundamental_constants::Higgs_vacuum_expectation_value_GeV(2.0* W_mass_GeV/sqrt(Higgs_Lagrangian_g2_squared));
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -422,14 +430,22 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(test_geometrization.h_bar,"\n");	
 
 	STRING_LITERAL_TO_STDOUT("\nElectroweak theory\n");
-	INTERVAL_TO_STDOUT(fundamental_constants::Z0_mass_GeV, " GeV : Z0 rest mass\n");
-	INTERVAL_TO_STDOUT(fundamental_constants::W_mass_GeV, " GeV : W+/- rest mass\n");
-	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_mass_GeV, " GeV : Higgs rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Z0_mass_GeV, " GeV/c^2 : Z0 rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::W_mass_GeV, " GeV/c^2 : W+/- rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_mass_GeV, " GeV/c^2 : Higgs rest mass\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::cos_of_weak_mixing_angle, " cos(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::cos2_of_weak_mixing_angle, " cos^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::sin2_of_weak_mixing_angle, " sin^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::CODATA_sin2_of_weak_mixing_angle, " CODATA sin^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle, " PDG sin^2(weak mixing angle)\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::PDG_sin2_of_weak_mixing_angle_effective, " PDG sin^2(weak mixing angle), effective\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::tan_of_weak_mixing_angle, " tan(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::tan2_of_weak_mixing_angle, " tan^2(weak mixing angle)\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_g2_squared, " Higgs Lagrangian g2^2\n");
+	INTERVAL_TO_STDOUT(sqrt(fundamental_constants::Higgs_Lagrangian_g2_squared), " Higgs Lagrangian g2\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_g1_squared, " Higgs Lagrangian g1^2\n");
+	INTERVAL_TO_STDOUT(sqrt(fundamental_constants::Higgs_Lagrangian_g1_squared), " Higgs Lagrangian g1\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Higgs vacuum expectation value GeV/c^2\n");
 
 	STRING_LITERAL_TO_STDOUT("\nHiggs Lagrangian mu^2\n");
 	INTERVAL_TO_STDOUT(SI_units().Higgs_Lagrangian_mu_squared(), " kg^2\n");
