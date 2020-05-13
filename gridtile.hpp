@@ -4,6 +4,7 @@
 #include "XCOMlike.hpp"
 #include "Zaimoni.STL/Logging.h"
 #include "Zaimoni.STL/Pure.C/stdio_c.h"
+#include "Zaimoni.STL/c_bitmap.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -109,7 +110,7 @@ private:
 	std::shared_ptr<floor_model> _floor;
 	std::shared_ptr<wall_model> _wall_w;
 	std::shared_ptr<wall_model> _wall_n;
-
+	typename zaimoni::bitmap<2>::type _flags;
 public:
 	map_cell() = default;
 	~map_cell() = default;
@@ -121,12 +122,26 @@ public:
 	map_cell(FILE* src)
 	: _floor(floor_model::read_synthetic_id(src)),
 	  _wall_w(wall_model::read_synthetic_id(src)),
-	  _wall_n(wall_model::read_synthetic_id(src)) {}
+	  _wall_n(wall_model::read_synthetic_id(src)),
+	  _flags(zaimoni::read<decltype(_flags)>(src)) {}
 
 	void save(FILE* dest) const {
 		floor_model::write_synthetic_id(_floor, dest);
 		wall_model::write_synthetic_id(_wall_w, dest);
 		wall_model::write_synthetic_id(_wall_n, dest);
+		zaimoni::write(_flags, dest);
+	}
+
+	void set_floor(const std::string& id) { _floor = floor_model::get(id); }
+	void set_n_wall(const std::string& id, bool reversed = false) {
+		_wall_n = wall_model::get(id);
+		_flags &= ~(1ULL << 0);
+		_flags |= ((unsigned long long)reversed << 0);
+	}
+	void set_w_wall(const std::string& id, bool reversed = false) {
+		_wall_w = wall_model::get(id);
+		_flags &= ~(1ULL << 1);
+		_flags |= ((unsigned long long)reversed << 1);
 	}
 };
 
