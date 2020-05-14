@@ -52,6 +52,8 @@ const fundamental_constants::interval fundamental_constants::PDG_sin2_of_weak_mi
 const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_g2_squared((4.0 * interval_shim::pi * alpha * (1 + tan2_of_weak_mixing_angle)) / tan2_of_weak_mixing_angle);
 const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_g1_squared(tan2_of_weak_mixing_angle* Higgs_Lagrangian_g2_squared);
 const fundamental_constants::interval fundamental_constants::Higgs_vacuum_expectation_value_GeV(2.0* W_mass_GeV/sqrt(Higgs_Lagrangian_g2_squared));
+const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_mu_squared_GeV_squared(fundamental_constants::Higgs_mass_GeV* fundamental_constants::Higgs_mass_GeV/2);
+const fundamental_constants::interval fundamental_constants::Higgs_Lagrangian_self_interaction_lambda(Higgs_Lagrangian_mu_squared_GeV_squared/zaimoni::math::square(Higgs_vacuum_expectation_value_GeV));
 
 // CODATA 2010
 #define SI_CODATA_C 299792458.0
@@ -446,12 +448,8 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_g1_squared, " Higgs Lagrangian g1^2\n");
 	INTERVAL_TO_STDOUT(sqrt(fundamental_constants::Higgs_Lagrangian_g1_squared), " Higgs Lagrangian g1\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Higgs vacuum expectation value GeV/c^2\n");
-
-	STRING_LITERAL_TO_STDOUT("\nHiggs Lagrangian mu^2\n");
-	INTERVAL_TO_STDOUT(SI_units().Higgs_Lagrangian_mu_squared(), " kg^2\n");
-	INTERVAL_TO_STDOUT(CGS_units().Higgs_Lagrangian_mu_squared(), " g^2\n");
-	INTERVAL_TO_STDOUT(geometrized_units().Higgs_Lagrangian_mu_squared(), " Planck mass^2\n");
-	INTERVAL_TO_STDOUT(solar_system_units().Higgs_Lagrangian_mu_squared(), " solar mass^2\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_mu_squared_GeV_squared, " Higgs Lagrangian mu^2 GeV^2/c^4\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_self_interaction_lambda, " Higgs Lagrangian self-interaction lambda\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

@@ -231,4 +231,17 @@ bool exact_reflect(const T& origin_x, const T& origin_y, unsigned int offset_cod
 
 }	// namespace grid
 }	// namespace iskandria
+
+namespace zaimoni {
+
+template<>
+struct rw_mode<iskandria::grid::map_cell> {
+	enum {
+		group_write = 3,
+		group_read = 3
+	};
+};
+
+}	// namespace zaimoni
+
 #endif
