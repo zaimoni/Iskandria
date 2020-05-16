@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include "augment.STL/type_traits"
+#include "zero.hpp"
 
 namespace zaimoni {
 
@@ -27,9 +28,12 @@ namespace zaimoni {
 	};
 	// while we want to support vector spaces, matrices, etc., that looks it like it requires more general methods than an operation enum
 	// e.g., consider a 2-dimensional vector space of operations on the surface of a 3-dimesnional sphere
+	namespace math {
+		struct type {};	// tag so we can do template validation
+	}
 
 	template<_type_spec::arch_domain DOM> struct _type {
-		virtual ~_type() = default;
+		static_assert(unconditional_v<bool, false, DOM>, "must specialize this");
 	};
 
 	template<class T>
@@ -103,9 +107,6 @@ namespace zaimoni {
 	};
 
 	template<class T>
-	T* clone(const T& src) { return src.clone(); }
-
-	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API,T>::value, std::shared_ptr<T> >::type
 	scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
 		auto working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
@@ -136,19 +137,19 @@ namespace zaimoni {
 
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
-	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API {
+	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API, math::type {
 		enum { API_code = 1 };
 		int allow_infinity() const override { return 1; }
 	};
 
 	template<>
-	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API {
+	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API, math::type {
 		enum { API_code = 1 };
 		int allow_infinity() const override { return -1; }
 	};
 
 	template<>
-	struct _type<_type_spec::_S1_> : public virtual fp_API {
+	struct _type<_type_spec::_S1_> : public virtual fp_API, math::type {
 		enum { API_code = 0 };
 		int allow_infinity() const override { return 0; }
 	};
