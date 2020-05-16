@@ -20,11 +20,11 @@ namespace circle {
 
 }
 
-	template<>
-	struct _type_of<zaimoni::circle::angle>
-	{
-		typedef _type<_type_spec::_S1_> type;
-	};
+namespace bits {
+
+	template<> struct _type_of<zaimoni::circle::angle> { typedef _type<_type_spec::_S1_> type; };
+
+}
 
 	template<class Derived>
 	struct _interface_of<Derived, zaimoni::circle::angle, 0> : public virtual fp_API

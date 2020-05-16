@@ -156,14 +156,14 @@ namespace zaimoni {
 namespace zaimoni {
 
 template<class Derived>
-class var_CRTP : public _type_of<Derived>::type	// \todo eliminate this if it becomes clear it's not useful
+class var_CRTP : public type_of_t<Derived>	// \todo eliminate this if it becomes clear it's not useful
 {
 public:
 	template<class T> T* get() { return static_cast<Derived*>(this)->template _get(); }
 	template<class T> const T* get() const { return static_cast<Derived*>(this)->template _get(); }
 };
 
-template<class T, class U= typename _type_of<T>::type>
+template<class T, class U= type_of_t<T> >
 class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T, U::API_code>, public _access<T>
 {
 private:
@@ -202,11 +202,14 @@ private:
 	}
 };
 
-template<class T, class U>
-struct _type_of<var<T, U> >
-{
-	typedef U type;
-};
+namespace bits {
+
+	template<class T, class U> struct _type_of<var<T, U> > {
+		static_assert(std::is_base_of_v<zaimoni::math::type, U>);
+		typedef U type;
+	};
+
+}
 
 }	// namespace zaimoni
 

@@ -50,7 +50,7 @@ namespace zaimoni {
 		virtual bool self_eval() = 0;
 		template<class T>
 		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
-		static eval(std::shared_ptr<T>& dest) {
+			static eval(std::shared_ptr<T>& dest) {
 			if (auto efficient = dynamic_cast<eval_shared_ptr<T>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
 				if (auto result = efficient->destructive_eval()) {
 					dest = result;
@@ -74,13 +74,14 @@ namespace zaimoni {
 		virtual int sgn() const = 0;
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
-		virtual std::pair<intmax_t,intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
+		virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
 		void scal_bn(intmax_t scale) {
 			if (0 == scale || is_scal_bn_identity()) return;	// no-op
 			const auto legal = scal_bn_safe_range();
 			if (0 < scale) {
 				if (scale > legal.second) throw std::runtime_error("attempted overflow scal_bn");
-			} else {	// if (0 > scale)
+			}
+			else {	// if (0 > scale)
 				if (scale < legal.first) throw std::runtime_error("attempted underflow scal_bn");
 			}
 
@@ -95,8 +96,8 @@ namespace zaimoni {
 	protected:
 		template<class T>
 		typename std::enable_if<std::is_base_of<fp_API, T>::value, void >::type
-		static __scal_bn(std::shared_ptr<T>& dest,intmax_t scale) {
-			std::shared_ptr<T> working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
+			static __scal_bn(std::shared_ptr<T>& dest, intmax_t scale) {
+			std::shared_ptr<T> working = (1 == dest.use_count()) ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
 			working->scal_bn(scale);
 			dest = working;
 		}
@@ -107,8 +108,8 @@ namespace zaimoni {
 	};
 
 	template<class T>
-	typename std::enable_if<std::is_base_of<fp_API,T>::value, std::shared_ptr<T> >::type
-	scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
+	typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type
+		scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
 		auto working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
 		working->scal_bn(scale);
 		return working;
@@ -157,7 +158,7 @@ namespace zaimoni {
 	// subspace relations
 	template<>
 	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
-		enum {API_code = 0};
+		enum { API_code = 0 };
 
 		virtual ~_type() = default;
 
@@ -178,11 +179,23 @@ namespace zaimoni {
 	template<>
 	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
 
+	namespace bits {
+
+		template<class T>
+		struct _type_of {
+			static_assert(unconditional_v<bool, false, T>, "must specialize this");
+		};
+
+	}
+
+
 	template<class T>
-	struct _type_of {};	// must override to do anything useful
+	using type_of_t = typename bits::_type_of<T>::type;
 
 	template<class Derived, class T, int API_CODE>
-	struct _interface_of {};	// must override to do anything useful
+	struct _interface_of {
+		static_assert(unconditional_v<bool, false, T>, "must specialize this");
+	};	// must override to do anything useful
 
 	template<class Derived, class T>
 	struct _interface_of<Derived, std::shared_ptr<T>, 0>
@@ -194,24 +207,13 @@ namespace zaimoni {
 	{
 	};
 
-	template<>
-	struct _type_of<float>
-	{
-		typedef _type<_type_spec::_R_SHARP_> type;
-	};
+	namespace bits {
 
-	template<>
-	struct _type_of<double>
-	{
-		typedef _type<_type_spec::_R_SHARP_> type;
-	};
+		template<> struct _type_of<float> { typedef _type<_type_spec::_R_SHARP_> type; };
+		template<> struct _type_of<double> { typedef _type<_type_spec::_R_SHARP_> type; };
+		template<> struct _type_of<long double> { typedef _type<_type_spec::_R_SHARP_> type; };
 
-	template<>
-	struct _type_of<long double>
-	{
-		typedef _type<_type_spec::_R_SHARP_> type;
-	};
-
+	}
 
 	template<class T>
 	struct eval {

@@ -12,16 +12,16 @@
 
 namespace zaimoni {
 
-	template<class T>
-	struct _type_of<ISK_INTERVAL<T> >
-	{
-		typedef typename _type_of<T>::type type;
-	};
+namespace bits {
+
+	template<class T> struct _type_of<ISK_INTERVAL<T> > { typedef type_of_t<T> type; };
+
+}
 
 	// get something intelligible out if the C preprocessor is buggy
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<float> >::type, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<double> >::type, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<_type_of<ISK_INTERVAL<long double> >::type, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<float> >, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<double> >, _type<_type_spec::_R_SHARP_> >);
+	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<long double> >, _type<_type_spec::_R_SHARP_> >);
 
 	// we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of
@@ -63,12 +63,12 @@ namespace zaimoni {
 			return 0;
 		}
 
-		typename _type_of<Derived>::type* clone() const override {
+		type_of_t<Derived>* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<double, typename _type_of<Derived>::type>(tmp);
+			return new var<double, type_of_t<Derived> >(tmp);
 		}
 	private:
 		void force_valid_stats() const {
@@ -142,12 +142,12 @@ namespace zaimoni {
 			return 0;
 		}
 
-		typename _type_of<Derived>::type* clone() const override {
+		type_of_t<Derived>* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<float, typename _type_of<Derived>::type>(tmp);
+			return new var<float, type_of_t<Derived> >(tmp);
 		}
 	private:
 		void force_valid_stats() const {
@@ -218,12 +218,12 @@ namespace zaimoni {
 			return 0;
 		}
 
-		typename _type_of<Derived>::type* clone() const override {
+		type_of_t<Derived>* clone() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<long double, typename _type_of<Derived>::type>(tmp);
+			return new var<long double, type_of_t<Derived> >(tmp);
 		}
 	private:
 		void force_valid_stats() const {
