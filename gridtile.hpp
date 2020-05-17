@@ -9,6 +9,14 @@
 #include <vector>
 #include <memory>
 
+// \todo lift this somewhere relevant
+// \todo eliminate when migrating to C++20
+#define ZAIMONI_SIMULATE_RELOPS_WITH_ADL(TYPE)	\
+	inline bool operator!=(const TYPE& lhs, const TYPE& rhs) { return !(lhs == rhs); }	\
+	inline bool operator>(const TYPE& lhs, const TYPE& rhs) { return rhs < lhs; }	\
+	inline bool operator<=(const TYPE& lhs, const TYPE& rhs) { return !(rhs < lhs); }	\
+	inline bool operator>=(const TYPE& lhs, const TYPE& rhs) { return !(lhs < rhs); }
+
 namespace zaimoni {
 	class JSON;
 }
@@ -33,7 +41,7 @@ namespace grid {
 // causes an include graph cycle. [also, the typical value is (1,1,1) so this should be sparse data]
 
 // _img_path specifies a filepath or CGI transform instructions for DisplayManager
-class floor_model
+class floor_model final
 {
 private:
 	std::string _id;	// should be unique
@@ -58,6 +66,9 @@ public:
 
 	explicit floor_model(const zaimoni::JSON& src);
 
+	friend bool operator==(const floor_model& lhs, const floor_model& rhs) { return lhs._id == rhs._id; }
+	friend bool operator<(const floor_model& lhs, const floor_model& rhs) { return lhs._id < rhs._id; }
+
 	static std::shared_ptr<floor_model> get(const std::string& id);
 	static std::shared_ptr<floor_model> get(const zaimoni::JSON& src);
 	static std::shared_ptr<floor_model> read_synthetic_id(FILE* src);
@@ -67,7 +78,9 @@ private:
 	static std::vector<std::weak_ptr<floor_model> >& cache();
 };
 
-class wall_model
+ZAIMONI_SIMULATE_RELOPS_WITH_ADL(floor_model)
+
+class wall_model final
 {
 private:
 	std::string _id;	// should be unique
@@ -93,6 +106,9 @@ public:
 
 	explicit wall_model(const zaimoni::JSON& src);
 
+	friend bool operator==(const wall_model& lhs, const wall_model& rhs) { return lhs._id == rhs._id; }
+	friend bool operator<(const wall_model& lhs, const wall_model& rhs) { return lhs._id < rhs._id; }
+
 	static std::shared_ptr<wall_model> get(const std::string& id);
 	static std::shared_ptr<wall_model> get(const zaimoni::JSON& src);
 	static std::shared_ptr<wall_model> read_synthetic_id(FILE* src);
@@ -102,12 +118,14 @@ private:
 	static std::vector<std::weak_ptr<wall_model> >& cache();
 };
 
+ZAIMONI_SIMULATE_RELOPS_WITH_ADL(wall_model)
+
 // this will have to transcode to FILE*
-class map_cell
+class map_cell final
 {
 private:
 	// raw pointers lose on tile loading
-	std::shared_ptr<floor_model> _floor;
+	std::shared_ptr<floor_model> _floor;	// empty/null is legal and corresponds to "none"
 	std::shared_ptr<wall_model> _wall_w;
 	std::shared_ptr<wall_model> _wall_n;
 	typename zaimoni::bitmap<2>::type _flags;
@@ -132,6 +150,9 @@ public:
 		zaimoni::write(_flags, dest);
 	}
 
+	friend bool operator==(const map_cell& lhs, const map_cell& rhs);
+	friend bool operator<(const map_cell& lhs, const map_cell& rhs);
+
 	void set_floor(const std::string& id) { _floor = floor_model::get(id); }
 	void set_n_wall(const std::string& id, bool reversed = false) {
 		_wall_n = wall_model::get(id);
@@ -144,6 +165,8 @@ public:
 		_flags |= ((unsigned long long)reversed << 1);
 	}
 };
+
+ZAIMONI_SIMULATE_RELOPS_WITH_ADL(map_cell)
 
 // standard orientation is N (this does not line up with trigonometry)
 // we generally want to be able to rotate about any coordinate plane, but default to xy plane (first two coordinates)

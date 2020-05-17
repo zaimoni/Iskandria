@@ -51,9 +51,7 @@ std::shared_ptr<floor_model> floor_model::read_synthetic_id(FILE* src)
 {
 	decltype(auto) _cache = cache();
 	uintmax_t new_id = read_uintmax(_cache.size(), src);
-	SUCCEED_OR_DIE(_cache.size() >= new_id);
-	SUCCEED_OR_DIE(0 < new_id);
-	return _cache[new_id - 1].lock();
+	return (_cache.size() >= new_id && 0 < new_id) ? _cache[new_id - 1].lock() : decltype(_cache[new_id - 1].lock())();
 }
 
 void floor_model::write_synthetic_id(const std::shared_ptr<floor_model>& src, FILE* dest)
@@ -64,10 +62,11 @@ void floor_model::write_synthetic_id(const std::shared_ptr<floor_model>& src, FI
 	do {
 		decltype(auto) x = _cache[--i];
 		if (x.lock() == src) {
-			write_uintmax(ub, i, dest);
+			write_uintmax(ub, i + 1, dest);
 			return;
 		}
 	} while (0 < ub);
+	write_uintmax(ub, 0, dest);
 }
 
 wall_model::wall_model(const zaimoni::JSON& src) : wall_model()
@@ -116,9 +115,7 @@ std::shared_ptr<wall_model> wall_model::read_synthetic_id(FILE* src)
 {
 	decltype(auto) _cache = cache();
 	uintmax_t new_id = read_uintmax(_cache.size(), src);
-	SUCCEED_OR_DIE(_cache.size() >= new_id);	// XXX \todo something more recoverable
-	SUCCEED_OR_DIE(0 < new_id);
-	return _cache[new_id - 1].lock();
+	return (_cache.size() >= new_id && 0 < new_id) ? _cache[new_id - 1].lock() : decltype(_cache[new_id - 1].lock())();
 }
 
 void wall_model::write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE* dest)
@@ -129,10 +126,59 @@ void wall_model::write_synthetic_id(const std::shared_ptr<wall_model>& src, FILE
 	do {
 		decltype(auto) x = _cache[--i];
 		if (x.lock() == src) {
-			write_uintmax(ub, i, dest);
+			write_uintmax(ub, i + 1, dest);
 			return;
 		}
 	} while (0 < ub);
+	write_uintmax(ub, 0, dest);
+}
+
+bool operator==(const map_cell& lhs, const map_cell& rhs)
+{
+	// empty less than non-empty;
+	if (lhs._floor) {
+		if (!rhs._floor) return false;
+		if (*lhs._floor != *rhs._floor) return false;
+	} else if (rhs._floor) return false;
+
+	if (lhs._wall_w) {
+		if (!rhs._wall_w) return false;
+		if (*lhs._wall_w != *rhs._wall_w) return false;
+	} else if (rhs._wall_w) return false;
+
+	if (lhs._wall_n) {
+		if (!rhs._wall_n) return false;
+		if (*lhs._wall_n != *rhs._wall_n) return false;
+	} else if (rhs._wall_n) return false;
+
+	return lhs._flags == rhs._flags;
+}
+
+bool operator<(const map_cell& lhs, const map_cell& rhs)
+{
+	// empty less than non-empty;
+	if (lhs._floor) {
+		if (!rhs._floor) return false;
+		// \todo rewrite once <=> available
+		if (*lhs._floor < *rhs._floor) return true;
+		if (*rhs._floor < *lhs._floor) return false;
+	} else if (rhs._floor) return true;
+
+	if (lhs._wall_w) {
+		if (!rhs._wall_w) return false;
+		// \todo rewrite once <=> available
+		if (*lhs._wall_w < *rhs._wall_w) return true;
+		if (*rhs._wall_w < *lhs._wall_w) return false;
+	} else if (rhs._wall_w) return true;
+
+	if (lhs._wall_n) {
+		if (!rhs._wall_n) return false;
+		// \todo rewrite once <=> available
+		if (*lhs._wall_n < *rhs._wall_n) return true;
+		if (*rhs._wall_n < *lhs._wall_n) return false;
+	} else if (rhs._wall_n) return true;
+
+	return lhs._flags < rhs._flags;
 }
 
 }
