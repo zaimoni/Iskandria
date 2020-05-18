@@ -29,9 +29,7 @@ private:
 	size_t _size;	// cache
 public:
 	cartesian() = default;
-	cartesian(const zaimoni::gdi::box<coord_type>& src) : _domain(src) {
-		_size = size(_domain);	// syntax-check: forces throw if not fully representable \todo something more legible
-	};
+	cartesian(const zaimoni::gdi::box<coord_type>& src) : _domain(src), _size(size(_domain)) {}
 	cartesian(FILE* src)
 	{
 		zaimoni::read(_domain.tl_c(), src);

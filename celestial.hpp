@@ -32,11 +32,10 @@
 
 namespace iskandria {
 
-class celestial_body final : public isk::Object
+class celestial_body final
 {
 public:
 	typedef typename zaimoni::math::geocentric_vector<3>::coord_type coord_type;	// reference ellipsoid (geodetic) and geocentric coordinates use the same conventions
-private:
 	// need entries for
 	// reference ellipsoid
 	// dtheta/dt (sidereal rotation rate)
@@ -44,25 +43,12 @@ private:
 
 	// we calculate solar day from the sidereal and the orbit
 
-	celestial_body(FILE* src);
 public:
+	celestial_body(FILE* src);
 	celestial_body() = default;
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(celestial_body);
 
-	static std::weak_ptr<celestial_body> track(std::shared_ptr<celestial_body> src);
-
-	// this has to integrate with the world manager	
-	static void world_setup();
-	static std::weak_ptr<celestial_body> read_synthetic_id(FILE* src);
-	static void write_synthetic_id(const std::shared_ptr<celestial_body>& src,FILE* dest);
-private:
 	void save(FILE* dest);
-	static void update_all();
-	static void gc_all();
-	static void load_all(FILE* src);;
-	static void save_all(FILE* dest);
-
-	static std::vector<std::shared_ptr<celestial_body> >& cache();
 };
 
 }	// namespace iskandria
