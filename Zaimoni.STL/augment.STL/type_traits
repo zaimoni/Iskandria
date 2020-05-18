@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <limits>
 #include <type_traits>
+#include "../zero.hpp"
 
 namespace zaimoni {
 
@@ -376,16 +377,12 @@ struct static_cache
 };
 
 template<auto n, class T>
-std::enable_if_t<std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>,
-	             typename return_copy<typename std::remove_reference<T>::type>::type> int_as()
+constexpr typename return_copy<std::remove_reference_t<T> >::type int_as()
 {
-	return static_cache<std::remove_cv_t<std::remove_reference_t<T> > >::template as<n>();
-}
-
-template<intmax_t n, class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as()
-{
-       return n;
+	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
+	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
+		return static_cache<std::remove_cv_t<std::remove_reference_t<T> > >::template as<n>();
+	} else static_assert(unconditional_v<bool,false, T>, "unclear how to convert to target type");
 }
 
 template<class T>

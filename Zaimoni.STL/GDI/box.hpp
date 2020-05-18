@@ -12,17 +12,19 @@ namespace zaimoni {
 namespace gdi {
 
 template<class T>	// T assumed to be "like a vector space"
-class box
+class box final
 {
 private:
 	T _top_left;		// nonstrict bounds
 	T _bottom_right;
 public:
-	box() = default;
-	box(const T& tl, const T& br) : _top_left(tl), _bottom_right(br) {};
-	box(const box& src) = default;
-	~box() = default;
+	constexpr box() = default;
+	constexpr box(const T& tl, const T& br) : _top_left(tl), _bottom_right(br) {};
+	constexpr box(const box& src) = default;
+	box(box&& src) = default;
 	box& operator=(const box& src) = default;
+	box& operator=(box&& src) = default;
+	~box() = default;
 
 	T& tl_c() { return _top_left; }
 	T& br_c() { return _bottom_right; }

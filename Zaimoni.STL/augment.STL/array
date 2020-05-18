@@ -21,6 +21,21 @@ namespace math {
 
 namespace zaimoni {
 
+namespace array {
+
+template<size_t N, class T>
+constexpr auto fill(const T& src)
+{
+	static_assert(1 < N);
+	std::array<T, N> ret = {};	// initializer-list makes this constexpr-capable
+	size_t i = 0;
+	do ret[i] = src;
+	while (N > ++i);
+	return ret;
+}
+
+}	// namespace array
+
 template<class U, class T, size_t N>
 auto retype(const std::array<T, N>& src) {
 	static_assert(1 < N);

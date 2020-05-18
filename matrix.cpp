@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
 	zaimoni::math::covector<ISK_INTERVAL<double>,4> tmp_covec;
 	zaimoni::math::matrix_square<ISK_INTERVAL<double>,4> tmp_sq_mat;
 	zaimoni::math::matrix<ISK_INTERVAL<double>,4,4> tmp_mat;
-//	const zaimoni::math::vector<ISK_INTERVAL<double>,4> c_tmp_vec;		// \todo more useful constructor, default is uninitialized in GCC 8.1.0
-//	const zaimoni::math::covector<ISK_INTERVAL<double>,4> c_tmp_covec;
-//	const zaimoni::math::matrix_square<ISK_INTERVAL<double>,4> c_tmp_sq_mat;
-//	const zaimoni::math::matrix<ISK_INTERVAL<double>,4,4> c_tmp_mat;
+	const zaimoni::math::vector<ISK_INTERVAL<double>,4> c_tmp_vec;
+	const zaimoni::math::covector<ISK_INTERVAL<double>,4> c_tmp_covec;
+	const zaimoni::math::matrix_square<ISK_INTERVAL<double>,4> c_tmp_sq_mat;
+	const zaimoni::math::matrix<ISK_INTERVAL<double>,4,4> c_tmp_mat;
 
 	zaimoni::math::static_cache<ISK_INTERVAL<double> >::as<0>();
 	zaimoni::math::int_as<0, ISK_INTERVAL<double> >();
@@ -37,18 +37,18 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(tmp_covec[0],"\n");
 	INTERVAL_TO_STDOUT(tmp_sq_mat(0,0),"\n");
 	INTERVAL_TO_STDOUT(tmp_mat(0,0),"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_vec[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_covec[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_sq_mat(0,0),"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_mat(0,0),"\n");
+	INTERVAL_TO_STDOUT(c_tmp_vec[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_covec[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_sq_mat(0,0),"\n");
+	INTERVAL_TO_STDOUT(c_tmp_mat(0,0),"\n");
 	INTERVAL_TO_STDOUT(tmp_sq_mat.row(0)[0],"\n");
 	INTERVAL_TO_STDOUT(tmp_mat.row(0)[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_sq_mat.row(0)[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_mat.row(0)[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_sq_mat.row(0)[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_mat.row(0)[0],"\n");
 	INTERVAL_TO_STDOUT(tmp_sq_mat.col(0)[0],"\n");
 	INTERVAL_TO_STDOUT(tmp_mat.col(0)[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_sq_mat.col(0)[0],"\n");
-//	INTERVAL_TO_STDOUT(c_tmp_mat.col(0)[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_sq_mat.col(0)[0],"\n");
+	INTERVAL_TO_STDOUT(c_tmp_mat.col(0)[0],"\n");
 	STRING_LITERAL_TO_STDOUT("accessors ok\n");
 
 	// double with operator +=

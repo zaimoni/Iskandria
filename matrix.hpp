@@ -6,8 +6,7 @@
 #include "Zaimoni.STL/rw.hpp"
 #include "slice.hpp"
 #include "Euclidean.hpp"
-#include "Zaimoni.STL/zero.hpp"
-#include <array>
+#include "Zaimoni.STL/augment.STL/array"
 #include <algorithm>
 
 namespace zaimoni {
@@ -186,11 +185,9 @@ public:
 		cols = 1
 	};
 
-	// decide: constructor destructor assignment operator
-	vector() {
-		if constexpr (std::is_trivially_constructible<T>::value)
-			_x.fill(int_as<0, T>());
-	};
+	constexpr vector() : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
+	}
 	explicit vector(const T& src) { _x.fill(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
@@ -322,11 +319,9 @@ public:
 		cols = N
 	};
 
-	// decide: constructor destructor assignment operator
-	covector() {
-		if constexpr (std::is_trivially_constructible<T>::value)
-			_x.fill(int_as<0, T>());
-	};
+	constexpr covector() : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
+	}
 	explicit covector(const T& src) { _x.fill(src); }
 	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
@@ -415,11 +410,9 @@ public:
 		cols = N
 	};
 
-	// decide: constructor destructor assignment operator
-	matrix_square() {
-		if constexpr (std::is_trivially_constructible<T>::value)
-			_x.fill(int_as<0, T>());
-	};
+	constexpr matrix_square() : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
+	}
 	explicit matrix_square(const T& src) {
 		if constexpr(std::is_trivially_constructible<T>::value)
 			_x.fill(int_as<0,T>());
@@ -821,11 +814,9 @@ public:
 		cols = C
 	};
 
-	// decide: constructor destructor assignment operator
-	matrix() {
-		if constexpr (std::is_trivially_constructible<T>::value)
-			_x.fill(int_as<0, T>());
-	};
+	constexpr matrix() : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<R*C>(int_as<0, T>());
+	}
 	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
