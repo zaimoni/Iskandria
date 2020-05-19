@@ -376,6 +376,7 @@ struct static_cache
 	}
 };
 
+// C++20: use std::is_constant_evaluated as a bypass if no other way to detect a constexpr constructor comes up
 template<auto n, class T>
 constexpr typename return_copy<std::remove_reference_t<T> >::type int_as()
 {
@@ -386,38 +387,25 @@ constexpr typename return_copy<std::remove_reference_t<T> >::type int_as()
 }
 
 template<class T>
-typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
-		typename return_copy<typename std::remove_reference<T>::type>::type>::type int_as(intmax_t n)
+constexpr typename return_copy<std::remove_reference_t<T> >::type int_as(intmax_t n)
 {
-	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as3(n);
+	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
+	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
+		return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as3(n);
+	}
+	else static_assert(unconditional_v<bool, false, T>, "unclear how to convert to target type");
 }
 
 template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type int_as(intmax_t n)
+constexpr typename return_copy<std::remove_reference_t<T> >::type uint_as(uintmax_t n)
 {
-       return n;
+	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
+	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
+		return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as4(n);
+	}
+	else static_assert(unconditional_v<bool, false, T>, "unclear how to convert to target type");
 }
 
-template<uintmax_t n, class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type uint_as()
-{
-       return n;
-}
-
-template<class T>
-typename std::enable_if<
-			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value,
-		typename std::remove_reference<T>::type>::type uint_as(uintmax_t n)
-{
-	return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as4(n);
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value , typename std::remove_reference<T>::type >::type uint_as(uintmax_t n)
-{
-       return n;
-}
 #define ZAIMONI_INT_AS_DEFINED(T) (std::is_arithmetic<typename std::remove_reference<T>::type>::value || (std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value))
 
 // numerical error calculation -- baseline
