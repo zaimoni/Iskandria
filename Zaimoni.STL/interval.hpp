@@ -207,15 +207,16 @@ private:
 public:
 	constexpr interval() = default;
 	constexpr interval(const interval& src) = default;
-	constexpr interval(const T& src) : _lb(src), _ub(src) {}	// this constructor could get expensive.
-	constexpr interval(const T& l, const T& u) : _lb(l), _ub(u) {}
-	template<class T1> constexpr interval(const interval<T1> &src) : _lb(src.lower()), _ub(src.upper()) {}
+	constexpr interval(const T& src) noexcept(std::is_nothrow_copy_constructible_v<T>) : _lb(src), _ub(src) {}	// this constructor could get expensive.
+	constexpr interval(const T& l, const T& u) noexcept(std::is_nothrow_copy_constructible_v<T>) : _lb(l), _ub(u) {}
+	template<class T1> constexpr interval(const interval<T1> &src) noexcept(std::is_nothrow_constructible_v<T, T1>) : _lb(src.lower()), _ub(src.upper()) {}
+	~interval() = default;
 
 	interval& operator=(const interval& src) = default;
-	interval& operator=(const T& src) { _lb = src; _ub = src; return *this; }
-	template<class T1> interval& operator=(const interval<T1> &src) { _lb = src.lower(); _ub = src.upper(); return *this; }
+	interval& operator=(const T& src) noexcept(std::is_nothrow_copy_assignable_v<T>) { _lb = src; _ub = src; return *this; }
+	template<class T1> interval& operator=(const interval<T1> &src) noexcept(std::is_nothrow_assignable_v<T, T1>) { _lb = src.lower(); _ub = src.upper(); return *this; }
 
-	void assign(const T& l, const T& u) { _lb = l; _ub = u; }
+	void assign(const T& l, const T& u) noexcept(std::is_nothrow_copy_assignable_v<T>) { _lb = l; _ub = u; }
 
 	constexpr T lower() const { return _lb; }
 	constexpr T upper() const { return _ub; }
