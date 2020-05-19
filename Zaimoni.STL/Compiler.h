@@ -179,16 +179,6 @@
 
 /* other compiler blocks */
 
-/* THROW_COMPETENT: define if the compiler understands throw () as a member function modifier
-   controls definition of THROW(A) macro */
-#undef THROW
-#ifdef THROW_COMPETENT
-#define THROW(A) throw (A)
-#undef THROW_COMPETENT
-#else
-#define THROW(A)
-#endif
-
 #if 0
 /* #ifdef __cplusplus */
 /* Danny Kelev: testing POD-struct
