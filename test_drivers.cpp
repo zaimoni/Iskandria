@@ -1,6 +1,7 @@
 #include "input_manager.hpp"
 #include "display_manager.hpp"
-#include "gridtile.hpp"
+#include "gridspace.hpp"
+#include "wrap.hpp"
 #include "Zaimoni.STL/Pure.CPP/json.hpp"
 
 // VAPORWARE: isometric view test driver, with a boardable AA gun
@@ -46,6 +47,11 @@ static bool AA_chessboard()
 	tile_config.set("path", paths);
 
 	auto rg_wall = iskandria::grid::wall_model::get(tile_config);
+
+/*
+	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > test_map(new isk::Wrap<iskandria::grid::cartesian<3> >(iskandria::grid::cartesian<3>()));
+	isk::Wrap<iskandria::grid::cartesian<3> >::track(test_map);
+*/
 
 	// \todo set up map data mockup and camera viewpoint
 	// \todo install command processing menu

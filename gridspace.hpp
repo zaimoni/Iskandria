@@ -4,8 +4,8 @@
 #define GRIDSPACE_HPP
 
 #include "matrix.hpp"
+#include "gridtile.hpp"
 #include "Zaimoni.STL/GDI/box.hpp"
-#include "Zaimoni.STL/Pure.C/stdio_c.h"
 
 namespace iskandria {
 namespace grid {
@@ -27,14 +27,20 @@ private:
 //	std::vector<std::weak_ptr<craft> > _crafts;
 	zaimoni::gdi::box<coord_type> _domain;
 	size_t _size;	// cache
+	std::vector<map_cell> _terrain;	// in canonical NW facing
 public:
 	cartesian() = default;
-	cartesian(const zaimoni::gdi::box<coord_type>& src) : _domain(src), _size(size(_domain)) {}
+	cartesian(const zaimoni::gdi::box<coord_type>& src) : _domain(src), _size(size(_domain)), _terrain(_size) {}
 	cartesian(FILE* src)
 	{
 		zaimoni::read(_domain.tl_c(), src);
 		zaimoni::read(_domain.br_c(), src);
 		_size = size(_domain);
+		size_t n = _size;
+		while (0 < n) {
+			_terrain.push_back(map_cell(src));
+			--n;
+		}
 	}
 
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(cartesian);
@@ -42,6 +48,7 @@ public:
 	{
 		zaimoni::write(_domain.tl_c(), dest);
 		zaimoni::write(_domain.br_c(), dest);
+		for (const map_cell& t : _terrain) t.save(dest);
 	}
 
 	// thin-forwarders
