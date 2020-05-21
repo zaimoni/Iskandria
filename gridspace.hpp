@@ -90,6 +90,20 @@ public:
 		return ret;
 	}
 	size_t size() const { return _size; }
+
+	map_cell* grid(const coord_type& src) {
+		size_t i = index(src);
+		if ((size_t)(-1) == i) return 0;
+		if (_terrain.size() <= i) return 0;	// error condition?
+		return _terrain.data() + i;
+	}
+	const map_cell* grid(const coord_type& src) const {
+		size_t i = index(src);
+		if ((size_t)(-1) == i) return 0;
+		if (_terrain.size() <= i) return 0;	// error condition?
+		return _terrain.data() + i;
+	}
+
 	size_t index(const coord_type& src) const {
 		size_t ub = N;
 		size_t ret = 0;
