@@ -189,7 +189,7 @@ public:
 	constexpr vector() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
-	constexpr vector(const std::initializer_list<T>& src) : _x(src) {}
+	vector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
 	explicit vector(const T& src) { _x.fill(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
@@ -324,7 +324,7 @@ public:
 	constexpr covector() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
-	constexpr covector(const std::initializer_list<T>& src) : _x(src) {}
+	covector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
 	explicit covector(const T& src) { _x.fill(src); }
 	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
@@ -416,7 +416,7 @@ public:
 	constexpr matrix_square() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
 	}
-	constexpr matrix_square(const std::initializer_list<T>& src) : _x(src) {}
+	matrix_square(const std::initializer_list<T>& src) { assert(N*N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
 	explicit matrix_square(const T& src) {
 		if constexpr(std::is_trivially_constructible<T>::value)
 			_x.fill(int_as<0,T>());
@@ -821,7 +821,7 @@ public:
 	constexpr matrix() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<R*C>(int_as<0, T>());
 	}
-	constexpr matrix(const std::initializer_list<T>& src) : _x(src) {}
+	matrix(const std::initializer_list<T>& src) { assert(R*C == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
 	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
@@ -962,8 +962,7 @@ template<class T>
 struct _make<zaimoni::math::vector<T,2> >
 {
 	zaimoni::math::vector<T, 2> operator()(typename const_param<T>::type x0, typename const_param<T>::type x1) {
-		T src[2] = { x0, x1 };
-		return zaimoni::math::vector<T, 2>(src);
+		return zaimoni::math::vector<T, 2>({ x0, x1 });
 	}
 };
 
