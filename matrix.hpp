@@ -190,7 +190,7 @@ public:
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
 	vector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
-	explicit vector(const T& src) { _x.fill(src); }
+	constexpr explicit vector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
 
@@ -325,7 +325,7 @@ public:
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
 	covector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
-	explicit covector(const T& src) { _x.fill(src); }
+	constexpr explicit covector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
 	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
 
@@ -417,9 +417,8 @@ public:
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
 	}
 	matrix_square(const std::initializer_list<T>& src) { assert(N*N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
-	explicit matrix_square(const T& src) {
-		if constexpr(std::is_trivially_constructible<T>::value)
-			_x.fill(int_as<0,T>());
+	constexpr explicit matrix_square(const T& src) : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
 		size_t i = N;
 		do {
 			--i;
