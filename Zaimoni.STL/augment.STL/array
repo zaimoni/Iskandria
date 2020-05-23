@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <array>
+#include <initializer_list>
 #include <type_traits>
 
 
@@ -31,6 +32,17 @@ constexpr auto fill(const T& src)
 	size_t i = 0;
 	do ret[i] = src;
 	while (N > ++i);
+	return ret;
+}
+
+template<size_t N, class T>
+constexpr auto copy(const std::initializer_list<T>& src)
+{
+	assert(N == src.size());
+	std::array<T, N> ret = {};	// initializer-list makes this constexpr-capable
+	auto src_iter = src.begin();
+	auto dest_iter = ret.begin();
+	while (src_iter != src.end()) *(dest_iter++) = *(src_iter++);
 	return ret;
 }
 

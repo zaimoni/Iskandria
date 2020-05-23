@@ -8,7 +8,6 @@
 #include "Euclidean.hpp"
 #include "Zaimoni.STL/augment.STL/array"
 #include <algorithm>
-#include <initializer_list>
 
 namespace zaimoni {
 
@@ -189,7 +188,7 @@ public:
 	constexpr vector() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
-	vector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
+	constexpr vector(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
 	constexpr explicit vector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
@@ -324,7 +323,7 @@ public:
 	constexpr covector() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
 	}
-	covector(const std::initializer_list<T>& src) { assert(N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
+	constexpr covector(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
 	constexpr explicit covector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
 	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
@@ -416,7 +415,7 @@ public:
 	constexpr matrix_square() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
 	}
-	matrix_square(const std::initializer_list<T>& src) { assert(N*N == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
+	constexpr matrix_square(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N*N>(src); }
 	constexpr explicit matrix_square(const T& src) : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N*N>(int_as<0, T>());
 		size_t i = N;
@@ -820,7 +819,7 @@ public:
 	constexpr matrix() : _x({}) {
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<R*C>(int_as<0, T>());
 	}
-	matrix(const std::initializer_list<T>& src) { assert(R*C == src.size()); std::copy(std::begin(src), std::end(src), _x.begin()); }
+	constexpr matrix(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<R*C>(src); }
 	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
