@@ -30,6 +30,7 @@ private:
 	std::vector<map_cell> _terrain;	// in canonical NW facing
 public:
 	cartesian() = default;
+	cartesian(const coord_type& src) : _domain(0, src), _size(size(_domain)), _terrain(_size) {}
 	cartesian(const zaimoni::gdi::box<coord_type>& src) : _domain(src), _size(size(_domain)), _terrain(_size) {}
 	cartesian(FILE* src)
 	{

@@ -48,6 +48,31 @@ static bool AA_chessboard()
 
 	auto rg_wall = iskandria::grid::wall_model::get(tile_config);
 
+	// leave z-level 1 (mostly) blank
+#if 0
+	iskandria::grid::cartesian<3> staging({10, 10, 2});	// suspected assertion failure
+
+	// baseline map cells
+	iskandria::grid::map_cell w_square;
+	w_square.set_floor("lg_floor");
+
+	iskandria::grid::map_cell g_square;
+	g_square.set_floor("g_floor");
+
+	decltype(auto) dims = staging.domain().br_c();
+	auto scan(dims);
+	scan[2] = 0;
+
+	while (0 <= --scan[0]) {
+		scan[1] = dims[1];
+		while (0 <= --scan[1]) {
+			decltype(auto) cell = staging.grid(scan);
+			assert(cell);
+			*cell = (0 == (scan[0] + scan[1]) % 2) ? w_square : g_square;
+		}
+	}
+#endif
+
 /*
 	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > test_map(new isk::Wrap<iskandria::grid::cartesian<3> >(iskandria::grid::cartesian<3>()));
 	isk::Wrap<iskandria::grid::cartesian<3> >::track(test_map);
