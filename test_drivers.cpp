@@ -49,7 +49,6 @@ static bool AA_chessboard()
 	auto rg_wall = iskandria::grid::wall_model::get(tile_config);
 
 	// leave z-level 1 (mostly) blank
-#if 0
 	iskandria::grid::cartesian<3> staging({10, 10, 2});	// suspected assertion failure
 
 	// baseline map cells
@@ -71,7 +70,6 @@ static bool AA_chessboard()
 			*cell = (0 == (scan[0] + scan[1]) % 2) ? w_square : g_square;
 		}
 	}
-#endif
 
 /*
 	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > test_map(new isk::Wrap<iskandria::grid::cartesian<3> >(iskandria::grid::cartesian<3>()));

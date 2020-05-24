@@ -126,8 +126,7 @@ constexpr typename std::enable_if<
 template<class T>
 auto pos_diff(const T& upper, const T& lower) -> typename types<T>::norm
 {
-	assert(lower < upper);
-	//	if (lower >= upper) return false;	// precondition
+	assert(lower <= upper);
 	if constexpr (0 <= std::numeric_limits<T>::min()) return upper - lower;
 	else if constexpr(std::is_same_v<T, typename types<T>::norm>) return upper - lower;	// no evasion this way for floating point
 	else {
