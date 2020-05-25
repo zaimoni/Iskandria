@@ -61,7 +61,7 @@ protected:
 	{
 		std::vector<std::shared_ptr<Derived> > dest(_cache.size());
 		size_t n = 0;
-		for(auto i : _cache) {
+		for(decltype(auto) i : _cache) {	// auto value-copies, want reference here so use_count() remains reasonably accurate
 			const Derived* const tmp = i.get();
 			if (!tmp) continue;
 			if (tmp->gc_this()) {

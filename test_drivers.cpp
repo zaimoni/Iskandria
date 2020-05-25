@@ -90,7 +90,7 @@ static bool AA_chessboard()
 	sf::Event::KeyEvent hotkey = { sf::Keyboard::Key::Escape, false, false, false, false };
 	AA_map_controls.add_entry("Esc)ape", hotkey, terminate_menu);	// remove this once we have real content
 	AA_map_controls.add_entry(hotkey, terminate_menu);
-	isk::InputManager::get().install(AA_map_controls);
+	isk::InputManager::get().install(std::move(AA_map_controls));
 	return true;
 }
 
