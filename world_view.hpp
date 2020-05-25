@@ -4,6 +4,8 @@
 #include "matrix.hpp"
 #include "Zaimoni.STL/GDI/box.hpp"
 
+namespace isk {
+
 // Subclasses of this don't directly coordinate drawing to the screen; instead they format 
 // CSS appropriately.
 class WorldView
@@ -20,5 +22,7 @@ public:
 	// returns true if and only if "modal" i.e. should not draw anything earlier in the stack
 	virtual bool draw(const zaimoni::gdi::box<zaimoni::math::vector<int,2> >& view_logical) = 0;
 };
+
+}	// namespace isk
 
 #endif

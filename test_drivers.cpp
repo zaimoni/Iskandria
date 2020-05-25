@@ -1,7 +1,6 @@
 #include "input_manager.hpp"
 #include "display_manager.hpp"
-#include "gridspace.hpp"
-#include "wrap.hpp"
+#include "telephoto_grid.hpp"
 #include "Zaimoni.STL/Pure.CPP/json.hpp"
 
 // VAPORWARE: isometric view test driver, with a boardable AA gun
@@ -71,14 +70,15 @@ static bool AA_chessboard()
 		}
 	}
 
-/*
-	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > test_map(new isk::Wrap<iskandria::grid::cartesian<3> >(iskandria::grid::cartesian<3>()));
+	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > test_map(new isk::Wrap<iskandria::grid::cartesian<3> >(std::move(staging)));
 	isk::Wrap<iskandria::grid::cartesian<3> >::track(test_map);
-*/
 
 	// \todo set up map data mockup and camera viewpoint
 	// \todo install command processing menu
 	auto terminate_menu = [=]() mutable {	// must capture by value so that std::weak_ptrs don't wink out prematurely
+		test_map.reset();
+
+		// tile data
 		w_floor.reset();
 		g_floor.reset();
 		by_wall.reset();

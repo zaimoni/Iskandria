@@ -29,8 +29,8 @@ public:
 		auto& _staged = staging();
 		auto c_end = _cache.end();
 		auto s_end = _staged.end();
-		if (   s_end == std::find(_staged, _staged.begin(), s_end, src)
-			&& c_end == std::find(_cache, _cache.begin(), c_end, src))
+		if (   s_end == std::find(_staged.begin(), s_end, src)
+			&& c_end == std::find(_cache.begin(), c_end, src))
 			_staged.push_back(src);
 		}
 		return src;
@@ -58,7 +58,7 @@ public:
 private:
 	static std::vector<std::shared_ptr<Wrap> >& cache()
 	{
-		static std::vector<std::shared_ptr<Wrap> > ooao;
+		static std::vector<std::shared_ptr<Wrap> > ooao; // std::vector<std::weak_ptr<Wrap> > fails on game load
 		return ooao;
 	}
 

@@ -20,8 +20,8 @@ class cartesian final
 {
 	static_assert(2 <= N);
 public:
-	typedef typename zaimoni::math::vector<ptrdiff_t,N> coord_type;
-	typedef unsigned char orientation_type;
+	using coord_type = zaimoni::math::vector<ptrdiff_t, N>;
+	using orientation = unsigned char;
 private:
 //	std::vector<std::weak_ptr<agent> > _agents;
 //	std::vector<std::weak_ptr<craft> > _crafts;
