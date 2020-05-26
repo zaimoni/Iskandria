@@ -39,6 +39,8 @@ public:
 	int load(FILE* src);
 	int save(FILE* dest);
 
+	void track(const std::shared_ptr<WorldView>& src) { if (src) _cameras.push_back(src); }
+
 	// not so mechanical
 	void draw();
 

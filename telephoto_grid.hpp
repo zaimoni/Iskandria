@@ -10,11 +10,13 @@ namespace isk {
 // the classic XCOM-like isometric camera view
 class telephoto_grid : WorldView
 {
-	std::shared_ptr<iskandria::grid::cartesian<3> > _map;
+	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > _map;
 	iskandria::grid::cartesian<3>::coord_type _origin;
 	iskandria::grid::cartesian<3>::orientation _facing;
 public:
 	telephoto_grid() = default;
+	telephoto_grid(const std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > >& view, const iskandria::grid::cartesian<3>::coord_type& o, iskandria::grid::cartesian<3>::orientation f)
+		: _map(view), _origin(o), _facing(f) {}
 	telephoto_grid(const telephoto_grid& src) = default;
 	telephoto_grid(telephoto_grid&& src) = default;
 	telephoto_grid& operator=(const telephoto_grid& src) = default;
