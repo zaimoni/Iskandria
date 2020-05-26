@@ -15,9 +15,6 @@ namespace isk {
 
 // used as a base class for those objects meant to be managed by isk::WorldManager.  Expected API to support is
 /*
-	static std::weak_ptr<celestial_body> register(celestial_body* src);
-	static std::weak_ptr<celestial_body> register(std::shared_ptr<celestial_body> src);
-
 	// this has to integrate with the world manager	
 	static void world_setup();
 	static std::weak_ptr<celestial_body> read_synthetic_id(FILE* src);
@@ -38,12 +35,10 @@ struct Object
 protected:
 	ptrdiff_t _synthetic_id;	// XXX overflows when C array dereferencing fails.
 	size_t _bitmap;
+
 public:
 	void id(ptrdiff_t src) { _synthetic_id = src; }
 	ptrdiff_t id() const {return _synthetic_id;};
-
-	void gc_this(bool gc) { if (gc) _bitmap &= 1U; else _bitmap &= ~(1U); };
-	bool gc_this() const { return _bitmap & 1U;};
 
 protected:
 	template<class Derived>
@@ -62,12 +57,8 @@ protected:
 		std::vector<std::shared_ptr<Derived> > dest(_cache.size());
 		size_t n = 0;
 		for(decltype(auto) i : _cache) {	// auto value-copies, want reference here so use_count() remains reasonably accurate
-			const Derived* const tmp = i.get();
-			if (!tmp) continue;
-			if (tmp->gc_this()) {
-				if (1 >= i.use_count()) continue;
-				i->gc_this(false);	// not allowed to GC multiple-owner objects
-			}
+			assert(i);
+			if (1 >= i.use_count()) continue; // garbage-collectable
 			dest[n++] = i;
 		}
 		if (n < dest.size()) {
