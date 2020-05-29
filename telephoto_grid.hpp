@@ -8,7 +8,7 @@
 namespace isk {
 
 // the classic XCOM-like isometric camera view
-class telephoto_grid : WorldView
+class telephoto_grid : public WorldView
 {
 	std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > > _map;
 	iskandria::grid::cartesian<3>::coord_type _origin;
@@ -24,7 +24,7 @@ public:
 	virtual ~telephoto_grid() = default;
 
 	// returns true if and only if "modal" i.e. should not draw anything earlier in the stack
-	bool draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> >& view_logical) override {}
+	bool draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> >& view_logical) override { return false; }
 };
 
 }

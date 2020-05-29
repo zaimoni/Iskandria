@@ -74,12 +74,11 @@ static bool AA_chessboard()
 	isk::Wrap<iskandria::grid::cartesian<3> >::track(test_map);
 
 	std::shared_ptr<isk::telephoto_grid> camera(new isk::telephoto_grid(test_map, { 5, 5, 0 }, 0));
-//	isk::WorldManager::get().track(std::shared_ptr<isk::WorldView>(camera));	// doesn't work: compile error
+	isk::WorldManager::get().track(camera);
 
 	// \todo set up map data mockup and camera viewpoint
 	// \todo install command processing menu
 	auto terminate_menu = [=]() mutable {	// must capture by value so that std::weak_ptrs don't wink out prematurely
-		test_map.reset();
 		camera.reset();
 
 		// tile data
