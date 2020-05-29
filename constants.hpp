@@ -34,6 +34,10 @@ public:
 	static const interval Z0_mass_GeV;
 	static const interval W_mass_GeV;	// both W+ and W-
 	static const interval Higgs_mass_GeV;
+	static const interval electron_mass_micro_amu;
+	static const interval muon_mass_amu;
+	static const interval tauon_mass_GeV;
+
 	static const interval cos_of_weak_mixing_angle;
 	static const interval cos2_of_weak_mixing_angle;
 	static const interval sin2_of_weak_mixing_angle;
@@ -44,6 +48,8 @@ public:
 	static const interval Higgs_vacuum_expectation_value_GeV;
 	static const interval Higgs_Lagrangian_mu_squared_GeV_squared;
 	static const interval Higgs_Lagrangian_self_interaction_lambda;
+
+	// reference data of interest
 	static const interval CODATA_sin2_of_weak_mixing_angle;
 	static const interval PDG_sin2_of_weak_mixing_angle;
 	static const interval PDG_sin2_of_weak_mixing_angle_effective;

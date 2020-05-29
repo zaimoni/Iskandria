@@ -30,6 +30,10 @@ const fundamental_constants::interval fundamental_constants::alpha(7.2973525627e
 const fundamental_constants::interval fundamental_constants::W_mass_GeV(80.355, 80.403);	// 80.379(12)
 const fundamental_constants::interval fundamental_constants::Z0_mass_GeV(91.1823, 91.1909);	// 91.1867(21) both W+ and W-
 const fundamental_constants::interval fundamental_constants::Higgs_mass_GeV(124.86, 125.50);	// 125.18(16)
+const fundamental_constants::interval fundamental_constants::electron_mass_micro_amu(548.579909038, 548.579909102); // 548.579909070(16); PDG references CODATA 2014
+const fundamental_constants::interval fundamental_constants::muon_mass_amu(0.1134289207, 0.1134289307); // 0.1134289257(25); PDG references CODATA 2014
+const fundamental_constants::interval fundamental_constants::tauon_mass_GeV(1.77662, 1.77710); // 1776.86(12) MeV
+
 // weak mixing angle theta_W stats
 const fundamental_constants::interval fundamental_constants::cos_of_weak_mixing_angle(W_mass_GeV/Z0_mass_GeV);
 const fundamental_constants::interval fundamental_constants::cos2_of_weak_mixing_angle(zaimoni::math::square(cos_of_weak_mixing_angle));
@@ -450,6 +454,16 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Higgs vacuum expectation value GeV/c^2\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_mu_squared_GeV_squared, " Higgs Lagrangian mu^2 GeV^2/c^4\n");
 	INTERVAL_TO_STDOUT(fundamental_constants::Higgs_Lagrangian_self_interaction_lambda, " Higgs Lagrangian self-interaction lambda\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::tauon_mass_GeV, " GeV/c^2: Tauon rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::tauon_mass_GeV*interval_shim::SQRT2/fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Tauon Lagrangian Yukawa coupling\n");
+	auto amu_to_eV = SI_units().eV_mass / SI_units().amu_mass;	// may be less precise than possible from going throuh SI
+	auto eV_to_amu = SI_units().amu_mass / SI_units().eV_mass;	// may be less precise than possible from going throuh SI
+	INTERVAL_TO_STDOUT(amu_to_eV, " amu to eV/c^2 conversion\n");
+	INTERVAL_TO_STDOUT(eV_to_amu, " eV/c^2 to amu conversion\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::muon_mass_amu, " amu: Muon rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::muon_mass_amu*(1e-9*amu_to_eV)* interval_shim::SQRT2 / fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Muon Lagrangian Yukawa coupling\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::electron_mass_micro_amu, " micro-amu: Electron rest mass\n");
+	INTERVAL_TO_STDOUT(fundamental_constants::electron_mass_micro_amu*(1e-15*amu_to_eV)* interval_shim::SQRT2 / fundamental_constants::Higgs_vacuum_expectation_value_GeV, " Electron Lagrangian Yukawa coupling\n");
 
 	STRING_LITERAL_TO_STDOUT("tests finished\n");
 }

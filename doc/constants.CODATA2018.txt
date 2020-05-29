@@ -81,4 +81,12 @@ Electroweak theory
 [250.1380575229266, 251.2384603467211] Higgs vacuum expectation value GeV/c^2
 [7795.0098, 7875.125] Higgs Lagrangian mu^2 GeV^2/c^4
 [0.123493590877036, 0.1258629509991315] Higgs Lagrangian self-interaction lambda
+[1.77662, 1.7771] GeV/c^2: Tauon rest mass
+[0.01000053931120215, 0.01004724729447808] Tauon Lagrangian Yukawa coupling
+[1.073544101678019e-09, 1.073544102971026e-09] amu to eV/c^2 conversion
+[931494101.8561852, 931494102.9781033] eV/c^2 to amu conversion
+[0.1134289207, 0.1134289307] amu: Muon rest mass
+[6.85444923623881e-22, 6.884603820735151e-22] Muon Lagrangian Yukawa coupling
+[548.579909038, 548.579909102] micro-amu: Electron rest mass
+[3.315039158722661e-24, 3.329622623500735e-24] Electron Lagrangian Yukawa coupling
 tests finished
