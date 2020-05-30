@@ -21,7 +21,7 @@ class cartesian final
 	static_assert(2 <= N);
 public:
 	using coord_type = zaimoni::math::vector<ptrdiff_t, N>;
-	using orientation = unsigned char;
+	using orientation = unsigned char;	// will end up dimension-dependent
 private:
 //	std::vector<std::weak_ptr<agent> > _agents;
 //	std::vector<std::weak_ptr<craft> > _crafts;
