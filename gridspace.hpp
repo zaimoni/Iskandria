@@ -21,6 +21,12 @@ class cartesian final
 	static_assert(2 <= N);
 public:
 	using coord_type = zaimoni::math::vector<ptrdiff_t, N>;
+	// encoding for the orientation will end up dimension-dependent.
+	// 2020-05-31: Unclear whether we need to be reflection-aware (for now assume not).
+	// * for each two dimensions, full generality would require one copy of a proxy for the unit circle S^1.
+	// ** our proxy is the canonical XCOM-like direction set
+	// * we also would want a proxy for the subgroup of even permutation matrices of the permutation group Perm(n)
+	// ** this will "blow up" as Perm(n) has size n!
 	using orientation = unsigned char;	// will end up dimension-dependent
 private:
 //	std::vector<std::weak_ptr<agent> > _agents;
@@ -92,6 +98,7 @@ public:
 	}
 	size_t size() const { return _size; }
 
+	// these are for canonical facing
 	map_cell* grid(const coord_type& src) {
 		size_t i = index(src);
 		if ((size_t)(-1) == i) return 0;
@@ -103,6 +110,29 @@ public:
 		if ((size_t)(-1) == i) return 0;
 		if (_terrain.size() <= i) return 0;	// error condition?
 		return _terrain.data() + i;
+	}
+
+	map_cell grid(const coord_type& src, const orientation o) const {
+		map_cell ret;
+		auto primary_facing = o % iskandria::compass::XCOM_STRICT_UB;
+		if (auto gr = grid(src)) ret = *gr;
+		// NW also an expected facing.  Cardinal directions not legal here; release mode should pretend they're NW
+		switch (primary_facing)
+		{
+		case NE:
+			// N wall -> W wall
+			// (src+E)-W wall, reversed -> N wall
+			break;
+		case SE:
+			// (src+E)-W wall, reversed -> W wall
+			// (src+S)-N wall, reversed -> N wall
+			break;
+		case SW:
+			// W wall -> N wall
+			// (src+S)-N wall, reversed -> W wall
+			break;
+		}
+		return ret;
 	}
 
 	size_t index(const coord_type& src) const {

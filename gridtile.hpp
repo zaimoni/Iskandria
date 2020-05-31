@@ -66,6 +66,22 @@ public:
 
 	explicit floor_model(const zaimoni::JSON& src);
 
+	std::string image_key(iskandria::compass::XCOMlike f) {
+		switch(f)
+		{
+		case iskandria::compass::NE: return _img_path_ne;
+		case iskandria::compass::SE: return _img_path_se;
+		case iskandria::compass::SW: return _img_path_sw;
+#ifndef NDEBUG
+		case iskandria::compass::N:
+		case iskandria::compass::E:
+		case iskandria::compass::S:
+		case iskandria::compass::W: assert(0 && "orientation out of range");
+#endif
+		default: return _img_path_nw;
+		}
+	}
+
 	friend bool operator==(const floor_model& lhs, const floor_model& rhs) { return lhs._id == rhs._id; }
 	friend bool operator<(const floor_model& lhs, const floor_model& rhs) { return lhs._id < rhs._id; }
 
@@ -105,6 +121,22 @@ public:
 	wall_model& operator=(wall_model && src) = default;
 
 	explicit wall_model(const zaimoni::JSON& src);
+
+	std::string image_key(iskandria::compass::XCOMlike f) {
+		switch (f)
+		{
+		case iskandria::compass::N: return _img_path_outside_n;
+		case iskandria::compass::S: return _img_path_inside_s;
+		case iskandria::compass::E: return _img_path_inside_e;
+#ifndef NDEBUG
+		case iskandria::compass::NE:
+		case iskandria::compass::SE:
+		case iskandria::compass::SW:
+		case iskandria::compass::NW: assert(0 && "orientation out of range");
+#endif
+		default: return _img_path_outside_w;
+		}
+	}
 
 	friend bool operator==(const wall_model& lhs, const wall_model& rhs) { return lhs._id == rhs._id; }
 	friend bool operator<(const wall_model& lhs, const wall_model& rhs) { return lhs._id < rhs._id; }
