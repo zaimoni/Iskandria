@@ -161,6 +161,7 @@ private:
 	std::shared_ptr<wall_model> _wall_w;
 	std::shared_ptr<wall_model> _wall_n;
 	typename zaimoni::bitmap<2>::type _flags;
+
 public:
 	map_cell() = default;
 	~map_cell() = default;
@@ -195,6 +196,79 @@ public:
 		_wall_w = wall_model::get(id);
 		_flags &= ~(1ULL << 1);
 		_flags |= ((unsigned long long)reversed << 1);
+	}
+	bool n_reversed() const { return _flags & (1ULL << 0); }
+	bool w_reversed() const { return _flags & (1ULL << 1); }
+
+	std::string floor(iskandria::compass::XCOMlike o) {
+#ifndef NDEBUG
+		switch (o)
+		{
+		case iskandria::compass::N:
+		case iskandria::compass::E:
+		case iskandria::compass::S:
+		case iskandria::compass::W:
+			assert(0 && "orientation out of range");
+		}
+#endif
+		if (_floor) return _floor->image_key(o);
+		return std::string();
+	}
+	static constexpr bool n_wall_ok(iskandria::compass::XCOMlike o) {
+		return iskandria::compass::NW == o || iskandria::compass::NE == o;
+	}
+	std::string n_wall(iskandria::compass::XCOMlike o) {
+#ifndef NDEBUG
+		switch (o)
+		{
+		case iskandria::compass::N:
+		case iskandria::compass::E:
+		case iskandria::compass::S:
+		case iskandria::compass::W:
+			assert(0 && "orientation out of range");
+		}
+#endif
+		switch (o)
+		{
+		case iskandria::compass::NW:
+			if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::S : iskandria::compass::N);
+			break;
+		case iskandria::compass::NE:
+			if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::S : iskandria::compass::N);
+			break;
+		}
+		return std::string();
+	}
+	static constexpr bool w_wall_ok(iskandria::compass::XCOMlike o) {
+		return iskandria::compass::NW == o || iskandria::compass::SW == o;
+	}
+	std::string w_wall(iskandria::compass::XCOMlike o) {
+#ifndef NDEBUG
+		switch (o)
+		{
+		case iskandria::compass::N:
+		case iskandria::compass::E:
+		case iskandria::compass::S:
+		case iskandria::compass::W:
+			assert(0 && "orientation out of range");
+		}
+#endif
+		switch (o)
+		{
+		case iskandria::compass::NW:
+			if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::E : iskandria::compass::W);
+			break;
+		case iskandria::compass::SW:
+			if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::E : iskandria::compass::W);
+			break;
+		}
+		return std::string();
+	}
+	static constexpr bool want_e_cell(iskandria::compass::XCOMlike o) {
+		return iskandria::compass::NE == o || iskandria::compass::SE == o;
+	}
+	static constexpr bool want_s_cell(iskandria::compass::XCOMlike o) {
+		return iskandria::compass::SE == o || iskandria::compass::SW == o;
 	}
 };
 

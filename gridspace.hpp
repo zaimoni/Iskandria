@@ -112,7 +112,43 @@ public:
 		return _terrain.data() + i;
 	}
 
-	map_cell grid(const coord_type& src, const orientation o) const {
+	// caller handles opacity decisions/recursion, etc.
+	std::vector<std::string> render_tiles_isometric(const coord_type& src, const orientation o) const {
+		auto primary_facing = o % iskandria::compass::XCOM_STRICT_UB;
+#ifndef NDEBUG
+		switch (primary_facing)
+		{
+		case iskandria::compass::N:
+		case iskandria::compass::E:
+		case iskandria::compass::S:
+		case iskandria::compass::W:
+			assert(0 && "orientation out of range");
+		}
+#endif
+		std::vector<std::string> ret;
+		if (want_e_cell(primary_facing)) {
+		}
+		if (want_s_cell(primary_facing)) {
+		}
+		// actual view target
+		if (auto gr = grid(src)) {
+			std::string img_key;
+			if (map_cell::n_wall_ok(primary_facing)) {
+				img_key = gr->n_wall(primary_facing);
+				if (!img_key.empty()) ret.push_back(img_key);
+			}
+			if (map_cell::w_wall_ok(primary_facing)) {
+				img_key = gr->w_wall(primary_facing);
+				if (!img_key.empty()) ret.push_back(img_key);
+			}
+			img_key = gr->floor(primary_facing);
+			if (!img_key.empty()) ret.push_back(img_key);
+			// \todo intercalate map objects, agents, etc. here
+		}
+		return ret;
+	}
+
+	map_cell grid(const coord_type& src, const orientation o) const {	// \todo remove once design notes implemented by render_tiles_isometric
 		map_cell ret;
 		auto primary_facing = o % iskandria::compass::XCOM_STRICT_UB;
 		if (auto gr = grid(src)) ret = *gr;
