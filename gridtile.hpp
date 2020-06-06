@@ -270,6 +270,34 @@ public:
 	static constexpr bool want_s_cell(iskandria::compass::XCOMlike o) {
 		return iskandria::compass::SE == o || iskandria::compass::SW == o;
 	}
+
+	static constexpr bool n_wall_ok_e(iskandria::compass::XCOMlike o) { return iskandria::compass::NE == o; }
+	std::string n_wall_e() {
+		// (src+E)-W wall, reversed -> N wall
+		if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::N : iskandria::compass::S);
+		return std::string();
+	}
+
+	static constexpr bool n_wall_ok_s(iskandria::compass::XCOMlike o) { return iskandria::compass::SE == o; }
+	std::string n_wall_s() {
+		// (src+S)-N wall, reversed -> N wall
+		if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::N : iskandria::compass::S);
+		return std::string();
+	}
+
+	static constexpr bool w_wall_ok_e(iskandria::compass::XCOMlike o) { return iskandria::compass::SE == o; }
+	std::string w_wall_e() {
+		// (src+E)-W wall, reversed -> W wall
+		if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::W : iskandria::compass::E);
+		return std::string();
+	}
+
+	static constexpr bool w_wall_ok_s(iskandria::compass::XCOMlike o) { return iskandria::compass::SW == o; }
+	std::string w_wall_s() {
+		// (src+S)-N wall, reversed -> W wall
+		if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::W : iskandria::compass::E);
+		return std::string();
+	}
 };
 
 ZAIMONI_SIMULATE_RELOPS_WITH_ADL(map_cell)

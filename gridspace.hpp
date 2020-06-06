@@ -127,46 +127,42 @@ public:
 #endif
 		std::vector<std::string> ret;
 		if (want_e_cell(primary_facing)) {
+			decltype(auto) src_e(src);
+			src_e[0] += 1;
+			if (auto gr = grid(src_e)) {
+				std::string img_key;
+				if (map_cell::n_wall_ok_e(primary_facing)) {
+					if (!(img_key = gr->n_wall_e()).empty()) ret.push_back(std::move(img_key));
+				}
+				if (map_cell::w_wall_ok_e(primary_facing)) {
+					if (!(img_key = gr->w_wall_e()).empty()) ret.push_back(std::move(img_key));
+				}
+			}
 		}
 		if (want_s_cell(primary_facing)) {
+			decltype(auto) src_s(src);
+			src_s[1] += 1;
+			if (auto gr = grid(src_s)) {
+				std::string img_key;
+				if (map_cell::n_wall_ok_s(primary_facing)) {
+					if (!(img_key = gr->n_wall_s()).empty()) ret.push_back(std::move(img_key));
+				}
+				if (map_cell::w_wall_ok_s(primary_facing)) {
+					if (!(img_key = gr->w_wall_s()).empty()) ret.push_back(std::move(img_key));
+				}
+			}
 		}
 		// actual view target
 		if (auto gr = grid(src)) {
 			std::string img_key;
 			if (map_cell::n_wall_ok(primary_facing)) {
-				img_key = gr->n_wall(primary_facing);
-				if (!img_key.empty()) ret.push_back(img_key);
+				if (!(img_key = gr->n_wall(primary_facing)).empty()) ret.push_back(std::move(img_key));
 			}
 			if (map_cell::w_wall_ok(primary_facing)) {
-				img_key = gr->w_wall(primary_facing);
-				if (!img_key.empty()) ret.push_back(img_key);
+				if (!(img_key = gr->w_wall(primary_facing)).empty()) ret.push_back(std::move(img_key));
 			}
-			img_key = gr->floor(primary_facing);
-			if (!img_key.empty()) ret.push_back(img_key);
+			if (!(img_key = gr->floor(primary_facing)).empty()) ret.push_back(std::move(img_key));
 			// \todo intercalate map objects, agents, etc. here
-		}
-		return ret;
-	}
-
-	map_cell grid(const coord_type& src, const orientation o) const {	// \todo remove once design notes implemented by render_tiles_isometric
-		map_cell ret;
-		auto primary_facing = o % iskandria::compass::XCOM_STRICT_UB;
-		if (auto gr = grid(src)) ret = *gr;
-		// NW also an expected facing.  Cardinal directions not legal here; release mode should pretend they're NW
-		switch (primary_facing)
-		{
-		case NE:
-			// N wall -> W wall
-			// (src+E)-W wall, reversed -> N wall
-			break;
-		case SE:
-			// (src+E)-W wall, reversed -> W wall
-			// (src+S)-N wall, reversed -> N wall
-			break;
-		case SW:
-			// W wall -> N wall
-			// (src+S)-N wall, reversed -> W wall
-			break;
 		}
 		return ret;
 	}
