@@ -29,7 +29,9 @@ namespace zaimoni {
 	// while we want to support vector spaces, matrices, etc., that looks it like it requires more general methods than an operation enum
 	// e.g., consider a 2-dimensional vector space of operations on the surface of a 3-dimesnional sphere
 	namespace math {
-		struct type {};	// tag so we can do template validation
+		struct type {
+			virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
+		};	// tag so we can do template validation
 	}
 
 	template<_type_spec::arch_domain DOM> struct _type {
@@ -66,7 +68,6 @@ namespace zaimoni {
 
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
-		virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
 		virtual bool is_inf() const = 0;
 		virtual bool is_finite() const = 0;
 		virtual bool is_zero() const = 0;
