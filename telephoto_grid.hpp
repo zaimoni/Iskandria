@@ -26,23 +26,10 @@ public:
 
 	// may need to encode some sort of rotation scheme as well, so retain typecasting for now
 	iskandria::compass::XCOMlike facing() const { return (iskandria::compass::XCOMlike)_facing; }
-	void facing(iskandria::compass::XCOMlike f) {
-		auto delta = iskandria::compass::inv_rotate(f, (iskandria::compass::XCOMlike)_facing);
-		if (iskandria::compass::NW > delta && iskandria::compass::NE < delta)
-			_facing = iskandria::compass::rotate((iskandria::compass::XCOMlike)_facing, (iskandria::compass::XCOMlike)(2*(delta/2)));
-	}
+	void facing(iskandria::compass::XCOMlike f);
 
 	// returns true if and only if "modal" i.e. should not draw anything earlier in the stack
-	bool draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> >& view_logical) override {
-		// incoming dimensions are logical-screen dimensions
-		// our origin will be "near the center of the screen"
-		static constexpr const zaimoni::math::vector<int, 2> origin_offset = { DisplayManager::ISOMETRIC_TRIANGLE_WIDTH, DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT };
-		static constexpr const zaimoni::math::vector<int, 2> tile_span = { DisplayManager::ISOMETRIC_HEX_WIDTH, DisplayManager::ISOMETRIC_HEX_HEIGHT };
-		auto origin_tl = (view_logical.br_c() - view_logical.tl_c()) / 2 + view_logical.tl_c() - origin_offset;
-		// \todo we'd rather not recompute the "canonical coordinates" (to be rotated) about (0,0,0) in the z=0 plane
-		// \todo get tile data for rotated coordinates, in render order
-		return false;
-	}
+	bool draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> >& view_logical) override;
 };
 
 }

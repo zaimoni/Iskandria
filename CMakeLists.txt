@@ -31,7 +31,7 @@ endif()
 # might actually need this?
 include_directories(${CMAKE_BINARY_DIR})
 
-add_executable(Iskandria main.cpp test_drivers.cpp gridtile.test.cpp text_menu.cpp cssbox.cpp display_manager.cpp voxelspace.cpp input_manager.cpp constants.cpp game_manager.cpp world_manager.cpp minkowski.cpp craft.cpp agent.cpp angle.cpp taylor.cpp)
+add_executable(Iskandria main.cpp test_drivers.cpp telephoto_grid.cpp gridtile.test.cpp text_menu.cpp cssbox.cpp display_manager.cpp voxelspace.cpp input_manager.cpp constants.cpp game_manager.cpp world_manager.cpp minkowski.cpp craft.cpp agent.cpp angle.cpp taylor.cpp)
 target_compile_definitions(Iskandria PRIVATE ZAIMONI_ASSERT_STD_LOGIC)
 target_link_libraries(Iskandria z_log_adapter z_logging z_stdio_c z_clock z_json sfml-graphics sfml-window sfml-system winmm)
 add_dependencies(Iskandria AutoDetect)
