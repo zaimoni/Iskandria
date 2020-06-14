@@ -114,7 +114,7 @@ public:
 
 	// caller handles opacity decisions/recursion, etc.
 	std::vector<std::string> render_tiles_isometric(const coord_type& src, const orientation o) const {
-		auto primary_facing = o % iskandria::compass::XCOM_STRICT_UB;
+		auto primary_facing = (iskandria::compass::XCOMlike)(o % iskandria::compass::XCOM_STRICT_UB);
 #ifndef NDEBUG
 		switch (primary_facing)
 		{
@@ -126,8 +126,8 @@ public:
 		}
 #endif
 		std::vector<std::string> ret;
-		if (want_e_cell(primary_facing)) {
-			decltype(auto) src_e(src);
+		if (map_cell::want_e_cell(primary_facing)) {
+			auto src_e(src);
 			src_e[0] += 1;
 			if (auto gr = grid(src_e)) {
 				std::string img_key;
@@ -139,8 +139,8 @@ public:
 				}
 			}
 		}
-		if (want_s_cell(primary_facing)) {
-			decltype(auto) src_s(src);
+		if (map_cell::want_s_cell(primary_facing)) {
+			auto src_s(src);
 			src_s[1] += 1;
 			if (auto gr = grid(src_s)) {
 				std::string img_key;

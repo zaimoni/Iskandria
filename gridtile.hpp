@@ -200,7 +200,7 @@ public:
 	bool n_reversed() const { return _flags & (1ULL << 0); }
 	bool w_reversed() const { return _flags & (1ULL << 1); }
 
-	std::string floor(iskandria::compass::XCOMlike o) {
+	std::string floor(iskandria::compass::XCOMlike o) const {
 #ifndef NDEBUG
 		switch (o)
 		{
@@ -217,7 +217,7 @@ public:
 	static constexpr bool n_wall_ok(iskandria::compass::XCOMlike o) {
 		return iskandria::compass::NW == o || iskandria::compass::NE == o;
 	}
-	std::string n_wall(iskandria::compass::XCOMlike o) {
+	std::string n_wall(iskandria::compass::XCOMlike o) const {
 #ifndef NDEBUG
 		switch (o)
 		{
@@ -242,7 +242,7 @@ public:
 	static constexpr bool w_wall_ok(iskandria::compass::XCOMlike o) {
 		return iskandria::compass::NW == o || iskandria::compass::SW == o;
 	}
-	std::string w_wall(iskandria::compass::XCOMlike o) {
+	std::string w_wall(iskandria::compass::XCOMlike o) const {
 #ifndef NDEBUG
 		switch (o)
 		{
@@ -272,28 +272,28 @@ public:
 	}
 
 	static constexpr bool n_wall_ok_e(iskandria::compass::XCOMlike o) { return iskandria::compass::NE == o; }
-	std::string n_wall_e() {
+	std::string n_wall_e() const {
 		// (src+E)-W wall, reversed -> N wall
 		if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::N : iskandria::compass::S);
 		return std::string();
 	}
 
 	static constexpr bool n_wall_ok_s(iskandria::compass::XCOMlike o) { return iskandria::compass::SE == o; }
-	std::string n_wall_s() {
+	std::string n_wall_s() const {
 		// (src+S)-N wall, reversed -> N wall
 		if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::N : iskandria::compass::S);
 		return std::string();
 	}
 
 	static constexpr bool w_wall_ok_e(iskandria::compass::XCOMlike o) { return iskandria::compass::SE == o; }
-	std::string w_wall_e() {
+	std::string w_wall_e() const {
 		// (src+E)-W wall, reversed -> W wall
 		if (_wall_w) return _wall_w->image_key(w_reversed() ? iskandria::compass::W : iskandria::compass::E);
 		return std::string();
 	}
 
 	static constexpr bool w_wall_ok_s(iskandria::compass::XCOMlike o) { return iskandria::compass::SW == o; }
-	std::string w_wall_s() {
+	std::string w_wall_s() const {
 		// (src+S)-N wall, reversed -> W wall
 		if (_wall_n) return _wall_n->image_key(n_reversed() ? iskandria::compass::W : iskandria::compass::E);
 		return std::string();
