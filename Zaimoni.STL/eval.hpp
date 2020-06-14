@@ -140,26 +140,29 @@ namespace zaimoni {
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API, math::type {
-		enum { API_code = 1 };
+		enum { API_code = 1, _allow_infinity = 1 };
 		int allow_infinity() const override { return 1; }
 	};
+	static_assert(1 == _type<_type_spec::_C_SHARP_>::_allow_infinity);
 
 	template<>
 	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API, math::type {
-		enum { API_code = 1 };
+		enum { API_code = 1, _allow_infinity = -1 };
 		int allow_infinity() const override { return -1; }
 	};
+	static_assert(-1 == _type<_type_spec::_R_SHARP_>::_allow_infinity);
 
 	template<>
 	struct _type<_type_spec::_S1_> : public virtual fp_API, math::type {
-		enum { API_code = 0 };
+		enum { API_code = 0, _allow_infinity = 0 };
 		int allow_infinity() const override { return 0; }
 	};
+	static_assert(0 == _type<_type_spec::_S1_>::_allow_infinity);
 
 	// subspace relations
 	template<>
 	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
-		enum { API_code = 0 };
+		enum { API_code = 0, _allow_infinity = 0 };
 
 		virtual ~_type() = default;
 
@@ -168,17 +171,23 @@ namespace zaimoni {
 		bool is_inf() const override { return false; };
 		bool is_finite() const override { return true; };
 	};
+	static_assert(0 == _type<_type_spec::_C_>::_allow_infinity);
 
 	template<>
 	struct _type<_type_spec::_R_> : public _type<_type_spec::_C_>, public _type<_type_spec::_R_SHARP_> {
+		enum { _allow_infinity = 0 };
+
 		int allow_infinity() const override { return 0; }
 	};
+	static_assert(0 == _type<_type_spec::_R_>::_allow_infinity);
 
 	template<>
 	struct _type<_type_spec::_Q_> : public _type<_type_spec::_R_> {};
+	static_assert(0 == _type<_type_spec::_Q_>::_allow_infinity);
 
 	template<>
 	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
+	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
 	namespace bits {
 

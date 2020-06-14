@@ -28,8 +28,7 @@ namespace math {
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 #else
 	// rearrange_sum support
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(F& lhs, F& rhs)
+	template<class F> std::enable_if_t<std::is_floating_point<F>::value, int> rearrange_sum(F& lhs, F& rhs)
 	{
 		int ret = 0;
 
@@ -143,17 +142,17 @@ restart:
 		goto restart;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int>::type rearrange_sum(F& lhs, F2& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int>::type rearrange_sum(F& lhs, F2& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
 	{
-		int ret = rearrange_sum<T>(rhs, lhs);
+		int ret = rearrange_sum(rhs, lhs);
 		switch (ret)
 		{
 		case 1: return -1;
@@ -163,16 +162,16 @@ restart:
 	}
 
 	// CLang: sizeof(long double)==sizeof(double)
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
 	{
-		return rearrange_sum<T>(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
+		return rearrange_sum(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
 	{
-		return rearrange_sum<T>(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
+		return rearrange_sum(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
 	}
 
 	template<class T, class F, class F2>
@@ -208,8 +207,8 @@ restart:
 
 		// coordinate-wise rearrange_sum (failover, does not completely work)
 		// legal values: -2...2
-		const int l_code = rearrange_sum<T>(working[0], working[2]);
-		const int u_code = rearrange_sum<T>(working[1], working[3]);
+		const int l_code = rearrange_sum(working[0], working[2]);
+		const int u_code = rearrange_sum(working[1], working[3]);
 		assert(-2 <= l_code && 2 >= l_code);
 		assert(-2 <= u_code && 2 >= u_code);
 		if (0 == l_code && 0 == u_code) return 0;
@@ -430,11 +429,11 @@ final_exit:
 		int ret = 0;
 
 		auto src = working.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
 
 		if (ret) lhs = working;
