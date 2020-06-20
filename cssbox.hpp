@@ -278,6 +278,10 @@ public:
 	ZAIMONI_DEFAULT_COPY_ASSIGN(box_dynamic);
 	~box_dynamic() = default;
 
+	// accessors
+	bool empty() const { return _contents.empty(); }
+	size_t size() const { return _contents.size(); }
+
 	// content management
 	void append(std::shared_ptr<box>& src);
 	void append(box* _src);
@@ -285,6 +289,8 @@ public:
 	void disconnect() override { _self.reset(); }
 	void set_self(std::shared_ptr<box>& src) override { _self = std::static_pointer_cast<box_dynamic>(src); }
 	void set_self(std::shared_ptr<box_dynamic>& src) { _self = src; }
+
+	std::vector<std::shared_ptr<box> > remove_by_CSS_class(const std::string& src);
 
 	void draw() const override;
 	void screen_coords(point logical_origin) override;

@@ -90,6 +90,9 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 	// \todo reverse the image_keys setup to drawing order
 
 	// we would rather reuse DOM elements
+	static const std::string CSS_tag("telephoto_grid");	// should only be one of us (unlike some other imaginable camera types)
+	auto prior_DOM = DisplayManager::get().remove_by_CSS_class(CSS_tag);
+
 	return false;
 }
 

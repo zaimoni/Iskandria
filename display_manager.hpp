@@ -63,6 +63,7 @@ public:
 
 	void append(std::shared_ptr<css::box>& src) { _css_root->append(src); };
 	void remove(std::shared_ptr<css::box>& src) { _css_root->remove(src); };
+	auto remove_by_CSS_class(const std::string& src) { return _css_root->remove_by_CSS_class(src); }
 	void draw();
 
 	// character support; likely to need all of this for subwindows as well (should be driven by font size)

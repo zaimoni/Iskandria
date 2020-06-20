@@ -233,6 +233,31 @@ void box_dynamic::append(box* _src) {
 	}
 }
 
+std::vector<std::shared_ptr<box> > box_dynamic::remove_by_CSS_class(const std::string& src) {
+	std::vector<std::shared_ptr<box> > ret;
+	auto ub = _contents.size();
+	while (0 < ub) {
+		decltype(auto) x = _contents[--ub];
+		if (src == x->CSS_class()) {
+			ret.push_back(std::move(x));
+			_contents.erase(_contents.begin() + ub);
+			if (_redo_layout > ub) _redo_layout = ub;
+			continue;
+		};
+		if (auto test = dynamic_cast<box_dynamic*>(x.get())) {
+			auto ret2 = test->remove_by_CSS_class(src);
+			if (!ret2.empty()) {
+				do {
+					ret.push_back(std::move(ret2.back()));
+					ret2.pop_back();
+				} while(!ret2.empty());
+				if (_redo_layout > ub) _redo_layout = ub;
+			}
+		}
+	}
+	return ret;
+}
+
 void box::recalc() {
 #if MULTITHREAD_DRAW
 	zaimoni::ref_semaphore<unsigned int> lock(_recalc_fakelock);
