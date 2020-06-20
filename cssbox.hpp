@@ -95,6 +95,8 @@ public:
 	};
 
 protected:
+	std::string _id;	// CSS id attribute
+	std::string _class;	// CSS class attribute
 	unsigned char _auto;	// bitmap: margins, width, height
 	unsigned char _clear_float;	// clear, float encodings; also position property encoding
 	typename zaimoni::bitmap<css::property::COUNT>::type _inherited;
@@ -120,6 +122,14 @@ protected:
 
 public:
 	virtual ~box() = default;
+
+	// string values
+	const std::string& id() const { return _id; }
+	void id(const std::string& src) { _id = src; }
+	void id(std::string&& src) { _id = std::move(src); }
+	const std::string& CSS_class() const { return _class; }
+	void CSS_class(const std::string& src) { _class = src; }
+	void CSS_class(std::string&& src) { _class = std::move(src); }
 
 	// auto values
 	bool is_auto(auto_legal src) const { return _auto & (1ULL << src); }
