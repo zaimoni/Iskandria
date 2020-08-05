@@ -153,7 +153,12 @@ inline void INC_INFORM(float B) { return INC_INFORM((long double)(B)); }
 #endif
 
 /* this should look like an assert even in NDEBUG mode */
-#define SUCCEED_OR_DIE(A) ((A) ? (void)0 : _fatal_code(__FILE__ ":" DEEP_STRINGIZE(__LINE__) ": " #A,3))
+#ifdef ZAIMONI_ASSERT_STD_LOGIC
+#	define SUCCEED_OR_DIE(A)	((A) ? (void)0 : throw std::logic_error(__FILE__ ":" DEEP_STRINGIZE(__LINE__) ": " #A))
+#else
+#	define SUCCEED_OR_DIE(A)	((A) ? (void)0 : _fatal_code(__FILE__ ":" DEEP_STRINGIZE(__LINE__) ": " #A,3))
+#endif
+
 
 /* match assert.h C standard header, which uses NDEBUG */
 #ifndef NDEBUG	/* self-aware version */
