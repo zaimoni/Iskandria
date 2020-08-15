@@ -38,6 +38,10 @@ namespace zaimoni {
 		static_assert(unconditional_v<bool, false, DOM>, "must specialize this");
 	};
 
+	template<_type_spec::arch_domain DOM> struct _type_alt {	// temporary, so we can check disconnecting fp_API
+		static_assert(unconditional_v<bool, false, DOM>, "must specialize this");
+	};
+
 	template<class T>
 	struct eval_shared_ptr
 	{
@@ -159,6 +163,27 @@ namespace zaimoni {
 	};
 	static_assert(0 == _type<_type_spec::_S1_>::_allow_infinity);
 
+	template<>
+	struct _type_alt<_type_spec::_C_SHARP_> : public math::type {
+		enum { API_code = 1, _allow_infinity = 1 };
+		int allow_infinity() const override { return 1; }
+	};
+	static_assert(1 == _type<_type_spec::_C_SHARP_>::_allow_infinity);
+
+	template<>
+	struct _type_alt<_type_spec::_R_SHARP_> : public math::type {
+		enum { API_code = 1, _allow_infinity = -1 };
+		int allow_infinity() const override { return -1; }
+	};
+	static_assert(-1 == _type<_type_spec::_R_SHARP_>::_allow_infinity);
+
+	template<>
+	struct _type_alt<_type_spec::_S1_> : public math::type {
+		enum { API_code = 0, _allow_infinity = 0 };
+		int allow_infinity() const override { return 0; }
+	};
+	static_assert(0 == _type<_type_spec::_S1_>::_allow_infinity);
+
 	// subspace relations
 	template<>
 	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
@@ -189,6 +214,33 @@ namespace zaimoni {
 	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
+	template<>
+	struct _type_alt<_type_spec::_C_> : public _type_alt<_type_spec::_C_SHARP_> {
+		enum { API_code = 0, _allow_infinity = 0 };
+
+		virtual ~_type_alt() = default;
+
+		// numerical support -- these have coordinate-wise definitions available
+		int allow_infinity() const override { return 0; }
+	};
+	static_assert(0 == _type_alt<_type_spec::_C_>::_allow_infinity);
+
+	template<>
+	struct _type_alt<_type_spec::_R_> : public _type_alt<_type_spec::_C_>, public _type_alt<_type_spec::_R_SHARP_> {
+		enum { _allow_infinity = 0 };
+
+		int allow_infinity() const override { return 0; }
+	};
+	static_assert(0 == _type_alt<_type_spec::_R_>::_allow_infinity);
+
+	template<>
+	struct _type_alt<_type_spec::_Q_> : public _type_alt<_type_spec::_R_> {};
+	static_assert(0 == _type_alt<_type_spec::_Q_>::_allow_infinity);
+
+	template<>
+	struct _type_alt<_type_spec::_Z_> : public _type_alt<_type_spec::_Q_> {};
+	static_assert(0 == _type_alt<_type_spec::_Z_>::_allow_infinity);
+
 	namespace bits {
 
 		template<class T>
@@ -197,7 +249,6 @@ namespace zaimoni {
 		};
 
 	}
-
 
 	template<class T>
 	using type_of_t = typename bits::_type_of<T>::type;
