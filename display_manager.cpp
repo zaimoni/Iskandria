@@ -232,7 +232,23 @@ std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 		_image_cache[src] = x;
 		return x;
 	}
-	return 0;
+	return nullptr;
+}
+
+std::shared_ptr<sf::Texture> DisplayManager::getTexture(const std::string& src)
+{
+	if (1 == _texture_cache.count(src)) {
+		if (auto ret = _texture_cache[src].lock()) return ret;
+		_texture_cache.erase(src);
+	}
+	auto img = getImage(src);
+	if (!img) return nullptr;
+	std::shared_ptr<sf::Texture> x(new sf::Texture());
+	if (x->loadFromImage(*img)) {
+		_texture_cache[src] = x;
+		return x;
+	}
+	return nullptr;
 }
 
 }	// namespace isk

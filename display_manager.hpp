@@ -76,6 +76,7 @@ public:
 	float charHeight() const { return (float)(_pixel_dim[1])/ DESIGN_HEIGHT_CHAR;};
 
 	std::shared_ptr<sf::Image> getImage(const std::string& src);
+	std::shared_ptr<sf::Texture> getTexture(const std::string& src);
 };
 
 #include "singleton.off.hpp"

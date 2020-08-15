@@ -1,5 +1,6 @@
 #include "telephoto_grid.hpp"
 #include "display_manager.hpp"
+#include "css_SFML.hpp"
 
 namespace isk {
 
@@ -92,6 +93,13 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 	// we would rather reuse DOM elements
 	static const std::string CSS_tag("telephoto_grid");	// should only be one of us (unlike some other imaginable camera types)
 	auto prior_DOM = DisplayManager::get().remove_by_CSS_class(CSS_tag);
+
+#if 0
+	for (decltype(auto) x : image_keys) {
+		auto raw_img = DisplayManager::get().getTexture(x.second);
+		css::wrap<sf::Sprite> staging;	// HMM...why is default constructor deleted?
+	}
+#endif
 
 	return false;
 }
