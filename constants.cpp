@@ -402,11 +402,19 @@ int main(int argc, char* argv[])
 	INTERVAL_TO_STDOUT(solar_system_units().mass_unit," kg\n");
 	INTERVAL_TO_STDOUT(solar_system_units().temperature_unit," K\n");
 
-	STRING_LITERAL_TO_STDOUT("\nGeometrized units in SI\n");
-	INTERVAL_TO_STDOUT(geometrized_units().distance_unit," m\n");
-	INTERVAL_TO_STDOUT(geometrized_units().time_unit," s\n");
-	INTERVAL_TO_STDOUT(geometrized_units().mass_unit," kg\n");
-	INTERVAL_TO_STDOUT(geometrized_units().temperature_unit," K\n");
+	STRING_LITERAL_TO_STDOUT("\nSI units in geometrized units\n");
+	INTERVAL_TO_STDOUT(geometrized_units().distance_unit," Planck lengths\n");
+	INTERVAL_TO_STDOUT(geometrized_units().time_unit," Planck times\n");
+	INTERVAL_TO_STDOUT(geometrized_units().mass_unit," Planck masses\n");
+	INTERVAL_TO_STDOUT(geometrized_units().temperature_unit," Planck temperatures\n");
+
+#if 0
+	STRING_LITERAL_TO_STDOUT("\ngeometrized units in SI units\n");
+	INTERVAL_TO_STDOUT(1.0 / geometrized_units().distance_unit, " m\n");  // \todo predicted division operator not called
+	INTERVAL_TO_STDOUT(1.0 / geometrized_units().time_unit, " s\n");
+	INTERVAL_TO_STDOUT(1.0 / geometrized_units().mass_unit, " kg\n");
+	INTERVAL_TO_STDOUT(1.0 / geometrized_units().temperature_unit, " K\n");
+#endif
 
 	const auto geo_dist_squared = SI_units().G*SI_units().h_bar/pow<3>(SI_units().c);
 	STRING_LITERAL_TO_STDOUT("\nGeometrized distance unit squared\n");
