@@ -12,7 +12,11 @@ namespace zaimoni {
 // we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of
 	template<class Derived>
+#ifdef KURODA_DOMAIN
+	struct _interface_of<Derived, double> : public virtual fp_API
+#else
 	struct _interface_of<Derived, double, 0> : public virtual fp_API
+#endif
 	{
 	private:
 		_fp_stats<double> _stats;
@@ -47,19 +51,27 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 		}	// power-of-two
 		fp_API* _eval() const override { return 0; }
+		bool _is_inf() const override { return std::isinf(static_cast<const Derived*>(this)->value()); }
+		bool _is_finite() const override { return std::isfinite(static_cast<const Derived*>(this)->value()); }
 	};
 
+#ifndef KURODA_DOMAIN
 	template<class Derived>
 	struct _interface_of<Derived, double, 1> : public _interface_of<Derived, double, 0>
 	{
 		virtual bool is_inf() const { return std::isinf(static_cast<const Derived*>(this)->value()); };
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
+#endif
 #pragma end_copy
 #pragma for F in float,long double
 #pragma substitute $F for double in interface_of
 	template<class Derived>
+#ifdef KURODA_DOMAIN
+	struct _interface_of<Derived, float> : public virtual fp_API
+#else
 	struct _interface_of<Derived, float, 0> : public virtual fp_API
+#endif
 	{
 	private:
 		_fp_stats<float> _stats;
@@ -94,16 +106,24 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 		}	// power-of-two
 		fp_API* _eval() const override { return 0; }
+		bool _is_inf() const override { return std::isinf(static_cast<const Derived*>(this)->value()); }
+		bool _is_finite() const override { return std::isfinite(static_cast<const Derived*>(this)->value()); }
 	};
 
+#ifndef KURODA_DOMAIN
 	template<class Derived>
 	struct _interface_of<Derived, float, 1> : public _interface_of<Derived, float, 0>
 	{
 		virtual bool is_inf() const { return std::isinf(static_cast<const Derived*>(this)->value()); };
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
+#endif
 	template<class Derived>
+#ifdef KURODA_DOMAIN
+	struct _interface_of<Derived, long double> : public virtual fp_API
+#else
 	struct _interface_of<Derived, long double, 0> : public virtual fp_API
+#endif
 	{
 	private:
 		_fp_stats<long double> _stats;
@@ -138,14 +158,18 @@ namespace zaimoni {
 			x = std::scalbn(x, scale);
 		}	// power-of-two
 		fp_API* _eval() const override { return 0; }
+		bool _is_inf() const override { return std::isinf(static_cast<const Derived*>(this)->value()); }
+		bool _is_finite() const override { return std::isfinite(static_cast<const Derived*>(this)->value()); }
 	};
 
+#ifndef KURODA_DOMAIN
 	template<class Derived>
 	struct _interface_of<Derived, long double, 1> : public _interface_of<Derived, long double, 0>
 	{
 		virtual bool is_inf() const { return std::isinf(static_cast<const Derived*>(this)->value()); };
 		virtual bool is_finite() const { return std::isfinite(static_cast<const Derived*>(this)->value()); };
 	};
+#endif
 #pragma end_substitute
 #pragma done
 
@@ -164,7 +188,11 @@ public:
 };
 
 template<class T, class U= type_of_t<T> >
+#ifdef KURODA_DOMAIN
+class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T>, public _access<T>
+#else
 class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T, U::API_code>, public _access<T>
+#endif
 {
 private:
 	T _x;

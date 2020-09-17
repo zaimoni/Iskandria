@@ -56,8 +56,8 @@ template<class T>
 class n_ary_op
 {
 public:
-	typedef std::shared_ptr<T> smart_ptr;
-	typedef std::pair<int, size_t> eval_spec;
+	using smart_ptr = std::shared_ptr<T>;
+	using eval_spec = std::pair<int, size_t>;
 protected:
 	std::vector<smart_ptr> _x;
 	std::vector<eval_spec> _heuristic;
@@ -285,8 +285,8 @@ class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_cod
 {
 public:
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	typedef typename n_ary_op<T>::smart_ptr smart_ptr;
-	typedef typename n_ary_op<T>::eval_spec eval_spec;
+	using smart_ptr = n_ary_op<T>::smart_ptr;
+	using eval_spec = n_ary_op<T>::eval_spec;
 private:
 	enum {
 		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
@@ -440,8 +440,8 @@ class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T
 {
 public:
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	typedef typename n_ary_op<T>::smart_ptr smart_ptr;
-	typedef typename n_ary_op<T>::eval_spec eval_spec;
+	using smart_ptr = n_ary_op<T>::smart_ptr;
+	using eval_spec = n_ary_op<T>::eval_spec;
 private:
 	enum {
 		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
@@ -594,7 +594,7 @@ class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>,
 {
 public:
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	typedef std::shared_ptr<T> smart_ptr;
+	using smart_ptr = std::shared_ptr<T>;
 private:
 	smart_ptr _numerator;
 	smart_ptr _denominator;
