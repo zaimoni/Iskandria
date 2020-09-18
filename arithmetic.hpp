@@ -12,33 +12,12 @@ namespace zaimoni {
 
 namespace math {
 
-// prototype, establishing required syntax.  These are good candidates for explicit instantiation.
-#ifdef KURODA_DOMAIN
 int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
 int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
 fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
 int sum_implemented(const std::shared_ptr<fp_API>& x);
 int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
-#else
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
-
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_product(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
-
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d);
-
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x);
-
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
-
-template<class T>
-typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
-#endif
 
 }
 
@@ -288,22 +267,10 @@ restart:
 	}
 };
 
-// T is assumed to require zaimoni::fp_API in all of these classes
-#ifdef KURODA_DOMAIN
 class sum : public fp_API, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
-// class sum : public fp_API, public _interface_of<sum, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
-#else
-template<class T>
-class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
-#endif
 {
 public:
-#ifdef KURODA_DOMAIN
 	using raw_type = fp_API;
-#else
-	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using raw_type = T;
-#endif
 	using smart_ptr = n_ary_op<raw_type>::smart_ptr;
 	using eval_spec = n_ary_op<raw_type>::eval_spec;
 private:
@@ -417,7 +384,6 @@ public:
 		}
 		return ret;
 	}
-#ifdef KURODA_DOMAIN
 	const math::type* domain() const override
 	{
 		if (_x.empty()) return &math::get<_type<_type_spec::_R_SHARP_>>(); // omni-zero is unconstrained \todo should be integers
@@ -439,9 +405,7 @@ public:
 	}
 
 	fp_API* clone() const override { return new sum(*this); }
-#else
-	sum* clone() const override { return new sum(*this); }
-#endif
+
 	std::string to_s() const override {
 		if (this->_x.empty()) return "0";
 		const auto _size = this->_x.size();
@@ -478,21 +442,10 @@ private:
 	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
-#ifdef KURODA_DOMAIN
 class product : public fp_API, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
-//class product : public fp_API, public _interface_of<product, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
-#else
-template<class T>
-class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
-#endif
 {
 public:
-#ifdef KURODA_DOMAIN
 	using raw_type = fp_API;
-#else
-	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using raw_type = T;
-#endif
 	using smart_ptr = n_ary_op<raw_type>::smart_ptr;
 	using eval_spec = n_ary_op<raw_type>::eval_spec;
 private:
@@ -575,7 +528,6 @@ public:
 		}
 		return ret;
 	}
-#ifdef KURODA_DOMAIN
 	const math::type* domain() const override
 	{
 		if (_x.empty()) return &math::get<_type<_type_spec::_R_SHARP_>>(); // omni-one is unconstrained \todo should be integers
@@ -597,9 +549,7 @@ public:
 	}
 
 	fp_API* clone() const override { return new product(*this); }
-#else
-	product* clone() const override { return new product(*this); }
-#endif
+
 	std::string to_s() const override {
 		if (this->_x.empty()) return "1";
 		const auto _size = this->_x.size();
@@ -666,21 +616,10 @@ private:
 	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
-#ifdef KURODA_DOMAIN
 class quotient : public fp_API, public eval_shared_ptr<fp_API>
-// class quotient : public fp_API, public _interface_of<quotient, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>
-#else
-template<class T>
-class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
-#endif
 {
 public:
-#ifdef KURODA_DOMAIN
 	using raw_type = fp_API;
-#else
-	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using raw_type = T;
-#endif
 	using smart_ptr = std::shared_ptr<raw_type>;
 private:
 	smart_ptr _numerator;
@@ -819,7 +758,6 @@ public:
 		clamped_diff_assign(ret, _denominator->ideal_scal_bn());
 		return ret;
 	}
-#if KURODA_DOMAIN
 	const math::type* domain() const override
 	{
 		decltype(auto) n_domain = _numerator->domain();
@@ -829,9 +767,7 @@ public:
 	}
 
 	fp_API* clone() const override { return new quotient(*this); };
-#else
-	quotient* clone() const override { return new quotient(*this); };
-#endif
+
 	std::string to_s() const override {
 		auto n = _numerator->to_s();
 		if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';

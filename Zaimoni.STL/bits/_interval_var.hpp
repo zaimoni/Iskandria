@@ -26,11 +26,7 @@ namespace bits {
 	// we don't want to use a normal macro here as this code is not really expected to be stable
 #pragma start_copy interface_of
 	template<class Derived>
-#ifdef KURODA_DOMAIN
 	struct _interface_of<Derived, ISK_INTERVAL<double> > : public virtual fp_API
-#else
-	struct _interface_of<Derived, ISK_INTERVAL<double>, 0> : public virtual fp_API
-#endif
 	{
 	private:
 		_fp_stats<double> _stats_l;
@@ -67,11 +63,7 @@ namespace bits {
 			return 0;
 		}
 
-#ifdef KURODA_DOMAIN
 		fp_API* clone() const override {
-#else
-		type_of_t<Derived>* clone() const override {
-#endif
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -98,30 +90,11 @@ namespace bits {
 		bool _is_inf() const override { return isINF(static_cast<const Derived*>(this)->value()); }
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }
 	};
-
-#ifndef KURODA_DOMAIN
-	template<class Derived>
-	struct _interface_of<Derived, ISK_INTERVAL<double>, 1> : public _interface_of<Derived, ISK_INTERVAL<double>, 0>
-	{
-		virtual bool is_inf() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isinf(x.lower()) || std::isinf(x.upper());	// \todo may not be correct
-		}
-		virtual bool is_finite() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isfinite(x.lower()) || std::isfinite(x.upper());
-		}
-	};
-#endif
 #pragma end_copy
 #pragma for F in float,long double
 #pragma substitute $F for double in interface_of
 	template<class Derived>
-#ifdef KURODA_DOMAIN
 	struct _interface_of<Derived, ISK_INTERVAL<float> > : public virtual fp_API
-#else
-	struct _interface_of<Derived, ISK_INTERVAL<float>, 0> : public virtual fp_API
-#endif
 	{
 	private:
 		_fp_stats<float> _stats_l;
@@ -158,11 +131,7 @@ namespace bits {
 			return 0;
 		}
 
-#ifdef KURODA_DOMAIN
 		fp_API* clone() const override {
-#else
-		type_of_t<Derived>* clone() const override {
-#endif
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -190,26 +159,8 @@ namespace bits {
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }
 	};
 
-#ifndef KURODA_DOMAIN
 	template<class Derived>
-	struct _interface_of<Derived, ISK_INTERVAL<float>, 1> : public _interface_of<Derived, ISK_INTERVAL<float>, 0>
-	{
-		virtual bool is_inf() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isinf(x.lower()) || std::isinf(x.upper());	// \todo may not be correct
-		}
-		virtual bool is_finite() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isfinite(x.lower()) || std::isfinite(x.upper());
-		}
-	};
-#endif
-	template<class Derived>
-#ifdef KURODA_DOMAIN
 	struct _interface_of<Derived, ISK_INTERVAL<long double> > : public virtual fp_API
-#else
-	struct _interface_of<Derived, ISK_INTERVAL<long double>, 0> : public virtual fp_API
-#endif
 	{
 	private:
 		_fp_stats<long double> _stats_l;
@@ -246,11 +197,7 @@ namespace bits {
 			return 0;
 		}
 
-#ifdef KURODA_DOMAIN
 		fp_API* clone() const override {
-#else
-		type_of_t<Derived>* clone() const override {
-#endif
 			auto& x = static_cast<const Derived*>(this)->value();
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
@@ -277,21 +224,6 @@ namespace bits {
 		bool _is_inf() const override { return isINF(static_cast<const Derived*>(this)->value()); }
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }
 	};
-
-#ifndef KURODA_DOMAIN
-	template<class Derived>
-	struct _interface_of<Derived, ISK_INTERVAL<long double>, 1> : public _interface_of<Derived, ISK_INTERVAL<long double>, 0>
-	{
-		virtual bool is_inf() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isinf(x.lower()) || std::isinf(x.upper());	// \todo may not be correct
-		}
-		virtual bool is_finite() const {
-			auto& x = static_cast<const Derived*>(this)->value();
-			return std::isfinite(x.lower()) || std::isfinite(x.upper());
-		}
-	};
-#endif
 #pragma end_substitute
 #pragma done
 }

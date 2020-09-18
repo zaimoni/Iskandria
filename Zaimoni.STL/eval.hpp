@@ -58,13 +58,11 @@ namespace zaimoni {
 
 		virtual ~fp_API() = default;
 
-#if KURODA_DOMAIN
 		/// <summary>
 		/// Run-time mathematical type system.  Reference return interferes with n-ary operation domain estimation
 		/// </summary>
 		/// <returns>non-null, or throws std::logic_error</returns>
 		virtual const math::type* domain() const = 0; // for Kuroda grammar approach; horde of compiler errors
-#endif
 
 		virtual bool self_eval() = 0;
 		template<class T>
@@ -85,7 +83,6 @@ namespace zaimoni {
 
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
-#if KURODA_DOMAIN
 		virtual bool is_inf() const {
 			if (0 == domain()->allow_infinity()) return false;
 			return _is_inf();
@@ -94,10 +91,6 @@ namespace zaimoni {
 			if (0 == domain()->allow_infinity()) return true;
 			return _is_finite();
 		}
-#else
-		virtual bool is_inf() const = 0;
-		virtual bool is_finite() const = 0;
-#endif
 		virtual bool is_zero() const = 0;
 		virtual bool is_one() const = 0;
 		virtual int sgn() const = 0;
@@ -163,9 +156,7 @@ namespace zaimoni {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
 
-#ifdef KURODA_DOMAIN
 		const math::type* domain() const override { return &math::get<type_of_t<T> >(); }
-#endif
 		bool self_eval() override { return false; };
 
 		bool is_zero() const override { return zaimoni::is_zero(value()); };
@@ -176,44 +167,24 @@ namespace zaimoni {
 		int precedence() const override { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
 	};
 
-#ifndef KURODA_DOMAIN
-	template<class Derived>
-	struct _infinite : public virtual fp_API {
-		virtual bool is_inf() const { return static_cast<const Derived*>(this)->_is_inf(); }
-		virtual bool is_finite() const { return static_cast<const Derived*>(this)->_is_finite(); };
-	};
-#endif
-
 	// \todo C++20 use constexpr virtual functions here
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
-#ifdef KURODA_DOMAIN
 	struct _type<_type_spec::_C_SHARP_> : public virtual math::type {
-#else
-	struct _type<_type_spec::_C_SHARP_> : public virtual fp_API, math::type {
-#endif
 		enum { API_code = 1, _allow_infinity = 1 };
 		int allow_infinity() const override { return 1; }
 	};
 	static_assert(1 == _type<_type_spec::_C_SHARP_>::_allow_infinity);
 
 	template<>
-#ifdef KURODA_DOMAIN
 	struct _type<_type_spec::_R_SHARP_> : public virtual math::type {
-#else
-	struct _type<_type_spec::_R_SHARP_> : public virtual fp_API, math::type {
-#endif
 		enum { API_code = 1, _allow_infinity = -1 };
 		int allow_infinity() const override { return -1; }
 	};
 	static_assert(-1 == _type<_type_spec::_R_SHARP_>::_allow_infinity);
 
 	template<>
-#ifdef KURODA_DOMAIN
 	struct _type<_type_spec::_S1_> : public virtual math::type {
-#else
-	struct _type<_type_spec::_S1_> : public virtual fp_API, math::type {
-#endif
 		enum { API_code = 0, _allow_infinity = 0 };
 		int allow_infinity() const override { return 0; }
 	};
@@ -228,10 +199,6 @@ namespace zaimoni {
 
 		// numerical support -- these have coordinate-wise definitions available
 		int allow_infinity() const override { return 0; }
-#ifndef KURODA_DOMAIN
-		bool is_inf() const override { return false; };
-		bool is_finite() const override { return true; };
-#endif
 	};
 	static_assert(0 == _type<_type_spec::_C_>::_allow_infinity);
 
@@ -251,27 +218,10 @@ namespace zaimoni {
 	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
-#ifdef KURODA_DOMAIN
 	template<class Derived, class T>
 	struct _interface_of {
 		static_assert(unconditional_v<bool, false, T>, "must specialize this");
 	};	// must override to do anything useful
-#else
-	template<class Derived, class T, int API_CODE>
-	struct _interface_of {
-		static_assert(unconditional_v<bool, false, T>, "must specialize this");
-	};	// must override to do anything useful
-
-	template<class Derived, class T>
-	struct _interface_of<Derived, std::shared_ptr<T>, 0>
-	{
-	};
-
-	template<class Derived, class T>
-	struct _interface_of<Derived, std::shared_ptr<T>, 1> : public _infinite<Derived>
-	{
-	};
-#endif
 
 	namespace bits {
 
