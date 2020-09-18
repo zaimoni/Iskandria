@@ -462,6 +462,7 @@ final_exit:
 		return ret;
 	}
 
+#ifndef KURODA_DOMAIN
 	template<> int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
@@ -485,8 +486,11 @@ final_exit:
 		return ret;
 	}
 #endif
+#endif
 
+#ifndef KURODA_DOMAIN
 	template int rearrange_product< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
+#endif
 
 #if 0
 	template _type<_type_spec::_R_SHARP_>* eval_quotient< _type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& d);
@@ -547,6 +551,7 @@ final_exit:
 		return 0;
 	}
 
+#ifndef KURODA_DOMAIN
 	template<> _type<_type_spec::_R_SHARP_>* eval_quotient< _type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto d_src = d.get();
@@ -558,6 +563,7 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->value());
 		return 0;
 	}
+#endif
 #endif
 
 	// generally speaking, for floating point numerals we want to destructively add the smallest two exponents first.
@@ -599,6 +605,7 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
+#ifndef KURODA_DOMAIN
 	template<> int sum_implemented<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& x)
 	{
 		auto src = x.get();
@@ -610,6 +617,7 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->value());
 		return std::numeric_limits<int>::min();
 	}
+#endif
 
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of_v<fp_API, T> && std::is_floating_point_v<F>, int>::type sum_score(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
@@ -631,6 +639,7 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
+#ifndef KURODA_DOMAIN
 	template<> int sum_score<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();
@@ -642,6 +651,7 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->value());
 		return std::numeric_limits<int>::min();
 	}
+#endif
 
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
@@ -695,6 +705,7 @@ final_exit:
 		return 0;
 	}
 
+#ifndef KURODA_DOMAIN
 	template<> std::shared_ptr<_type<_type_spec::_R_SHARP_> > eval_sum<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();
@@ -706,6 +717,7 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<_type<_type_spec::_R_SHARP_> >(eval_sum(lhs, r->value()));
 		return 0;
 	}
+#endif
 #endif
 
 }	// namespace math

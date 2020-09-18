@@ -280,13 +280,22 @@ restart:
 };
 
 // T is assumed to require zaimoni::fp_API in all of these classes
+#ifdef KURODA_DOMAIN
+class sum : public fp_API, public _interface_of<sum, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+#else
 template<class T>
 class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
+#endif
 {
 public:
+#ifdef KURODA_DOMAIN
+	using raw_type = fp_API;
+#else
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using smart_ptr = n_ary_op<T>::smart_ptr;
-	using eval_spec = n_ary_op<T>::eval_spec;
+	using raw_type = T;
+#endif
+	using smart_ptr = n_ary_op<raw_type>::smart_ptr;
+	using eval_spec = n_ary_op<raw_type>::eval_spec;
 private:
 	enum {
 		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
@@ -328,7 +337,7 @@ public:
 		if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
 		this->_append_term(std::move(src));
 	}
-	void append_term(T* src) { append_term(smart_ptr(src)); }
+	void append_term(raw_type* src) { append_term(smart_ptr(src)); }
 
 private:
 	bool would_fpAPI_eval() const override { return 1 >= this->_x.size(); }
@@ -398,7 +407,31 @@ public:
 		}
 		return ret;
 	}
+#ifdef KURODA_DOMAIN
+	const math::type* domain() const override
+	{
+		if (_x.empty()) return &math::get<_type<_type_spec::_R_SHARP_>>(); // omni-zero is unconstrained \todo should be integers
+		std::vector<decltype(domain())> accumulator;
+		for (decltype(auto) arg : _x) {
+			decltype(domain()) test = arg->domain();
+			if (!test) continue; // \todo invariant violation
+			if (accumulator.empty()) {
+				accumulator.push_back(test);
+				continue;
+			}
+			if (test == accumulator.back()) continue; // \todo FIX: not always correct
+			throw std::logic_error("unhandled product domain");
+		}
+		const size_t ub = accumulator.size();
+		if (0 == ub) return nullptr;
+		else if (1 == ub) return accumulator.front();
+		else throw std::logic_error("unhandled product domain");
+	}
+
+	fp_API* clone() const override { return new sum(*this); }
+#else
 	sum* clone() const override { return new sum(*this); }
+#endif
 	std::string to_s() const override {
 		if (this->_x.empty()) return "0";
 		const auto _size = this->_x.size();
@@ -420,11 +453,11 @@ public:
 	}
 	int precedence() const override { return 1; }
 
-	bool _is_inf() const {
+	bool _is_inf() const override {
 		for (auto& x : this->_x) if (x->is_inf()) return true;
 		return false;
 	}
-	bool _is_finite() const {
+	bool _is_finite() const override {
 		for (auto& x : this->_x) if (!x->is_finite()) return false;
 		return true;
 	}
@@ -435,13 +468,22 @@ private:
 	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
+#ifdef KURODA_DOMAIN
+class product : public fp_API, public _interface_of<product, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+#else
 template<class T>
 class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
+#endif
 {
 public:
+#ifdef KURODA_DOMAIN
+	using raw_type = fp_API;
+#else
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using smart_ptr = n_ary_op<T>::smart_ptr;
-	using eval_spec = n_ary_op<T>::eval_spec;
+	using raw_type = T;
+#endif
+	using smart_ptr = n_ary_op<raw_type>::smart_ptr;
+	using eval_spec = n_ary_op<raw_type>::eval_spec;
 private:
 	enum {
 		strict_max_heuristic = _n_ary_op::strict_max_core_heuristic
@@ -462,7 +504,7 @@ public:
 		if (!src || src->is_one()) return;
 		this->_append_term(std::move(src));
 	}
-	void append_term(T* src) { append_term(smart_ptr(src)); }
+	void append_term(raw_type* src) { append_term(smart_ptr(src)); }
 
 private:
 	bool would_fpAPI_eval() const override { return 1 >= this->_x.size(); }
@@ -522,7 +564,31 @@ public:
 		}
 		return ret;
 	}
+#ifdef KURODA_DOMAIN
+	const math::type* domain() const override
+	{
+		if (_x.empty()) return &math::get<_type<_type_spec::_R_SHARP_>>(); // omni-one is unconstrained \todo should be integers
+		std::vector<decltype(domain())> accumulator;
+		for (decltype(auto) arg : _x) {
+			decltype(domain()) test = arg->domain();
+			if (!test) continue; // \todo invariant violation
+			if (accumulator.empty()) {
+				accumulator.push_back(test);
+				continue;
+			}
+			if (test == accumulator.back()) continue; // \todo FIX: not always correct
+			throw std::logic_error("unhandled product domain");
+		}
+		const size_t ub = accumulator.size();
+		if (0 == ub) return nullptr;
+		else if (1 == ub) return accumulator.front();
+		else throw std::logic_error("unhandled product domain");
+	}
+
+	fp_API* clone() const override { return new product(*this); }
+#else
 	product* clone() const override { return new product(*this); }
+#endif
 	std::string to_s() const override {
 		if (this->_x.empty()) return "1";
 		const auto _size = this->_x.size();
@@ -543,11 +609,11 @@ public:
 	}
 	int precedence() const override { return 2; }
 
-	bool _is_inf() const {
+	bool _is_inf() const override {
 		for (auto& x : this->_x) if (x->is_inf()) return true;
 		return false;
 	}
-	bool _is_finite() const {
+	bool _is_finite() const override {
 		for (auto& x : this->_x) if (!x->is_finite()) return false;
 		return true;
 	}
@@ -589,12 +655,21 @@ private:
 	fp_API* _eval() const override { return 0; }	// placeholder
 };
 
+#ifdef KURODA_DOMAIN
+class quotient : public fp_API, public _interface_of<quotient, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>
+#else
 template<class T>
 class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
+#endif
 {
 public:
+#ifdef KURODA_DOMAIN
+	using raw_type = fp_API;
+#else
 	static_assert(std::is_base_of<fp_API, T>::value, "need fp_API as a base class");
-	using smart_ptr = std::shared_ptr<T>;
+	using raw_type = T;
+#endif
+	using smart_ptr = std::shared_ptr<raw_type>;
 private:
 	smart_ptr _numerator;
 	smart_ptr _denominator;
@@ -613,7 +688,7 @@ public:
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
-	quotient(const smart_ptr& numerator, T* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+	quotient(const smart_ptr& numerator, raw_type* denominator) : _numerator(numerator), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
@@ -625,19 +700,19 @@ public:
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
-	quotient(smart_ptr&& numerator, T* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+	quotient(smart_ptr&& numerator, raw_type* denominator) : _numerator(std::move(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
-	quotient(T* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
+	quotient(raw_type* numerator, const smart_ptr& denominator) : _numerator(smart_ptr(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
-	quotient(T* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+	quotient(raw_type* numerator, smart_ptr&& denominator) : _numerator(smart_ptr(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
-	quotient(T* numerator, T* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+	quotient(raw_type* numerator, raw_type* denominator) : _numerator(smart_ptr(numerator)), _denominator(smart_ptr(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
 		auto err = _constructor_fatal();
 		if (err) throw zaimoni::math::numeric_error(err);
 	}
@@ -732,7 +807,19 @@ public:
 		clamped_diff_assign(ret, _denominator->ideal_scal_bn());
 		return ret;
 	}
+#if KURODA_DOMAIN
+	const math::type* domain() const override
+	{
+		decltype(auto) n_domain = _numerator->domain();
+		decltype(auto) d_domain = _denominator->domain();
+		if (n_domain == d_domain) return n_domain; // \todo fix not even correct for Z/Z
+		throw std::logic_error("unhandled domain");
+	}
+
+	fp_API* clone() const override { return new quotient(*this); };
+#else
 	quotient* clone() const override { return new quotient(*this); };
+#endif
 	std::string to_s() const override {
 		auto n = _numerator->to_s();
 		if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';
@@ -742,10 +829,10 @@ public:
 	}
 	int precedence() const override { return 2; }
 
-	bool _is_inf() const {
+	bool _is_inf() const override {
 		return _numerator->is_inf();	// cf. _transform_fatal which requires finite denominator in this case
 	}
-	bool _is_finite() const {
+	bool _is_finite() const override {
 		if (_numerator->is_finite()) return true;
 		else if (_numerator->is_inf()) return false;
 		else if (_denominator->is_inf()) return true;	// presumed not-undefined

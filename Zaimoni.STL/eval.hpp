@@ -34,6 +34,13 @@ namespace zaimoni {
 		struct type {
 			virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
 		};	// tag so we can do template validation
+
+		// allow non-const in case we need something like an attribute-value type for real-time theorems 2020-09-18 zaimoni
+		template<class T>
+		std::enable_if_t<std::is_base_of_v<type, T>, T&> get() {
+			static T ooao;
+			return ooao;
+		}
 	}
 
 	template<_type_spec::arch_domain DOM> struct _type {
@@ -52,7 +59,11 @@ namespace zaimoni {
 		virtual ~fp_API() = default;
 
 #if KURODA_DOMAIN
-		virtual const math::type& domain() const = 0; // for Kuroda grammar approach; horde of compiler errors
+		/// <summary>
+		/// Run-time mathematical type system.  Reference return interferes with n-ary operation domain estimation
+		/// </summary>
+		/// <returns>non-null, or throws std::logic_error</returns>
+		virtual const math::type* domain() const = 0; // for Kuroda grammar approach; horde of compiler errors
 #endif
 
 		virtual bool self_eval() = 0;
@@ -76,11 +87,11 @@ namespace zaimoni {
 		// we do not propagate NaN so no test here for it
 #if KURODA_DOMAIN
 		virtual bool is_inf() const {
-			if (0 == domain().allow_infinity()) return false;
+			if (0 == domain()->allow_infinity()) return false;
 			return _is_inf();
 		}
 		virtual bool is_finite() const {
-			if (0 == domain().allow_infinity()) return true;
+			if (0 == domain()->allow_infinity()) return true;
 			return _is_finite();
 		}
 #else
@@ -140,6 +151,9 @@ namespace zaimoni {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
 
+#ifdef KURODA_DOMAIN
+		const math::type* domain() const override { return &get<_type_of<T>::type>(); }
+#endif
 		bool self_eval() override { return false; };
 
 		bool is_zero() const override { return zaimoni::is_zero(value()); };
