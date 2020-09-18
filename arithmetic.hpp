@@ -13,6 +13,14 @@ namespace zaimoni {
 namespace math {
 
 // prototype, establishing required syntax.  These are good candidates for explicit instantiation.
+#ifdef KURODA_DOMAIN
+int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
+int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
+fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
+int sum_implemented(const std::shared_ptr<fp_API>& x);
+int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+#else
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs);
 
@@ -22,18 +30,15 @@ typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d);
 
-#ifdef KURODA_DOMAIN
-int sum_implemented(const std::shared_ptr<fp_API>& x);
-#else
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x);
-#endif
 
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
 
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
+#endif
 
 }
 

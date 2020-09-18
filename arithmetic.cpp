@@ -6,6 +6,7 @@
 namespace zaimoni {
 namespace math {
 
+#ifndef KURODA_DOMAIN
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, std::shared_ptr<T>& rhs) { return 0; }
 
@@ -15,16 +16,15 @@ namespace math {
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d) { return 0; }
 
-#ifndef KURODA_DOMAIN
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x) { return std::numeric_limits<int>::min(); }
-#endif
 
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return std::numeric_limits<int>::min(); }
 
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type eval_sum(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return 0; }
+#endif
 
 #if 0
 	template int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
@@ -426,7 +426,11 @@ final_exit:
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
 		if (1==lhs.use_count()) working = lhs;
-		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_> >(dynamic_cast<_type<_type_spec::_R_SHARP_>*>(lhs->clone()));
+#ifdef KURODA_DOMAIN
+		else working = decltype(working)(lhs->clone());
+#else
+		else working = decltype(working)(dynamic_cast<decltype(working)::element_type*>(lhs->clone()));
+#endif
 
 		int ret = 0;
 
@@ -448,7 +452,11 @@ final_exit:
 		// setup of working will fail badly in a multi-threaded situation
 		typename std::remove_reference<decltype(lhs)>::type working;
 		if (1==lhs.use_count()) working = lhs;
-		else working = std::shared_ptr<_type<_type_spec::_R_SHARP_> >(dynamic_cast<_type<_type_spec::_R_SHARP_>*>(lhs->clone()));
+#ifdef KURODA_DOMAIN
+		else working = decltype(working)(lhs->clone());
+#else
+		else working = decltype(working)(dynamic_cast<decltype(working)::element_type*>(lhs->clone()));
+#endif
 
 		int ret = 0;
 
@@ -464,7 +472,30 @@ final_exit:
 		return ret;
 	}
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs)
+	{	// we assume we are being called from the zaimoni::sum object.
+		// that is, all of the zero and infinity symbolic processing has already happened.
+
+		// setup of working will fail badly in a multi-threaded situation
+		typename std::remove_reference<decltype(rhs)>::type working;
+		if (1 == rhs.use_count()) working = rhs;
+		else working = decltype(working)(rhs->clone());
+
+		int ret = 0;
+
+		auto src = working.get();
+		if (auto r = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(lhs, r->value());
+
+		if (ret) rhs = working;
+		return ret;
+	}
+#else
 	template<> int rearrange_sum< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
@@ -490,7 +521,10 @@ final_exit:
 #endif
 #endif
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	// no-op implementation to enable building
+	int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs) { return 0; }
+#else
 	template int rearrange_product< _type<_type_spec::_R_SHARP_> >(std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs);
 #endif
 
@@ -553,7 +587,19 @@ final_exit:
 		return 0;
 	}
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d)
+	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
+		auto d_src = d.get();
+		if (auto r = dynamic_cast<_access<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->value()));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->value());
+		else if (auto r = dynamic_cast<_access<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->value()));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->value());
+		else if (auto r = dynamic_cast<_access<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->value()));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->value());
+		return 0;
+	}
+#else
 	template<> _type<_type_spec::_R_SHARP_>* eval_quotient< _type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& n, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto d_src = d.get();
@@ -653,7 +699,19 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+	{
+		auto src = rhs.get();
+		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<double>*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->value());
+		return std::numeric_limits<int>::min();
+	}
+#else
 	template<> int sum_score<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();
@@ -719,7 +777,19 @@ final_exit:
 		return 0;
 	}
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+	{
+		auto src = rhs.get();
+		if (auto r = dynamic_cast<_access<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
+		return nullptr;
+	}
+#else
 	template<> std::shared_ptr<_type<_type_spec::_R_SHARP_> > eval_sum<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& lhs, const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& rhs)
 	{
 		auto src = rhs.get();

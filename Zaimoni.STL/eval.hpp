@@ -9,7 +9,7 @@
 #include "augment.STL/type_traits"
 #include "zero.hpp"
 
-// #define KURODA_DOMAIN 1
+#define KURODA_DOMAIN 1
 
 namespace zaimoni {
 
