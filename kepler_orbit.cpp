@@ -186,6 +186,18 @@ int main(int argc, char* argv[])
 	std::shared_ptr<zaimoni::var<ISK_INTERVAL<long double> > > one_il(new zaimoni::var< ISK_INTERVAL<long double> >(1));
 
 	// inline prototype of reduced mass calculation as follows:
+#ifdef KURODA_DOMAIN
+	auto inv_reduced_mass = new zaimoni::sum();
+	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var<mass::interval>(sun.GM())));
+	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var<mass::interval>(jupiter.GM())));
+	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var<mass::interval>(saturn.GM())));
+	STRING_LITERAL_TO_STDOUT("example inverse reduced mass (GM)\n");
+	INFORM(inv_reduced_mass->to_s().c_str());
+
+	zaimoni::product code_coverage;
+//	zaimoni::quotient code_coverage2;
+	zaimoni::quotient reduced_mass(one, inv_reduced_mass);
+#else
 	auto inv_reduced_mass = new zaimoni::sum<zaimoni::type_of_t<double> >();
 	inv_reduced_mass->append_term(new zaimoni::quotient<zaimoni::type_of_t<double> >(one, new zaimoni::var<mass::interval>(sun.GM())));
 	inv_reduced_mass->append_term(new zaimoni::quotient<zaimoni::type_of_t<double> >(one, new zaimoni::var<mass::interval>(jupiter.GM())));
@@ -196,6 +208,7 @@ int main(int argc, char* argv[])
 	zaimoni::product<zaimoni::type_of_t<double> > code_coverage;
 	zaimoni::quotient<zaimoni::type_of_t<double> > code_coverage2;
 	zaimoni::quotient<zaimoni::type_of_t<double> > reduced_mass(one,inv_reduced_mass);
+#endif
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 	STRING_LITERAL_TO_STDOUT("example reduced mass (GM)\n");

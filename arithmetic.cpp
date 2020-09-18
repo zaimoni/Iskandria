@@ -15,8 +15,10 @@ namespace math {
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d) { return 0; }
 
+#ifndef KURODA_DOMAIN
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x) { return std::numeric_limits<int>::min(); }
+#endif
 
 	template<class T>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs) { return std::numeric_limits<int>::min(); }
@@ -605,7 +607,19 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-#ifndef KURODA_DOMAIN
+#ifdef KURODA_DOMAIN
+	int sum_implemented(const std::shared_ptr<fp_API>& x)
+	{
+		auto src = x.get();
+		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<_access<double>*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->value());
+		return std::numeric_limits<int>::min();
+	}
+#else
 	template<> int sum_implemented<_type<_type_spec::_R_SHARP_> >(const std::shared_ptr<_type<_type_spec::_R_SHARP_> >& x)
 	{
 		auto src = x.get();

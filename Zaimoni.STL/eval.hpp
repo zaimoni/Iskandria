@@ -146,13 +146,25 @@ namespace zaimoni {
 		return working;
 	}
 
+	namespace bits {
+
+		template<class T>
+		struct _type_of {
+			static_assert(unconditional_v<bool, false, T>, "must specialize this");
+		};
+
+	}
+
+	template<class T>
+	using type_of_t = typename bits::_type_of<T>::type;
+
 	template<class T>
 	struct _access : public virtual fp_API {
 		virtual T& value() = 0;
 		virtual const T& value() const = 0;
 
 #ifdef KURODA_DOMAIN
-		const math::type* domain() const override { return &get<_type_of<T>::type>(); }
+		const math::type* domain() const override { return &math::get<type_of_t<T> >(); }
 #endif
 		bool self_eval() override { return false; };
 
@@ -238,18 +250,6 @@ namespace zaimoni {
 	template<>
 	struct _type<_type_spec::_Z_> : public _type<_type_spec::_Q_> {};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
-
-	namespace bits {
-
-		template<class T>
-		struct _type_of {
-			static_assert(unconditional_v<bool, false, T>, "must specialize this");
-		};
-
-	}
-
-	template<class T>
-	using type_of_t = typename bits::_type_of<T>::type;
 
 #ifdef KURODA_DOMAIN
 	template<class Derived, class T>

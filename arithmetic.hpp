@@ -22,8 +22,12 @@ typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type rearrange_
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const std::shared_ptr<T>& d);
 
+#ifdef KURODA_DOMAIN
+int sum_implemented(const std::shared_ptr<fp_API>& x);
+#else
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_implemented(const std::shared_ptr<T>& x);
+#endif
 
 template<class T>
 typename std::enable_if<std::is_base_of<fp_API, T>::value, int>::type sum_score(const std::shared_ptr<T>& lhs, const std::shared_ptr<T>& rhs);
@@ -281,7 +285,8 @@ restart:
 
 // T is assumed to require zaimoni::fp_API in all of these classes
 #ifdef KURODA_DOMAIN
-class sum : public fp_API, public _interface_of<sum, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+class sum : public fp_API, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+// class sum : public fp_API, public _interface_of<sum, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
 #else
 template<class T>
 class sum : public T, public _interface_of<sum<T>,std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
@@ -469,7 +474,8 @@ private:
 };
 
 #ifdef KURODA_DOMAIN
-class product : public fp_API, public _interface_of<product, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+class product : public fp_API, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+//class product : public fp_API, public _interface_of<product, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
 #else
 template<class T>
 class product : public T, public _interface_of<product<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>, protected n_ary_op<T>
@@ -656,7 +662,8 @@ private:
 };
 
 #ifdef KURODA_DOMAIN
-class quotient : public fp_API, public _interface_of<quotient, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>
+class quotient : public fp_API, public eval_shared_ptr<fp_API>
+// class quotient : public fp_API, public _interface_of<quotient, std::shared_ptr<fp_API>>, public eval_shared_ptr<fp_API>
 #else
 template<class T>
 class quotient : public T, public _interface_of<quotient<T>, std::shared_ptr<T>, T::API_code>, public eval_shared_ptr<T>
