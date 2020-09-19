@@ -3,8 +3,6 @@
 
 #include "cssbox.hpp"
 #include "display_manager.hpp"
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Text.hpp>
 
 namespace css {
 
