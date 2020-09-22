@@ -1,5 +1,6 @@
 #include "telephoto_grid.hpp"
 #include "display_manager.hpp"
+#include "sprite.hpp"
 #include "css_SFML.hpp"
 
 namespace isk {
@@ -97,7 +98,8 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 #if 0
 	for (decltype(auto) x : image_keys) {
 		auto raw_img = DisplayManager::get().getTexture(x.second);
-		css::wrap<sf::Sprite> staging;	// HMM...why is default constructor deleted?
+		css::wrap<isk::Sprite> staging(new isk::Sprite(raw_img));	// HMM...doesn't like to instantiate
+		// ....
 	}
 #endif
 

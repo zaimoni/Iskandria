@@ -9,8 +9,6 @@
 #include "augment.STL/type_traits"
 #include "zero.hpp"
 
-#define KURODA_DOMAIN 1
-
 namespace zaimoni {
 
 	using std::to_string;

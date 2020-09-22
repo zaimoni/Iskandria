@@ -14,6 +14,7 @@ private:
 	std::pair<float, float> _scale;
 public:
 	wrap() = default;
+	wrap(T* src) : _x(src) { assign_bootstrap(); }
 	wrap(const wrap& src) = default;
 	wrap(wrap&& src) = default;
 	~wrap() = default;

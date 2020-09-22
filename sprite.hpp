@@ -16,14 +16,14 @@ public:
 	Sprite(zaimoni::intrusive_ptr<sf::Texture>* src) : texture(src),ptr(new sf::Sprite(*src->get())) {
 
 	}
-	Sprite(Sprite&& src) noexcept : texture(src.texture), ptr(src.x) {
+	Sprite(Sprite&& src) noexcept : texture(src.texture), ptr(src.ptr) {
 		ptr = 0;
 		texture = 0;
 	}
 	~Sprite() {
 		if (ptr) {
 			delete ptr;
-			x = 0;
+			ptr = 0;
 		}
 		if (texture) {
 			texture->release();
@@ -32,14 +32,17 @@ public:
 	}
 
 	Sprite& operator=(const Sprite& src) = delete;
-	Sprite& operator=(Sprite&& src) noexcept : x(src.x), texture(src.texture) {
-		x = 0;
-		texture = 0;
+	Sprite& operator=(Sprite&& src) noexcept {
+		ptr = src.ptr;
+		texture = src.texture;
+		src.ptr = 0;
+		src.texture = 0;
+		return *this;
 	}
 
 	// typecasts
 	operator sf::Sprite*& () { return ptr; }
-	operator sf::Sprite* const& () const { return ptr; }
+	operator sf::Sprite* const () const { return ptr; }
 
 	// NOTE: C/C++ -> of const pointer to nonconst data is not const
 	sf::Sprite* operator->() const { return ptr; }
