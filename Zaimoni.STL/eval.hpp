@@ -37,7 +37,7 @@ namespace zaimoni {
 			virtual std::partial_ordering _superclass(const type* rhs) const {
 				const bool nonstrict_subclass = rhs->_nonstrictSuperclass(this);
 				if (_nonstrictSuperclass(rhs)) return nonstrict_subclass ? std::partial_ordering::equivalent : std::partial_ordering::less;
-				return nonstrict_subclass ? std::partial_ordering::less : std::partial_ordering::unordered;
+				return nonstrict_subclass ? std::partial_ordering::greater : std::partial_ordering::unordered;
 			}
 			virtual bool _nonstrictSuperclass(const type* rhs) const = 0;
 		};	// tag so we can do template validation
@@ -174,12 +174,12 @@ namespace zaimoni {
 		int precedence() const override { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
 	};
 
-	// \todo C++20 use constexpr virtual functions here
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual math::type {
-		enum { API_code = 1, _allow_infinity = 1 };
-		int allow_infinity() const override { return 1; }
+		enum { _allow_infinity = 1 };
+
+		int allow_infinity() const override { return _allow_infinity; }
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -187,8 +187,9 @@ namespace zaimoni {
 
 	template<>
 	struct _type<_type_spec::_R_SHARP_> : public virtual math::type {
-		enum { API_code = 1, _allow_infinity = -1 };
-		int allow_infinity() const override { return -1; }
+		enum { _allow_infinity = -1 };
+
+		int allow_infinity() const override { return _allow_infinity; }
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -196,8 +197,9 @@ namespace zaimoni {
 
 	template<>
 	struct _type<_type_spec::_S1_> final : public virtual math::type {
-		enum { API_code = 0, _allow_infinity = 0 };
-		int allow_infinity() const override { return 0; }
+		enum { _allow_infinity = 0 };
+
+		int allow_infinity() const override { return _allow_infinity; }
 	private:
 		std::partial_ordering _superclass(const type* rhs) const override { return _nonstrictSuperclass(this) ? std::partial_ordering::equivalent : std::partial_ordering::unordered; }
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
@@ -207,12 +209,12 @@ namespace zaimoni {
 	// subspace relations
 	template<>
 	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
-		enum { API_code = 0, _allow_infinity = 0 };
+		enum { _allow_infinity = 0 };
 
 		virtual ~_type() = default;
 
 		// numerical support -- these have coordinate-wise definitions available
-		int allow_infinity() const override { return 0; }
+		int allow_infinity() const override { return _allow_infinity; }
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -222,7 +224,7 @@ namespace zaimoni {
 	struct _type<_type_spec::_R_> : public _type<_type_spec::_C_>, public _type<_type_spec::_R_SHARP_> {
 		enum { _allow_infinity = 0 };
 
-		int allow_infinity() const override { return 0; }
+		int allow_infinity() const override { return _allow_infinity; }
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
