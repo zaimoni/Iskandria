@@ -68,6 +68,7 @@ namespace zaimoni {
 				if (auto test = rhs.right(op, lhs)) return test;
 				return nullptr;
 			}
+
 		private:
 			virtual std::partial_ordering _superclass(const type* rhs) const {
 				const bool nonstrict_subclass = rhs->_nonstrictSuperclass(this);
@@ -271,6 +272,7 @@ namespace zaimoni {
 			default: throw std::logic_error("unhandled operation");
 			}
 		}
+
 	private:
 		std::partial_ordering _superclass(const type* rhs) const override { return _nonstrictSuperclass(this) ? std::partial_ordering::equivalent : std::partial_ordering::unordered; }
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
