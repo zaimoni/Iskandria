@@ -26,6 +26,10 @@ namespace zaimoni {
 			_C_SHARP_,	// extended complex numbers
 			_S1_		// unit circle
 		};
+		enum canonical_functions {
+			Addition = 1,
+			Multiplication
+		};
 	};
 	// while we want to support vector spaces, matrices, etc., that looks it like it requires more general methods than an operation enum
 	// e.g., consider a 2-dimensional vector space of operations on the surface of a 3-dimesnional sphere
@@ -33,6 +37,37 @@ namespace zaimoni {
 		struct type {
 			virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
 			std::partial_ordering subclass(const type& rhs) const { return rhs._superclass(this); }
+			// evaluate type of canonical operations (generally binary functions)
+			virtual const type* self(_type_spec::canonical_functions op) const = 0;
+			type* self(_type_spec::canonical_functions op) { return const_cast<type*>(const_cast<const type*>(this)->self(op)); }
+			// Abstract algebra modules must override these to recognize what can multiply them, that isn't they themselves.  This default just checks for
+			// subobjects.
+			virtual const type* left(_type_spec::canonical_functions op, const type& rhs) const {
+				auto staging = self(op);
+				if (!staging) return nullptr;
+				return 0 >= rhs.subclass(*staging) ? this : nullptr;
+			}
+			type* left(_type_spec::canonical_functions op, const type& rhs) { return const_cast<type*>(const_cast<const type*>(this)->left(op, rhs)); }
+			virtual const type* right(_type_spec::canonical_functions op, const type& lhs) const {
+				auto staging = self(op);
+				if (!staging) return nullptr;
+				return 0 >= lhs.subclass(*staging) ? this : nullptr;
+			}
+			type* right(_type_spec::canonical_functions op, const type& lhs) { return const_cast<type*>(const_cast<const type*>(this)->right(op, lhs)); }
+			// most mathematical objects are closed under inverting the operations they support
+			virtual const type* inverse(_type_spec::canonical_functions op) const { return self(op); }
+			type* inverse(_type_spec::canonical_functions op) { return const_cast<type*>(const_cast<const type*>(this)->inverse(op)); }
+
+			static const type* defined(const type& lhs, _type_spec::canonical_functions op, const type& rhs) {
+				if (auto test = lhs.left(op, rhs)) return test;
+				if (auto test = rhs.right(op, lhs)) return test;
+				return nullptr;
+			}
+			static type* defined(type& lhs, _type_spec::canonical_functions op, type& rhs) {
+				if (auto test = lhs.left(op, rhs)) return test;
+				if (auto test = rhs.right(op, lhs)) return test;
+				return nullptr;
+			}
 		private:
 			virtual std::partial_ordering _superclass(const type* rhs) const {
 				const bool nonstrict_subclass = rhs->_nonstrictSuperclass(this);
@@ -180,6 +215,13 @@ namespace zaimoni {
 		enum { _allow_infinity = 1 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+				case _type_spec::Addition :
+				case _type_spec::Multiplication : return this;
+				default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -190,16 +232,45 @@ namespace zaimoni {
 		enum { _allow_infinity = -1 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
 	static_assert(-1 == _type<_type_spec::_R_SHARP_>::_allow_infinity);
 
+	// unit circle.  Permutation groups and n-dimensional surfaces of n+1-dimensional spheres would be different type hierarchies
 	template<>
 	struct _type<_type_spec::_S1_> final : public virtual math::type {
 		enum { _allow_infinity = 0 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition: return this;
+			case _type_spec::Multiplication: return nullptr;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+		const type* left(_type_spec::canonical_functions op, const type& rhs) const override {
+			switch (op) {
+			case _type_spec::Addition: return 0 >= rhs.subclass(math::get<_type<_type_spec::_S1_>>()) ? this : nullptr;
+			case _type_spec::Multiplication: return 0 >= rhs.subclass(math::get<_type<_type_spec::_R_SHARP_>>()) ? this : nullptr;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+		const type* right(_type_spec::canonical_functions op, const type& lhs) const override {
+			switch (op) {
+			case _type_spec::Addition: return 0 >= lhs.subclass(math::get<_type<_type_spec::_S1_>>()) ? this : nullptr;
+			case _type_spec::Multiplication: return 0 >= lhs.subclass(math::get<_type<_type_spec::_R_SHARP_>>()) ? this : nullptr;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		std::partial_ordering _superclass(const type* rhs) const override { return _nonstrictSuperclass(this) ? std::partial_ordering::equivalent : std::partial_ordering::unordered; }
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
@@ -215,6 +286,13 @@ namespace zaimoni {
 
 		// numerical support -- these have coordinate-wise definitions available
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -225,6 +303,13 @@ namespace zaimoni {
 		enum { _allow_infinity = 0 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -232,6 +317,13 @@ namespace zaimoni {
 
 	template<>
 	struct _type<_type_spec::_Q_> : public _type<_type_spec::_R_> {
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
@@ -239,6 +331,20 @@ namespace zaimoni {
 
 	template<>
 	struct _type<_type_spec::_Z_> final : public _type<_type_spec::_Q_> {
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+		const type* inverse(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition: return this;
+			case _type_spec::Multiplication: return &math::get<_type<_type_spec::_Q_>>(); // closure of _Z_ under * is _Q_
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
 	private:
 		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
 	};
