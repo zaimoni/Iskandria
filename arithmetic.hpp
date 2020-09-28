@@ -306,11 +306,13 @@ private:
 public:
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_zero()) return;
+		assert(src->domain());
 		if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
 		this->_append_term(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_zero()) return;
+		assert(src->domain());
 		if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
 		this->_append_term(std::move(src));
 	}
@@ -462,10 +464,12 @@ public:
 
 	void append_term(const smart_ptr& src) {
 		if (!src || src->is_one()) return;
+		assert(src->domain());
 		this->_append_term(src);
 	}
 	void append_term(smart_ptr&& src) {
 		if (!src || src->is_one()) return;
+		assert(src->domain());
 		this->_append_term(std::move(src));
 	}
 	void append_term(raw_type* src) { append_term(smart_ptr(src)); }
@@ -760,10 +764,13 @@ public:
 	}
 	const math::type* domain() const override
 	{
-		decltype(auto) n_domain = _numerator->domain();
 		decltype(auto) d_domain = _denominator->domain();
-		if (n_domain == d_domain) return n_domain; // \todo fix not even correct for Z/Z
-		throw std::logic_error("unhandled domain");
+		if (d_domain) d_domain = d_domain->inverse(_type_spec::Multiplication);
+		if (!d_domain) return nullptr;
+		if (decltype(auto) n_domain = _numerator->domain()) {
+			if (decltype(auto) ret = math::type::defined(*n_domain, _type_spec::Multiplication, *d_domain)) return ret;
+		}
+		return nullptr;
 	}
 
 	fp_API* clone() const override { return new quotient(*this); };
@@ -796,6 +803,7 @@ private:
 	const char* _constructor_fatal() const {
 		if (!_numerator) return "numerator null";
 		if (!_denominator) return "denominator null";
+		if (!domain()) return "division not defined";
 		return _transform_fatal(_numerator, _denominator);
 	}
 	void _scal_bn(intmax_t scale) override {
