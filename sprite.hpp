@@ -40,7 +40,14 @@ public:
 		return *this;
 	}
 
+	// forwarders
+	auto getLocalBounds() const { return ptr->getLocalBounds(); }
+	void setPosition(float x, float y) { ptr->setPosition(x, y); }
+	void setScale(float factorX, float factorY) { ptr->setScale(factorX, factorY); }
+
 	// typecasts
+	operator sf::Sprite() { return *ptr; }
+	operator const sf::Sprite() const { return *ptr; }
 	operator sf::Sprite*& () { return ptr; }
 	operator sf::Sprite* const () const { return ptr; }
 

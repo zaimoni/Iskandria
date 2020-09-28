@@ -95,13 +95,11 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 	static const std::string CSS_tag("telephoto_grid");	// should only be one of us (unlike some other imaginable camera types)
 	auto prior_DOM = DisplayManager::get().remove_by_CSS_class(CSS_tag);
 
-#if 0
 	for (decltype(auto) x : image_keys) {
 		auto raw_img = DisplayManager::get().getTexture(x.second);
-		css::wrap<isk::Sprite> staging(new isk::Sprite(raw_img));	// HMM...doesn't like to instantiate
+		css::wrap<isk::Sprite> staging(new isk::Sprite(raw_img));
 		// ....
 	}
-#endif
 
 	return false;
 }
