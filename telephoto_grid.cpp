@@ -2,6 +2,7 @@
 #include "display_manager.hpp"
 #include "sprite.hpp"
 #include "css_SFML.hpp"
+#include "voxelspace.hpp"
 
 namespace isk {
 

@@ -4,7 +4,7 @@
 
 namespace isk {
 
-bool screen_delta(zaimoni::math::vector<int, 3> x0, zaimoni::math::vector<int, 3> x1, std::pair<zaimoni::math::vector<int, 2>, int>& dest)
+std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaimoni::math::vector<int, 3> x0, zaimoni::math::vector<int, 3> x1)
 {
 	std::pair<zaimoni::math::vector<int, 2>, int> working(zaimoni::math::vector<int, 2>(), 0);
 	auto x_delta = x0[0] < x1[0] ? std::pair(true, zaimoni::pos_diff(x1[0], x0[0])) : std::pair(false, zaimoni::pos_diff(x0[0], x1[0]));
@@ -88,10 +88,9 @@ bool screen_delta(zaimoni::math::vector<int, 3> x0, zaimoni::math::vector<int, 3
 				}
 			}
 		}
-		return false;
+		return std::nullopt;
 	}
-	dest = working;
-	return true;
+	return working;
 }
 
 }	// namespace isk
