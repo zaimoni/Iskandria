@@ -397,13 +397,16 @@ public:
 				accumulator.push_back(test);
 				continue;
 			}
-			if (test == accumulator.back()) continue; // \todo FIX: not always correct
-			throw std::logic_error("unhandled product domain");
+			if (auto op_type = math::type::defined(*accumulator.back(), _type_spec::Addition, *test)) {
+				accumulator.back() = op_type;
+				continue;
+			}
+			throw std::logic_error("unhandled addition domain");
 		}
 		const size_t ub = accumulator.size();
 		if (0 == ub) return nullptr;
 		else if (1 == ub) return accumulator.front();
-		else throw std::logic_error("unhandled product domain");
+		else throw std::logic_error("unhandled addition domain");
 	}
 
 	fp_API* clone() const override { return new sum(*this); }
@@ -543,8 +546,11 @@ public:
 				accumulator.push_back(test);
 				continue;
 			}
-			if (test == accumulator.back()) continue; // \todo FIX: not always correct
-			throw std::logic_error("unhandled product domain");
+			if (auto op_type = math::type::defined(*accumulator.back(), _type_spec::Multiplication, *test)) {
+				accumulator.back() = op_type;
+				continue;
+			}
+			throw std::logic_error("unhandled product domain"); // \todo could push_back and try to recover later
 		}
 		const size_t ub = accumulator.size();
 		if (0 == ub) return nullptr;
