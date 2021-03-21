@@ -360,16 +360,12 @@ struct static_cache
 		return ret;
 	}
 
-	static typename std::enable_if<
-			std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value,
-		T>::type as3(intmax_t n)
+	static std::enable_if_t<std::is_convertible<intmax_t, T>::value && !std::is_scalar<T>::value, T> as3(intmax_t n)
 	{
 		return T(n);
 	}
 
-	static typename std::enable_if<
-			std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value,
-		T>::type as4(uintmax_t n)
+	static std::enable_if_t<std::is_convertible<uintmax_t, T>::value && !std::is_scalar<T>::value, T> as4(uintmax_t n)
 	{
 		return T(n);
 	}
@@ -386,7 +382,7 @@ constexpr typename return_copy<std::remove_reference_t<T> >::type int_as()
 }
 
 template<class T>
-constexpr typename return_copy<std::remove_reference_t<T> >::type int_as(intmax_t n)
+constexpr auto int_as(intmax_t n)
 {
 	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
 	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
@@ -396,7 +392,7 @@ constexpr typename return_copy<std::remove_reference_t<T> >::type int_as(intmax_
 }
 
 template<class T>
-constexpr typename return_copy<std::remove_reference_t<T> >::type uint_as(uintmax_t n)
+constexpr auto uint_as(uintmax_t n)
 {
 	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
 	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
