@@ -386,7 +386,7 @@ constexpr auto int_as(intmax_t n)
 {
 	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
 	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
-		return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as3(n);
+		return static_cache<std::remove_cv_t<std::remove_reference_t<T> > >::as3(n);
 	}
 	else static_assert(unconditional_v<bool, false, T>, "unclear how to convert to target type");
 }
@@ -396,7 +396,7 @@ constexpr auto uint_as(uintmax_t n)
 {
 	if constexpr (std::is_arithmetic_v<std::remove_reference_t<T> >) return n;
 	else if constexpr (std::is_convertible_v<decltype(n), std::remove_cv_t<std::remove_reference_t<T> > > && !std::is_scalar_v<T>) {
-		return static_cache<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::as4(n);
+		return static_cache<std::remove_cv_t<std::remove_reference_t<T> > >::as4(n);
 	}
 	else static_assert(unconditional_v<bool, false, T>, "unclear how to convert to target type");
 }
@@ -410,8 +410,8 @@ struct numerical
 	enum {
 		error_tracking = 0
 	};
-	typedef typename std::remove_cv<T>::type exact_type;			// exact version of this type
-	typedef typename std::remove_cv<T>::type exact_arithmetic_type;	// exact version of the individual coordinates of this type
+	typedef std::remove_cv_t<T> exact_type;			// exact version of this type
+	typedef std::remove_cv_t<T> exact_arithmetic_type;	// exact version of the individual coordinates of this type
 
 	static constexpr int error(typename const_param<T>::type src) {return 0;}
 	static constexpr bool causes_division_by_zero(typename const_param<T>::type src) {return int_as<0,T>()==src;};
@@ -420,7 +420,7 @@ struct numerical
 template<class T>
 constexpr bool causes_division_by_zero(T src)
 {
-	return numerical<typename std::remove_reference<typename std::remove_cv<T>::type>::type>::causes_division_by_zero(src);
+	return numerical<std::remove_cv_t<std::remove_reference_t<T> > >::causes_division_by_zero(src);
 }
 
 template<class T>
@@ -429,7 +429,7 @@ struct mult_inv	// require implementation to not wipe out
 };
 
 template<class T>
-auto mult_invert(const T& src) { return mult_inv<typename std::remove_reference<typename std::remove_cv<T>::type>::type>()(src); }
+auto mult_invert(const T& src) { return mult_inv<std::remove_cv_t<std::remove_reference_t<T> > >()(src); }
 
 // typical functions
 template<uintmax_t n>

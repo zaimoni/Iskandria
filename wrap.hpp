@@ -76,7 +76,7 @@ private:
 			auto& _cache = cache();
 			_cache.insert(_cache.end(), staged.begin(), staged.end());
 			}
-			typename std::remove_reference<decltype(staged)>::type discard;
+			std::remove_reference_t<decltype(staged)> discard;
 			swap(staged, discard);
 		}
 	}
@@ -100,12 +100,12 @@ private:
 	static void load_all(FILE* src)
 	{
 		{
-		typename std::remove_reference<decltype(staging())>::type discard;
+		std::remove_reference_t<decltype(staging())> discard;
 		swap(staging(), discard);
 		}
 		auto& _cache = cache();
 		{
-		typename std::remove_reference<decltype(staging())>::type discard;
+		std::remove_reference_t<decltype(staging())> discard;
 		swap(_cache, discard);
 		}
 

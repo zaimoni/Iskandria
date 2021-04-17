@@ -174,32 +174,32 @@ static_assert(sizeof(binary<float>) == sizeof(float));
 // when resolving overloads)
 // \todo? disconnect from C standard library (and DLL calls) by using above
 template<class T>
-typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isINF(T x)
+std::enable_if_t<std::is_floating_point_v<std::remove_cv_t<std::remove_reference_t<T> > >, bool> isINF(T x)
 {
 	return std::isinf(x);
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, bool>::type isFinite(T x)
+typename std::enable_if_t<std::is_floating_point_v<T>, bool> isFinite(T x)
 {
 //	return binary<std::remove_cv_t<std::remove_reference_t<T> > >(x).exponent() <= std::numeric_limits<std::remove_cv_t<std::remove_reference_t<T> >>::max_exponent;
 	return std::isfinite(x);
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value, bool>::type isNaN(T x)
+std::enable_if_t<std::is_floating_point_v<std::remove_cv_t<std::remove_reference_t<T> > >, bool> isNaN(T x)
 {
 	return std::isnan(x);
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, bool>::type signBit(T x)
+std::enable_if_t<std::is_floating_point_v<T>, bool> signBit(T x)
 {
 	return std::signbit(x);
 }
 
 template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+std::enable_if_t<std::is_floating_point_v<T>, std::remove_const_t<T> > scalBn(T x, int scale)
 {
 	return std::scalbn(x, scale);
 }

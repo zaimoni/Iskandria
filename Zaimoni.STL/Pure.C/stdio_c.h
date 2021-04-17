@@ -47,25 +47,25 @@ namespace zaimoni {
 
 #define ZAIMONI_RW(A,B)	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, typename std::remove_reference<T>::type>::type read(FILE* src)	\
+std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, std::remove_reference_t<T> > read(FILE* src)	\
 {	\
-	return (typename std::remove_reference<T>::type)read_uintmax(B, src);	\
+	return (std::remove_reference_t<T>)read_uintmax(B, src);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, typename std::remove_reference<T>::type>::type read(FILE* src, uintmax_t ub)	\
+std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, std::remove_reference_t<T> > read(FILE* src, uintmax_t ub)	\
 {	\
-	return (typename std::remove_reference<T>::type)read_uintmax(ub, src);	\
+	return (std::remove_reference_t<T>)read_uintmax(ub, src);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, void>::type write(const T& src, FILE* dest)	\
+std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, void> write(const T& src, FILE* dest)	\
 {	\
 	return write_uintmax(B, src, dest);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, void>::type write(const T& src, FILE* dest, uintmax_t ub)	\
+std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, void> write(const T& src, FILE* dest, uintmax_t ub)	\
 {	\
 	return write_uintmax(ub, src, dest);	\
 }
@@ -80,25 +80,25 @@ ZAIMONI_RW(uintmax_t, UINTMAX_MAX)
 
 #define ZAIMONI_RW(A,B)	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, typename std::remove_reference<T>::type>::type read(FILE* src)	\
+std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, std::remove_reference_t<T> > read(FILE* src)	\
 {	\
-	return (typename std::remove_reference<T>::type)read_intmax(B, src);	\
+	return (std::remove_reference_t<T>)read_intmax(B, src);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, typename std::remove_reference<T>::type>::type read(FILE* src, intmax_t ub)	\
+std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, std::remove_reference_t<T> > read(FILE* src, intmax_t ub)	\
 {	\
-	return (typename std::remove_reference<T>::type)read_intmax(ub, src);	\
+	return (std::remove_reference_t<T>)read_intmax(ub, src);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, void>::type write(const T& src, FILE* dest)	\
+std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, void> write(const T& src, FILE* dest)	\
 {	\
 	return write_intmax(B, src, dest);	\
 }	\
 	\
 template<class T>	\
-typename std::enable_if<std::is_same<A, typename std::remove_reference<T>::type>::value, void>::type write(const T& src, FILE* dest, intmax_t ub)	\
+std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, void> write(const T& src, FILE* dest, intmax_t ub)	\
 {	\
 	return write_intmax(ub, src, dest);	\
 }

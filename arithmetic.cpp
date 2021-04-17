@@ -401,7 +401,7 @@ final_exit:
 	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, F& rhs)
 	{
 		// setup of working will fail badly in a multi-threaded situation
-		typename std::remove_reference<decltype(lhs)>::type working;
+		std::remove_reference_t<decltype(lhs)> working;
 		if (1==lhs.use_count()) working = lhs;
 		else working = decltype(working)(lhs->clone());
 
@@ -423,7 +423,7 @@ final_exit:
 	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		// setup of working will fail badly in a multi-threaded situation
-		typename std::remove_reference<decltype(lhs)>::type working;
+		std::remove_reference_t<decltype(lhs)> working;
 		if (1==lhs.use_count()) working = lhs;
 		else working = decltype(working)(lhs->clone());
 
@@ -446,7 +446,7 @@ final_exit:
 		// that is, all of the zero and infinity symbolic processing has already happened.
 
 		// setup of working will fail badly in a multi-threaded situation
-		typename std::remove_reference<decltype(rhs)>::type working;
+		std::remove_reference_t<decltype(rhs)> working;
 		if (1 == rhs.use_count()) working = rhs;
 		else working = decltype(working)(rhs->clone());
 

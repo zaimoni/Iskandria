@@ -61,8 +61,8 @@ static auto mean_to_eccentric_anomaly_cache()
 	std::pair<std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::eccentric_anomaly, orbit::mean_anomaly, zaimoni::circle::angle_compare> > >,	// reference angles
 		      std::unique_ptr<zaimoni::LRUcache<typename interval_shim::interval::base_type, std::map<orbit::mean_anomaly, orbit::eccentric_anomaly, zaimoni::circle::angle_compare> > > > _cache;	// calculated
 	if (!_cache.first) {
-		_cache.first = std::unique_ptr<typename std::remove_reference<decltype(*_cache.first)>::type>(new typename std::remove_reference<decltype(*_cache.first)>::type);
-		_cache.second = std::unique_ptr<typename std::remove_reference<decltype(*_cache.second)>::type>(new typename std::remove_reference<decltype(*_cache.second)>::type);
+		_cache.first = std::unique_ptr<std::remove_reference_t<decltype(*_cache.first)> >(new std::remove_reference_t<decltype(*_cache.first)>);
+		_cache.second = std::unique_ptr<std::remove_reference_t<decltype(*_cache.second)> >(new std::remove_reference_t<decltype(*_cache.second)> );
 		// if we were being linked with the world manager, the kepler::orbit wrapper would need to include us in its garbage collector handler
 	}
 	return _cache;
