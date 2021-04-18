@@ -16,14 +16,20 @@ namespace zaimoni {
 	using std::swap;
 
 	// Yet another take on higher-mathematics typing.
+	// Cf. https://arxiv.org/abs/math/0105155v4 for what makes octonions useful to direct-model
 	struct _type_spec {
+		// hierarchy of "1-dimensional" infinite-precision types
 		enum arch_domain {
-			_Z_ = 1,	// integers
+			_Z_ = 1,	// integers (usual set-theoretic anchor, can build all others from this)
 			_Q_,		// rational numbers
-			_R_,		// real numbers
+			_R_,		// real numbers (alternate anchor, can build all others from this)
 			_C_,		// complex numbers
+			_H_,		// quaternions
+			_O_,		// octonions
 			_R_SHARP_,	// extended real numbers
 			_C_SHARP_,	// extended complex numbers
+			_H_SHARP_,	// extended quaternions
+			_O_SHARP_,	// extended octonions
 			_S1_		// unit circle
 		};
 		enum canonical_functions {
