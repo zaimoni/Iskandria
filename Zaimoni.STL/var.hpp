@@ -228,7 +228,7 @@ namespace zaimoni {
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
 			}
-			static intmax_t ideal_scal_bn(const double& x) {
+			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
@@ -256,7 +256,7 @@ namespace zaimoni {
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
 			}
-			static intmax_t ideal_scal_bn(const double& x) {
+			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
@@ -284,7 +284,7 @@ namespace zaimoni {
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
 			}
-			static intmax_t ideal_scal_bn(const double& x) {
+			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
