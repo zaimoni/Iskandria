@@ -142,13 +142,13 @@ restart:
 
 	// CLang: sizeof(long double)==sizeof(double)
 	template<class F>
-	std::enable_if_t<zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, int> rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
 	{
 		return rearrange_sum(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
 	}
 
 	template<class F>
-	std::enable_if_t<zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
+	std::enable_if_t<zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
 	{
 		return rearrange_sum(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
 	}
@@ -386,13 +386,13 @@ final_exit:
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
 		return rearrange_sum<T>(reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		return rearrange_sum<T>(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
@@ -495,13 +495,13 @@ final_exit:
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
 	{
 		return eval_quotient<T>(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
 	{
 		return eval_quotient<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
 	}
@@ -639,13 +639,13 @@ final_exit:
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
 		return eval_sum<T>(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
 	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote<F>::value && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
+	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		return eval_sum<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}

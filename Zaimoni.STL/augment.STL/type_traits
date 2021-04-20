@@ -42,16 +42,18 @@ auto make(Args... args) {
 // type demotion.
 template<class T> struct precise_demote
 {
-	enum { value = 0 };
+	using type = void;
 };
 
-// Handle Clang: sizeof(long double)==sizeof(double)
+// Handle Clang, MSVC++: sizeof(long double)==sizeof(double)
 template<>
 struct precise_demote<long double>
 {
-	typedef double type;
-	enum { value = (sizeof(long double) == sizeof(double)) };
+	using type = std::conditional_t<sizeof(long double) == sizeof(double), double, void>;
 };
+
+template<class T>
+static constexpr const bool precise_demote_v = !std::is_same_v<void, typename precise_demote<T>::type>;
 
 // count how many real-dimensional coordinates are needed to represent the type
 template<class T> struct R_coords
