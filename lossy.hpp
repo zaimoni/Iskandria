@@ -196,7 +196,7 @@ struct lossy
 	static typename interval_type<T>::type square(typename const_param<T>::type x) 
 	{
 		const bool incoming_finite = isFinite(x);
-		typename interval_type<T>::type ret(square(x));
+		typename interval_type<T>::type ret(zaimoni::math::square(x));
 		if (incoming_finite && !isFinite(ret)) throw std::overflow_error("square");
 		return ret;
 	}
@@ -204,7 +204,7 @@ struct lossy
 	static typename interval_type<T>::type square(typename interval_type<T>::type x) 
 	{
 		const bool incoming_finite = isFinite(x);
-		x = square(x);;
+		x = zaimoni::math::square(x);;
 		if (incoming_finite && !isFinite(x)) throw std::overflow_error("square");
 		return x;
 	}
