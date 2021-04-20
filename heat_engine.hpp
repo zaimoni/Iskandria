@@ -7,7 +7,7 @@ namespace thermodynamic {
 class cycle
 {
 public:
-	typedef interval_shim::interval interval;
+	using interval = interval_shim::interval;
 private:
 	// units are energy/"unit test mass", but we use the same class for both
 	mass _Q_in;		// first step, for our purposes

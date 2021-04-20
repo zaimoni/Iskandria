@@ -18,9 +18,9 @@ namespace circle {
 
 class angle {
 public:
-	typedef interval_shim::interval interval;
-	typedef zaimoni::math::Interval<0, typename interval::base_type> radian;
-	typedef zaimoni::math::Interval<1, typename interval::base_type> degree;
+	using interval = interval_shim::interval;
+	using radian = zaimoni::math::Interval<0, typename interval::base_type>;
+	using degree = zaimoni::math::Interval<1, typename interval::base_type>;
 	static constexpr const interval sin_cos_range_for_real_domain = interval(-1, 1);
 
 private:

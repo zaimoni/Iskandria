@@ -12,7 +12,7 @@
 // SI values are to be imported from CODATA
 class fundamental_constants {
 public:
-	typedef interval_shim::interval interval;
+	using interval = interval_shim::interval;
 
 	enum units : unsigned char {	// solar system would be reconstructed from savefile as a postprocessing stage to MKS
 		MKS = 0,

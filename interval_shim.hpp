@@ -5,7 +5,7 @@
 
 struct interval_shim
 {
-	typedef ISK_INTERVAL<double> interval;
+	using interval = ISK_INTERVAL<double>;
 	static constexpr const interval pi = interval(3.1415926535897932, 3.1415926535897935);
 
 	// angle type wants these

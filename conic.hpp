@@ -41,7 +41,7 @@ struct conic_tags
 class conic : public conic_tags
 {
 public:
-	typedef interval_shim::interval interval;
+	using interval = interval_shim::interval;
 private:
 	interval _a;	// semi-major axis
 	interval _b;	// semi-minor axis
