@@ -42,15 +42,12 @@ auto linear_decode(const T* lb, const T* ub, size_t code, T* dest, size_t n) -> 
 	size_t ret = 0;
 	size_t i = n;
 	lb += (n - 1);
-	lb += (n - 1);
-	lb += (n - 1);
+	ub += (n - 1);
+	dest += (n - 1);
 	while (0 < n) {
 		assert(*lb < *ub);
-		assert(*lb <= *src);
-		assert(*src < *ub);
 		auto max_delta = pos_diff(*ub, *lb);
 		if (1 < max_delta) {
-			auto delta = pos_diff(*src, *lb);
 			*dest = code % max_delta;
 			code /= max_delta;
 		}
@@ -604,7 +601,7 @@ struct mult_inv<matrix_square<T, N> >
 					if (!matrix_op_ok(src_image[c])) return false;
 				}
 			}
-		} while (0 < c)
+		} while (0 < c);
 		c = N;
 		do {
 			--c;
@@ -620,7 +617,7 @@ private:
 	{
 		const auto& target = src(r_0, c_0);
 		if (is_zero(target)) return true;	// no-op
-		const auto& lever = src(r_0, c_lever);
+		const auto& lever = src(r_lever, c_0);
 		if (!matrix_op_ok(lever)) return false;
 
 		const T scale(src(r_0, c_0) / lever);
@@ -694,7 +691,7 @@ public:
 			do {
 				const auto& test = src(--r, c);
 				if (!matrix_op_ok(test)) continue;
-				working[ub++] = norm_index(norm(test), r)
+				working[ub++] = norm_index(norm(test), r);
 			} while (0 < r);
 		    if (0 < ub) {
 				col = c;

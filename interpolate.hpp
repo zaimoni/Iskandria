@@ -34,9 +34,9 @@ public:
 		// if the domain is 1-real-dimensional we'd like to use the "nearer endpoint"
 		if constexpr (1 == R_coords<DOM>::value) {
 			DOM from_x1(_x1.first - src);
-			if (zaimoni::norm(from_x1) < zaimoni::norm(from_x0)) return _x1.second - (from_x1 / span.first) * span.second;
+			if (zaimoni::norm(from_x1) < zaimoni::norm(from_x0)) return _x1.second - (from_x1 / _span.first) * _span.second;
 		}
-		return _x0.second + (from_x0 / span.first) * span.second;
+		return _x0.second + (from_x0 / _span.first) * _span.second;
 	}
 
 	auto slope() const { return _span.second / _span.first; }
@@ -92,10 +92,10 @@ restart:
 		if (_xn_coeff) {
 			if (is_zero(x)) return (*_xn_coeff)[0];
 			if (is_zero((*_xn_coeff)[2])) {
-				if (is_zero((*_xn_coeff)[1]) return (*_xn_coeff)[0];
+				if (is_zero((*_xn_coeff)[1])) return (*_xn_coeff)[0];
 				DOM ret((*_xn_coeff)[1]);
 				ret *= x;
-				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0]);
+				if (!is_zero((*_xn_coeff)[0])) ret += (*_xn_coeff)[0];
 				return ret;
 			} else {
 				DOM ret((*_xn_coeff)[2]);
