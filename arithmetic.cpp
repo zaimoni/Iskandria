@@ -490,13 +490,13 @@ final_exit:
 	template<class T, class F>
 	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
 	{
-		return eval_quotient<T>(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
+		return eval_quotient<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
 	}
 
 	template<class T, class F>
 	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
 	{
-		return eval_quotient<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
+		return eval_quotient<T>(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
 	}
 
 	template<class T,class F>
@@ -634,13 +634,13 @@ final_exit:
 	template<class T, class F>
 	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
-		return eval_sum<T>(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
+		return eval_sum<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}
 
 	template<class T, class F>
 	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
-		return eval_sum<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
+		return eval_sum<T>(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
 	template<class T, class F>
