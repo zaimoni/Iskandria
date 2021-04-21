@@ -400,10 +400,8 @@ final_exit:
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, F& rhs)
 	{
-		// setup of working will fail badly in a multi-threaded situation
-		std::remove_reference_t<decltype(lhs)> working;
-		if (1==lhs.use_count()) working = lhs;
-		else working = decltype(working)(lhs->clone());
+		std::remove_reference_t<decltype(lhs)> working(lhs);
+		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());
 
 		int ret = 0;
 
@@ -422,10 +420,8 @@ final_exit:
 	template<class T, class F>
 	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, ISK_INTERVAL<F>& rhs)
 	{
-		// setup of working will fail badly in a multi-threaded situation
-		std::remove_reference_t<decltype(lhs)> working;
-		if (1==lhs.use_count()) working = lhs;
-		else working = decltype(working)(lhs->clone());
+		std::remove_reference_t<decltype(lhs)> working(lhs);
+		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());
 
 		int ret = 0;
 
@@ -444,11 +440,8 @@ final_exit:
 	int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
-
-		// setup of working will fail badly in a multi-threaded situation
-		std::remove_reference_t<decltype(rhs)> working;
-		if (1 == rhs.use_count()) working = rhs;
-		else working = decltype(working)(rhs->clone());
+		std::remove_reference_t<decltype(rhs)> working(rhs);
+		if (2 < rhs.use_count()) working = decltype(working)(rhs->clone());
 
 		int ret = 0;
 
