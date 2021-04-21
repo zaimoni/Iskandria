@@ -461,57 +461,56 @@ final_exit:
 	int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs) { return 0; }
 
 	// eval_quotient support
-	template<class T,class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d)
 	{
 		try {
 			auto ret = n / d;
 			if (ret.lower() == ret.upper()) return new var<typename ISK_INTERVAL<F>::base_type>(ret.upper());
 			return new var<decltype(ret)>(ret);
 		} catch (zaimoni::math::numeric_error& e) {
-			// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
-			return 0;
+			return nullptr;
 		}
-		return 0;
+		return nullptr;
 	}
 
-	template<class T,class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent<std::numeric_limits<F2>::max_exponent), T*>::type eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
-		return eval_quotient<T>(ISK_INTERVAL<F2>(n), d);
+		return eval_quotient(ISK_INTERVAL<F2>(n), d);
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), T*>::type eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
-		return eval_quotient<T>(n, ISK_INTERVAL<F>(d));
+		return eval_quotient(n, ISK_INTERVAL<F>(d));
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
 	{
-		return eval_quotient<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
+		return eval_quotient(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, fp_API*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
 	{
-		return eval_quotient<T>(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
+		return eval_quotient(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
 	}
 
-	template<class T,class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, T*>::type eval_quotient(const std::shared_ptr<T>& n, const ISK_INTERVAL<F>& d)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, fp_API*> eval_quotient(const std::shared_ptr<fp_API>& n, const ISK_INTERVAL<F>& d)
 	{
 		if (d == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
 		if (F(0) > d.lower() && F(0) < d.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
 
 		auto n_src = n.get();
-		if (auto l = dynamic_cast<_access<float>*>(n_src)) return eval_quotient<T>(ISK_INTERVAL<float>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient<T>(l->value(), d);
-		else if (auto l = dynamic_cast<_access<double>*>(n_src)) return eval_quotient<T>(ISK_INTERVAL<double>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient<T>(l->value(), d);
-		else if (auto l = dynamic_cast<_access<long double>*>(n_src)) return eval_quotient<T>(ISK_INTERVAL<long double>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient<T>(l->value(), d);
+		if (auto l = dynamic_cast<_access<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->value()), d);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->value(), d);
+		else if (auto l = dynamic_cast<_access<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->value()), d);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->value(), d);
+		else if (auto l = dynamic_cast<_access<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->value()), d);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->value(), d);
 
 		return 0;
 	}
