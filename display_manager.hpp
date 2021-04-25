@@ -5,7 +5,6 @@
 
 #include <SFML/Graphics.hpp>
 #include "cssbox.hpp"
-#include "Zaimoni.STL/ptr2.hpp"
 #include <utility>
 
 #include "singleton.on.hpp"
@@ -35,8 +34,7 @@ private:
 
 	// graphics management
 	std::map<std::string, std::weak_ptr<sf::Image> > _image_cache;	// in main RAM
-	std::map<std::string, zaimoni::intrusive_ptr<sf::Texture>* > _texture_cache;	// in graphics card
-	// std::weak_ptr for the texture cache doesn't actually work -- sf::Sprite needs its texture to exist for the entire duration of the sprite
+	std::map<std::string, std::weak_ptr<sf::Texture> > _texture_cache;	// in graphics card
 public:
 	enum {
 		DESIGN_WIDTH = 1024,
@@ -79,7 +77,7 @@ public:
 	float charHeight() const { return (float)(_pixel_dim[1])/ DESIGN_HEIGHT_CHAR;};
 
 	std::shared_ptr<sf::Image> getImage(const std::string& src);
-	zaimoni::intrusive_ptr<sf::Texture>* getTexture(const std::string& src);
+	std::shared_ptr<sf::Texture> getTexture(const std::string& src);
 };
 
 #include "singleton.off.hpp"

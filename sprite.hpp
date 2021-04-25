@@ -2,57 +2,37 @@
 #define SPRITE_HPP 1
 
 #include <SFML/Graphics.hpp>
-#include "Zaimoni.STL/ptr2.hpp"
+#include <memory>
 
 namespace isk {
 
 class Sprite {
 private:
-	zaimoni::intrusive_ptr<sf::Texture>* texture;	// must agree with DisplayManager's texture cache
-	sf::Sprite* ptr;
+	std::shared_ptr<sf::Texture> texture;
+	std::unique_ptr<sf::Sprite> sprite;
 public:
 	Sprite() = delete; // define this if we need it
 	Sprite(const Sprite& src) = delete;
-	Sprite(zaimoni::intrusive_ptr<sf::Texture>* src) : texture(src),ptr(new sf::Sprite(*src->get())) {
-
-	}
-	Sprite(Sprite&& src) noexcept : texture(src.texture), ptr(src.ptr) {
-		ptr = 0;
-		texture = 0;
-	}
-	~Sprite() {
-		if (ptr) {
-			delete ptr;
-			ptr = 0;
-		}
-		if (texture) {
-			texture->release();
-			texture = 0;
-		}
-	}
+	Sprite(const std::shared_ptr<sf::Texture>& src) : texture(src), sprite(new sf::Sprite(*src.get())) { }
+	Sprite(Sprite&& src) = default;
+	~Sprite() = default;
 
 	Sprite& operator=(const Sprite& src) = delete;
-	Sprite& operator=(Sprite&& src) noexcept {
-		ptr = src.ptr;
-		texture = src.texture;
-		src.ptr = 0;
-		src.texture = 0;
-		return *this;
-	}
+	Sprite& operator=(Sprite&& src) = default;
 
 	// forwarders
-	auto getLocalBounds() const { return ptr->getLocalBounds(); }
-	void setPosition(float x, float y) { ptr->setPosition(x, y); }
-	void setScale(float factorX, float factorY) { ptr->setScale(factorX, factorY); }
+	auto getLocalBounds() const { return sprite->getLocalBounds(); }
+	void setPosition(float x, float y) { sprite->setPosition(x, y); }
+	void setScale(float factorX, float factorY) { sprite->setScale(factorX, factorY); }
 
 	// typecasts
-	operator sf::Sprite() { return *ptr; }
-	operator const sf::Sprite() const { return *ptr; }
-	operator sf::Sprite*& () { return ptr; }
-	operator sf::Sprite* const () const { return ptr; }
+	operator sf::Sprite& () { return *sprite; }
+	operator const sf::Sprite& () const { return *sprite; }
+	operator sf::Sprite* () { return sprite.get(); }
+	operator sf::Sprite* const () const { return sprite.get(); }
 
 	// NOTE: C/C++ -> of const pointer to nonconst data is not const
-	sf::Sprite* operator->() const { return ptr; }
+	sf::Sprite* operator->() const { return sprite.get(); }
 };
 
 }

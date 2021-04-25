@@ -235,12 +235,11 @@ std::shared_ptr<sf::Image> DisplayManager::getImage(const std::string& src)
 	return nullptr;
 }
 
-zaimoni::intrusive_ptr<sf::Texture>* DisplayManager::getTexture(const std::string& src)
+std::shared_ptr<sf::Texture> DisplayManager::getTexture(const std::string& src)
 {
 	if (1 == _texture_cache.count(src)) {
-		if (auto ret = _texture_cache[src]) {
-			if (*ret) return ret;
-			delete ret;
+		if (auto ret = _texture_cache[src].lock()) {
+			if (ret) return ret;
 		}
 		_texture_cache.erase(src);
 	}
@@ -248,7 +247,9 @@ zaimoni::intrusive_ptr<sf::Texture>* DisplayManager::getTexture(const std::strin
 	if (!img) return nullptr;
 	std::unique_ptr<sf::Texture> x(new sf::Texture());
 	if (x->loadFromImage(*img)) {
-		return _texture_cache[src] = new zaimoni::intrusive_ptr<sf::Texture>(x.release()); // \todo this is not std::bad_alloc safe
+		std::shared_ptr<sf::Texture> ret(x.release());
+		_texture_cache[src] = ret;
+		return ret;
 	}
 	return nullptr;
 }
