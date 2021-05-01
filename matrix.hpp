@@ -951,6 +951,87 @@ matrix_square<T,R1C2> operator*(const matrix<T,R1C2,C1R2>& lhs,const matrix<T,C1
 	return tmp;
 }
 
+template<class T, size_t N>
+class matrix_diagonal : public matrix_CRTP<matrix_diagonal<T, N>, T>
+{
+private:
+	static_assert(0 < N);
+	static_assert((size_t)(-1) / N >= N);
+	std::array<T, N> _x;
+public:
+	using coord_type=T;
+/*
+	typedef zaimoni::slice_array<T> row_type;
+	typedef zaimoni::slice_array<T> col_type;
+	typedef const zaimoni::slice_array<const T> const_row_type;
+	typedef const zaimoni::slice_array<const T> const_col_type;
+*/
+
+	enum {
+		rows = N,
+		cols = N
+	};
+
+	constexpr matrix_diagonal() : _x({}) {
+		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<N>(int_as<0, T>());
+	}
+	constexpr matrix_diagonal(const std::array<T, N>& src) : _x({}) { _x = src; }
+	constexpr matrix_diagonal(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
+	constexpr explicit matrix_diagonal(const T& src) : _x({}) {
+		_x = zaimoni::array::fill<N>(src);
+	}
+	matrix_diagonal(const T* src) { assert(src); std::copy_n(src, N, _x.c_array()); };
+	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix_diagonal);
+
+	// accessors for matrix elements
+	T operator()(size_t r, size_t c) const {
+		assert(rows > r);
+		assert(cols > c);
+		if (r != c) return int_as<0, T>();
+		return _x.data()[r];
+	};
+	T& operator()(size_t r, size_t c) {
+		assert(rows > r);
+		assert(cols > c);
+		assert(r == c);
+		return _x.data()[r];
+	};
+
+	// numerically simple operations
+	matrix_diagonal& operator+=(const matrix_diagonal& src) {
+		zaimoni::math::pointwise::in_place_sum(_x.data(), src._x.data(), N);
+		return *this;
+	}
+	matrix_diagonal& operator-=(const matrix_diagonal& src) {
+		zaimoni::math::pointwise::in_place_difference(_x.data(), src._x.data(), N);
+		return *this;
+	}
+	matrix_diagonal& operator*=(const T& src) {
+		zaimoni::math::pointwise::in_place_scalar_product(_x.data(), src, N);
+		return *this;
+	}
+	matrix_diagonal& operator/=(const T& src) {
+		zaimoni::math::pointwise::in_place_scalar_quotient(_x.data(), src, N);
+		return *this;
+	}
+
+	// row/column accessors
+/*
+	row_type row(size_t r) { assert(N > r); return zaimoni::slice_array<T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); };
+	col_type col(size_t c) { assert(N > c); return zaimoni::slice_array<T>(_x.data() + c, zaimoni::slice(0, N, N)); };
+	const_row_type row(size_t r) const { assert(N > r); return zaimoni::slice_array<const T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); };
+	const_col_type col(size_t c) const { assert(N > c); return zaimoni::slice_array<const T>(_x.data() + c, zaimoni::slice(0, N, N)); };
+*/
+
+	/*
+		// square matrix has a determinant; raw # of terms Factorial(n!)
+		// thus, difficult to numerically evaluate accurately -- have to delegate
+		// possibly should *NOT* be a member function
+		T determinant() const {return zaimoni::math::determinant(_x.data(),N);}
+		void prepare_for_determinant();
+	*/
+};
+
 }	// namespace math
 
 template<class T>
