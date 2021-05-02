@@ -668,6 +668,28 @@ final_exit:
 	}
 
 }	// namespace math
+
+std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+{
+	std::unique_ptr<sum> ret(new sum());
+	ret->append_term(lhs);
+	ret->append_term(rhs);
+	return std::shared_ptr<fp_API>(ret.release());
+}
+
+std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+{
+	std::unique_ptr<product> ret(new product());
+	ret->append_term(lhs);
+	ret->append_term(rhs);
+	return std::shared_ptr<fp_API>(ret.release());
+}
+
+std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+{
+	return std::shared_ptr<fp_API>(new quotient(lhs, rhs));
+}
+
 }	// namespace zaimoni
 
 #ifdef TEST_APP

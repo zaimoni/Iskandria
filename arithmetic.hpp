@@ -859,6 +859,10 @@ private:
 	fp_API* _eval() const override { return zaimoni::math::eval_quotient(_numerator,_denominator); }
 };
 
+std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+
 }
 
 #endif
