@@ -124,14 +124,14 @@ restart:
 	}
 
 	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
 	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
 	{
 		int ret = rearrange_sum(rhs, lhs);
 		switch (ret)
@@ -155,18 +155,17 @@ restart:
 		return rearrange_sum(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value, int>::type rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2>, int> rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
 	{
-		int ret = rearrange_sum<T>(rhs, lhs);
-		switch (ret)
+		switch (int ret = rearrange_sum(rhs, lhs))
 		{
 		case 1: return -1;
 		case -1: return 1;
@@ -181,8 +180,8 @@ restart:
 		if (lhs.second > rhs.second) lhs.second = rhs.second;
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
 
@@ -368,18 +367,17 @@ final_exit:
 		return ret;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits), int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits), int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value && std::is_floating_point<F2>::value && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int>::type rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
-		int ret = rearrange_sum<T>(rhs, lhs);
-		switch (ret)
+		switch (int ret = rearrange_sum(rhs, lhs))
 		{
 		case 1: return -1;
 		case -1: return 1;
@@ -387,20 +385,20 @@ final_exit:
 		}
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
-		return rearrange_sum<T>(reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
+		return rearrange_sum(reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
 	{
-		return rearrange_sum<T>(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
+		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, F& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(std::shared_ptr<fp_API>& lhs, F& rhs)
 	{
 		std::remove_reference_t<decltype(lhs)> working(lhs);
 		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());
@@ -409,18 +407,18 @@ final_exit:
 
 		auto src = working.get();
 		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 
 		if (ret) lhs = working;
 		return ret;
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value && std::is_floating_point<F>::value, int>::type rearrange_sum(std::shared_ptr<T>& lhs, ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(std::shared_ptr<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		std::remove_reference_t<decltype(lhs)> working(lhs);
 		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());
@@ -428,12 +426,12 @@ final_exit:
 		int ret = 0;
 
 		auto src = working.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum<T>(l->value(), rhs);
+		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 
 		if (ret) lhs = working;
 		return ret;
@@ -534,7 +532,7 @@ final_exit:
 	// * may enable further rearrangement
 	// so the score should be largest for denormals and smallest near infinity
 	template<class F>
-	typename std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const ISK_INTERVAL<F>& x)
+	std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const ISK_INTERVAL<F>& x)
 	{
 		fp_stats<F> test_l(x.lower());
 		fp_stats<F> test_r(x.upper());
@@ -542,14 +540,13 @@ final_exit:
 	}
 
 	template<class F>
-	typename std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const F& x)
+	std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const F& x)
 	{
 		fp_stats<F> test(x);
 		return std::numeric_limits<long double>::max_exponent - test.exponent();
 	}
 
-	template<class T>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T>, int> sum_score(const std::shared_ptr<T>& lhs)
+	int sum_score(const std::shared_ptr<fp_API>& lhs)
 	{
 		auto src = lhs.get();
 		if (auto l = dynamic_cast<_access<float>*>(src)) return sum_score(l->value());
@@ -573,8 +570,8 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of_v<fp_API, T> && std::is_floating_point_v<F>, int>::type sum_score(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const std::shared_ptr<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
 			const int r_score = sum_score(rhs);
@@ -583,8 +580,8 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of_v<fp_API, T> && std::is_floating_point_v<F>, int>::type sum_score(const std::shared_ptr<T>& lhs, const F& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, int> sum_score(const std::shared_ptr<fp_API>& lhs, const F& rhs)
 	{
 		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
 			const int r_score = sum_score(rhs);
@@ -605,8 +602,8 @@ final_exit:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		try {
 			auto ret = lhs + rhs;
@@ -620,40 +617,40 @@ final_exit:
 		return 0;
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
-		return eval_sum<T>(ISK_INTERVAL<F2>(lhs), rhs);
+		return eval_sum(ISK_INTERVAL<F2>(lhs), rhs);
 	}
 
-	template<class T, class F, class F2>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value&& std::is_floating_point<F2>::value && (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), T*>::type eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	template<class F, class F2>
+	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
-		return eval_sum<T>(lhs, ISK_INTERVAL<F>(rhs));
+		return eval_sum(lhs, ISK_INTERVAL<F>(rhs));
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
-		return eval_sum<T>(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
+		return eval_sum(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}
 
-	template<class T, class F>
-	typename std::enable_if_t<std::is_base_of_v<fp_API, T> && zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, T*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
-		return eval_sum<T>(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
+		return eval_sum(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
-	template<class T, class F>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value&& std::is_floating_point<F>::value, T*>::type eval_sum(const std::shared_ptr<T>& lhs, const ISK_INTERVAL<F>& rhs)
+	template<class F>
+	std::enable_if_t<std::is_floating_point_v<F>, fp_API*> eval_sum(const std::shared_ptr<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		auto src = lhs.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) return eval_sum<T>(ISK_INTERVAL<float>(l->value()),rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return eval_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) return eval_sum<T>(ISK_INTERVAL<double>(l->value()), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return eval_sum<T>(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) return eval_sum<T>(ISK_INTERVAL<long double>(l->value()), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return eval_sum<T>(l->value(), rhs);
+		if (auto l = dynamic_cast<_access<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->value()),rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->value()), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<_access<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->value()), rhs);
+		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->value(), rhs);
 		return 0;
 	}
 
