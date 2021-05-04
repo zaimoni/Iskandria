@@ -200,22 +200,6 @@ namespace zaimoni {
 	template<class T>
 	using type_of_t = typename bits::_type_of<T>::type;
 
-	template<class T>
-	struct _access : public virtual fp_API {
-		virtual T& value() = 0;
-		virtual const T& value() const = 0;
-
-		const math::type* domain() const override { return &math::get<type_of_t<T> >(); }
-		bool self_eval() override { return false; };
-
-		bool is_zero() const override { return zaimoni::is_zero(value()); };
-		bool is_one() const override { return zaimoni::is_one(value()); };
-		int sgn() const override { return zaimoni::sgn(value()); };
-
-		std::string to_s() const override { return to_string(value()); }
-		int precedence() const override { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
-	};
-
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual math::type {

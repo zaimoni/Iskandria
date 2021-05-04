@@ -406,13 +406,7 @@ final_exit:
 		int ret = 0;
 
 		auto src = working.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
@@ -432,13 +426,7 @@ final_exit:
 		int ret = 0;
 
 		auto src = working.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
@@ -458,13 +446,7 @@ final_exit:
 		int ret = 0;
 
 		auto src = working.get();
-		if (auto r = dynamic_cast<_access<float>*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<double>*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(lhs, r->value());
-		else if (auto r = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(lhs, r->_x);
+		if (auto r = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(lhs, r->_x);
@@ -523,13 +505,7 @@ final_exit:
 		if (F(0) > d.lower() && F(0) < d.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
 
 		auto n_src = n.get();
-		if (auto l = dynamic_cast<_access<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->value(), d);
-		else if (auto l = dynamic_cast<_access<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->value(), d);
-		else if (auto l = dynamic_cast<_access<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->value()), d);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->value(), d);
-		else if (auto l = dynamic_cast<var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
+		if (auto l = dynamic_cast<var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->_x, d);
 		else if (auto l = dynamic_cast<var_fp<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->_x), d);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->_x, d);
@@ -542,13 +518,7 @@ final_exit:
 	fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto d_src = d.get();
-		if (auto r = dynamic_cast<_access<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->value()));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->value());
-		else if (auto r = dynamic_cast<_access<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->value()));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->value());
-		else if (auto r = dynamic_cast<_access<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->value()));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->value());
-		else if (auto r = dynamic_cast<var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
+		if (auto r = dynamic_cast<var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->_x);
 		else if (auto r = dynamic_cast<var_fp<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->_x));
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->_x);
@@ -579,13 +549,7 @@ final_exit:
 	int sum_score(const std::shared_ptr<fp_API>& lhs)
 	{
 		auto src = lhs.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<double>*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->value());
-		else if (auto l = dynamic_cast<var_fp<float>*>(src)) return sum_score(l->_x);
+		if (auto l = dynamic_cast<var_fp<float>*>(src)) return sum_score(l->_x);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(l->_x);
 		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return sum_score(l->_x);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(l->_x);
@@ -597,13 +561,7 @@ final_exit:
 	int sum_implemented(const std::shared_ptr<fp_API>& x)
 	{
 		auto src = x.get();
-		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<_access<double>*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->value());
-		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(r->_x);
+		if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(r->_x);
 		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(r->_x);
@@ -635,13 +593,7 @@ final_exit:
 	int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
 	{
 		auto src = rhs.get();
-		if (auto r = dynamic_cast<_access<float>*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<double>*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->value());
-		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(lhs, r->_x);
+		if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(lhs, r->_x);
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->_x);
@@ -693,13 +645,7 @@ final_exit:
 	std::enable_if_t<std::is_floating_point_v<F>, fp_API*> eval_sum(const std::shared_ptr<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		auto src = lhs.get();
-		if (auto l = dynamic_cast<_access<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->value()),rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->value()), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<_access<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->value()), rhs);
-		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->value(), rhs);
-		else if (auto l = dynamic_cast<var_fp<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->_x), rhs);
+		if (auto l = dynamic_cast<var_fp<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->_x), rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->_x, rhs);
 		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->_x), rhs);
 		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->_x, rhs);
@@ -711,13 +657,7 @@ final_exit:
 	std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
 	{
 		auto src = rhs.get();
-		if (auto r = dynamic_cast<_access<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
-		else if (auto r = dynamic_cast<_access<double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
-		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
-		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
-		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->_x)));
+		if (auto r = dynamic_cast<var_fp<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->_x)));
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
 		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->_x)));
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
