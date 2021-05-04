@@ -188,18 +188,6 @@ namespace zaimoni {
 		return working;
 	}
 
-	namespace bits {
-
-		template<class T>
-		struct _type_of {
-			static_assert(unconditional_v<bool, false, T>, "must specialize this");
-		};
-
-	}
-
-	template<class T>
-	using type_of_t = typename bits::_type_of<T>::type;
-
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual math::type {
@@ -342,14 +330,6 @@ namespace zaimoni {
 	};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
-	namespace bits {
-
-		template<> struct _type_of<float> { typedef _type<_type_spec::_R_SHARP_> type; };
-		template<> struct _type_of<double> { typedef _type<_type_spec::_R_SHARP_> type; };
-		template<> struct _type_of<long double> { typedef _type<_type_spec::_R_SHARP_> type; };
-
-	}
-
 	template<class T>
 	struct eval {
 		enum {
@@ -359,7 +339,6 @@ namespace zaimoni {
 		// required API of specializations
 #if 0
 		typedef ... in_type;
-		typedef _type_of<in_type>::type out_type;
 
 		static bool self(in_type& x);
 		static out_type* destructive(in_type*& x);

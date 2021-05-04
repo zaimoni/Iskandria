@@ -11,22 +11,6 @@
 #include <type_traits>
 
 namespace zaimoni {
-
-namespace bits {
-
-	template<class T> struct _type_of<ISK_INTERVAL<T> > { typedef type_of_t<T> type; };
-
-}
-
-	// get something intelligible out if the C preprocessor is buggy
-	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<float> >, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<double> >, _type<_type_spec::_R_SHARP_> >);
-	static_assert(std::is_same_v<type_of_t<ISK_INTERVAL<long double> >, _type<_type_spec::_R_SHARP_> >);
-}
-
-// close/re-open
-
-namespace zaimoni {
 namespace detail {
 
 	template<class T>
