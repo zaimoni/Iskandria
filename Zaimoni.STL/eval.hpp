@@ -358,11 +358,6 @@ namespace zaimoni {
 	};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
-	template<class Derived, class T>
-	struct _interface_of {
-		static_assert(unconditional_v<bool, false, T>, "must specialize this");
-	};	// must override to do anything useful
-
 	namespace bits {
 
 		template<> struct _type_of<float> { typedef _type<_type_spec::_R_SHARP_> type; };
