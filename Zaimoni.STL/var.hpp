@@ -149,54 +149,6 @@ public:
 	template<class T> const T* get() const { return static_cast<Derived*>(this)->template _get(); }
 };
 
-template<class T, class U= type_of_t<T> >
-class var : public var_CRTP<var<T, U> >, public _interface_of<var<T, U>, T>, public _access<T>
-{
-private:
-	T _x;
-public:
-	var() = default;
-	var(const T& src) : _x(src) {
-		const auto err = _constructor_fatal();
-		if (err) throw zaimoni::math::numeric_error(err);
-	}
-	var(T&& src) : _x(std::move(src)) {
-		const auto err = _constructor_fatal();
-		if (err) throw zaimoni::math::numeric_error(err);
-	}
-	var(const var& src) = default;
-	var(var&& src) = default;
-	~var() = default;
-	var& operator=(const T& src) { _x = src; this->invalidate_stats(); return *this; };
-	var& operator=(T&& src) { _x = std::move(src); this->invalidate_stats(); return *this; };
-	var& operator=(const var& src) = default;
-	var& operator=(var&& src) = default;
-
-	virtual T& value() { this->invalidate_stats(); return _x; }
-	virtual const T& value() const { return _x; }
-
-	template<class V> typename std::enable_if<!std::is_base_of<V,T>::value, V*>::type _get() { return 0; }
-	template<class V> typename std::enable_if<std::is_base_of<V, T>::value, V*>::type _get() { this->invalidate_stats(); return &_x; }
-	template<class V> typename std::enable_if<!std::is_base_of<V, T>::value, const V*>::type _get() const { return 0; }
-	template<class V> typename std::enable_if<std::is_base_of<V, T>::value, const V*>::type _get() const { return &_x; }
-
-private:
-	const char* _constructor_fatal() const {
-		if (!this->allow_infinity() && isINF(_x)) return "infinity in finite variable";
-		if (isNaN(_x)) return "NaN in variable";
-		return 0;
-	}
-};
-
-namespace bits {
-
-	template<class T, class U> struct _type_of<var<T, U> > {
-		static_assert(std::is_base_of_v<zaimoni::math::type, U>);
-		typedef U type;
-	};
-
-}
-
 }	// namespace zaimoni
 
 // close/re-open to separate legacy implementation from experimental implementation

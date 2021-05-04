@@ -65,7 +65,7 @@ namespace bits {
 		}
 
 		typename _type_of<Derived>::type* clone() const override {
-			return new var<zaimoni::circle::angle, typename _type_of<Derived>::type>(tmp);
+			return new var_fp<zaimoni::circle::angle>(tmp);
 		}
 	private:
 		void force_valid_stats() const {

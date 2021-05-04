@@ -68,7 +68,7 @@ namespace bits {
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<double, type_of_t<Derived> >(tmp);
+			return new var_fp<double>(tmp);
 		}
 	private:
 		void force_valid_stats() const {
@@ -84,8 +84,8 @@ namespace bits {
 		}	// power-of-two
 		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
-			if (x.lower() == x.upper()) return new var<double>(x.lower());
-			return 0;
+			if (x.lower() == x.upper()) return new var_fp<double>(x.lower());
+			return nullptr;
 		}
 		bool _is_inf() const override { return isINF(static_cast<const Derived*>(this)->value()); }
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }
@@ -136,7 +136,7 @@ namespace bits {
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<float, type_of_t<Derived> >(tmp);
+			return new var_fp<float>(tmp);
 		}
 	private:
 		void force_valid_stats() const {
@@ -152,8 +152,8 @@ namespace bits {
 		}	// power-of-two
 		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
-			if (x.lower() == x.upper()) return new var<float>(x.lower());
-			return 0;
+			if (x.lower() == x.upper()) return new var_fp<float>(x.lower());
+			return nullptr;
 		}
 		bool _is_inf() const override { return isINF(static_cast<const Derived*>(this)->value()); }
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }
@@ -202,7 +202,7 @@ namespace bits {
 			const auto tmp = x.lower();
 			if (tmp != x.upper()) return new Derived(*static_cast<const Derived*>(this));
 			// singleton...optimize when cloning
-			return new var<long double, type_of_t<Derived> >(tmp);
+			return new var_fp<long double>(tmp);
 		}
 	private:
 		void force_valid_stats() const {
@@ -218,8 +218,8 @@ namespace bits {
 		}	// power-of-two
 		fp_API* _eval() const override {
 			auto& x = static_cast<const Derived*>(this)->value();
-			if (x.lower() == x.upper()) return new var<long double>(x.lower());
-			return 0;
+			if (x.lower() == x.upper()) return new var_fp<long double>(x.lower());
+			return nullptr;
 		}
 		bool _is_inf() const override { return isINF(static_cast<const Derived*>(this)->value()); }
 		bool _is_finite() const override { return isFinite(static_cast<const Derived*>(this)->value()); }

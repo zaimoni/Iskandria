@@ -484,8 +484,8 @@ final_exit:
 	{
 		try {
 			auto ret = n / d;
-			if (ret.lower() == ret.upper()) return new var<typename ISK_INTERVAL<F>::base_type>(ret.upper());
-			return new var<decltype(ret)>(ret);
+			if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+			return new var_fp<decltype(ret)>(ret);
 		} catch (zaimoni::math::numeric_error& e) {
 			return nullptr;
 		}
@@ -655,14 +655,14 @@ final_exit:
 	{
 		try {
 			auto ret = lhs + rhs;
-			if (ret.lower() == ret.upper()) return new var<typename ISK_INTERVAL<F>::base_type>(ret.upper());
-			return new var<decltype(ret)>(ret);
+			if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+			return new var_fp<decltype(ret)>(ret);
 		}
 		catch (zaimoni::math::numeric_error& e) {
 			// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
-			return 0;
+			return nullptr;
 		}
-		return 0;
+		return nullptr;
 	}
 
 	template<class F, class F2>
