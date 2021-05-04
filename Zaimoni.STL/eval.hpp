@@ -111,7 +111,7 @@ namespace zaimoni {
 		/// Run-time mathematical type system.  Reference return interferes with n-ary operation domain estimation
 		/// </summary>
 		/// <returns>non-null, or throws std::logic_error</returns>
-		virtual const math::type* domain() const = 0; // for Kuroda grammar approach; horde of compiler errors
+		virtual const math::type* domain() const = 0; // for Kuroda grammar approach
 
 		virtual bool self_eval() = 0;
 		template<class T>

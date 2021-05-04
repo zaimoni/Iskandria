@@ -412,6 +412,12 @@ final_exit:
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
 
 		if (ret) lhs = working;
 		return ret;
@@ -432,6 +438,12 @@ final_exit:
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) ret = rearrange_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(l->_x, rhs);
 
 		if (ret) lhs = working;
 		return ret;
@@ -452,6 +464,12 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(lhs, r->value());
 		else if (auto r = dynamic_cast<_access<long double>*>(src)) ret = rearrange_sum(lhs, r->value());
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(lhs, r->value());
+		else if (auto r = dynamic_cast<var_fp<float>*>(src)) ret = rearrange_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) ret = rearrange_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<double>*>(src)) ret = rearrange_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) ret = rearrange_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) ret = rearrange_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) ret = rearrange_sum(lhs, r->_x);
 
 		if (ret) rhs = working;
 		return ret;
@@ -511,6 +529,12 @@ final_exit:
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->value(), d);
 		else if (auto l = dynamic_cast<_access<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->value()), d);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->value(), d);
+		else if (auto l = dynamic_cast<var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->_x, d);
+		else if (auto l = dynamic_cast<var_fp<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->_x), d);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->_x, d);
+		else if (auto l = dynamic_cast<var_fp<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->_x), d);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->_x, d);
 
 		return 0;
 	}
@@ -524,6 +548,12 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->value());
 		else if (auto r = dynamic_cast<_access<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->value()));
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->value());
+		else if (auto r = dynamic_cast<var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->_x);
+		else if (auto r = dynamic_cast<var_fp<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->_x));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->_x);
+		else if (auto r = dynamic_cast<var_fp<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->_x));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->_x);
 		return 0;
 	}
 
@@ -555,6 +585,12 @@ final_exit:
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(l->value());
 		else if (auto l = dynamic_cast<_access<long double>*>(src)) return sum_score(l->value());
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->value());
+		else if (auto l = dynamic_cast<var_fp<float>*>(src)) return sum_score(l->_x);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(l->_x);
+		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return sum_score(l->_x);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(l->_x);
+		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) return sum_score(l->_x);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->_x);
 		return std::numeric_limits<int>::min();
 	}
 
@@ -567,6 +603,12 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(r->value());
 		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(r->value());
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->value());
+		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(r->_x);
+		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(r->_x);
+		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return sum_score(r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->_x);
 		return std::numeric_limits<int>::min();
 	}
 
@@ -599,6 +641,12 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->value());
 		else if (auto r = dynamic_cast<_access<long double>*>(src)) return sum_score(lhs, r->value());
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->value());
+		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return sum_score(lhs, r->_x);
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->_x);
 		return std::numeric_limits<int>::min();
 	}
 
@@ -651,6 +699,12 @@ final_exit:
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->value(), rhs);
 		else if (auto l = dynamic_cast<_access<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->value()), rhs);
 		else if (auto l = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->value(), rhs);
+		else if (auto l = dynamic_cast<var_fp<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->_x), rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->_x), rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->_x, rhs);
+		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->_x), rhs);
+		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->_x, rhs);
 		return 0;
 	}
 
@@ -663,6 +717,12 @@ final_exit:
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
 		else if (auto r = dynamic_cast<_access<long double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->value())));
 		else if (auto r = dynamic_cast<_access<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->value()));
+		else if (auto r = dynamic_cast<var_fp<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->_x)));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
+		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->_x)));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
+		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->_x)));
+		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
 		return nullptr;
 	}
 
