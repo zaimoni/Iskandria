@@ -18,6 +18,8 @@ fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp
 int sum_implemented(const std::shared_ptr<fp_API>& x);
 int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+bool in_place_negate(std::shared_ptr<fp_API>& lhs);
+bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 
 }
 
@@ -52,7 +54,43 @@ public:
 	bool mult_inverted_right() const { return bitmap & (1ULL << (int)op::right_inverse_mult); }
 	bool mult_inverted() const { return bitmap & ((1ULL << (int)op::left_inverse_mult) | (1ULL << (int)op::right_inverse_mult)); }
 
+	void self_negate() {
+		if (add_inverted()) bitmap &= ~(1ULL << (int)op::inverse_add);
+		else bitmap |= 1ULL << (int)op::inverse_add;
+	}
+
 	const math::type* domain() const override { return dest->domain(); }
+
+	bool self_eval() override {
+		if (!scale_by && !bitmap) {
+			auto working(dest);
+			if (auto r = dynamic_cast<symbolic_fp*>(working.get())) {
+				*this = *r;
+				return true;
+			}
+			return false;
+		}
+		bool ret = false;
+		if (add_inverted() && zaimoni::math::in_place_negate(dest)) {
+			bitmap &= ~(1ULL << (int)op::inverse_add);
+			return true;
+		}
+		if (scale_by) {
+			auto range = dest->scal_bn_safe_range();
+			if (!mult_inverted()) {
+				if (zaimoni::math::scal_bn(dest, scale_by)) return true;
+			} else {
+				intmax_t ref_scale = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
+				intmax_t dest_scale = ref_scale;
+				if (zaimoni::math::scal_bn(dest, dest_scale)) {
+					scale_by -= (ref_scale - dest_scale); // \todo test this
+					return true;
+				}
+			}
+		}
+		// \todo multiplicative inverse
+		return ret;
+	}
 
 	bool is_zero() const override {
 		if (mult_inverted()) return false;
@@ -64,35 +102,22 @@ public:
 		return dest->is_one();
 	}
 
+	int sgn() const override {
+		if (dest->is_zero()) return 0;
+		if (add_inverted() && domain()->is_totally_ordered()) return -dest->sgn();
+		return dest->sgn();
+	}
+
 	bool is_scal_bn_identity() const override {
 		return is_zero() || is_inf();
 	}
 
 	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
-		std::pair<intmax_t, intmax_t> ret(0, 0);
+		std::pair<intmax_t, intmax_t> ret(INTMAX_MIN, INTMAX_MAX);
 		if (0 < scale_by) {
-			ret.first = -scale_by;
+			ret.second -= scale_by;
 		} else if (0 > scale_by) {
-			ret.second = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
-		}
-		const auto interior = dest->scal_bn_safe_range();
-		if (0 > interior.first) {
-			if (mult_inverted()) {
-				if (INTMAX_MAX - ret.second >= -interior.first) ret.second -= interior.first;
-				else ret.second = INTMAX_MAX;
-			} else {
-				if (INTMAX_MIN - ret.first <= interior.first) ret.first += interior.first;
-				else ret.first = INTMAX_MIN;
-			}
-		}
-		if (0 < interior.second) {
-			if (mult_inverted()) {
-				if (ret.first - INTMAX_MIN >= interior.second) ret.first -= interior.second;
-				else ret.first = INTMAX_MIN;
-			} else {
-				if (INTMAX_MAX - ret.second >= interior.second) ret.second += interior.second;
-				else ret.second = INTMAX_MAX;
-			}
+			ret.first -= scale_by;
 		}
 		return ret;
 	}
@@ -109,12 +134,10 @@ public:
 		/* if (0 > scale_by && 0 > interior )*/ return INTMAX_MIN - scale_by <= interior ? scale_by + interior : INTMAX_MIN;
 	}
 
-/*
 	fp_API* clone() const override {
 		if (0 == scale_by && !bitmap) return dest->clone();
 		return new symbolic_fp(*this);
 	}
-*/
 
 	std::string to_s() const override {
 		decltype(auto) ret(dest->to_s());
@@ -133,6 +156,24 @@ public:
 	int precedence() const override {
 		if (mult_inverted()) return 2;
 		return 1;
+	}
+
+	void _scal_bn(intmax_t scale) override
+	{
+		if (0 < scale) {
+			if (0 > scale_by || INTMAX_MAX - scale_by >= scale) scale_by += scale;
+			else throw zaimoni::math::numeric_error("overflowed power-of-two scaling");
+		} else if (0 > scale) {
+			if (0 < scale_by || -INTMAX_MIN - scale_by <= scale) scale_by += scale;
+			else throw zaimoni::math::numeric_error("overflowed power-of-two scaling");
+		}
+		self_eval();
+	}
+
+	fp_API* _eval() const override
+	{
+		if (!scale_by && !bitmap) return dest->clone();
+		return nullptr;
 	}
 
 	bool _is_inf() const override {

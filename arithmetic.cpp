@@ -664,6 +664,78 @@ final_exit:
 		return nullptr;
 	}
 
+	bool in_place_negate(std::shared_ptr<fp_API>& x)
+	{
+		auto working(x);
+		if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
+		auto src = working.get();
+		if (auto r = dynamic_cast<var_fp<float>*>(src))  {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
+			r->_x = -r->_x;
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<symbolic_fp*>(src)) {
+			r->self_negate();
+			x = working;
+			return true;
+		}
+		return false;
+	}
+
+	bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale)
+	{
+		auto working(x);
+		if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
+		try {
+			working->scal_bn(scale);
+			scale = 0;
+			x = working;
+			return true;
+		} catch (std::runtime_error& e) {
+		}
+		auto legal = working->scal_bn_safe_range();
+		if (0 < scale && scale > legal.second) {
+			auto delta = legal.second;
+			try {
+				working->scal_bn(delta);
+				scale -= delta;
+				x = working;
+				return true;
+			} catch (std::runtime_error& e) {
+			}
+		}
+		if (0 > scale && scale < legal.first) {
+			auto delta = legal.first;
+			try {
+				working->scal_bn(delta);
+				scale -= delta;
+				x = working;
+				return true;
+			} catch (std::runtime_error& e) {
+			}
+		}
+		return false;
+	}
+
 }	// namespace math
 
 std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
