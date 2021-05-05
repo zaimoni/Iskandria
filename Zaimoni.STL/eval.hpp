@@ -42,6 +42,7 @@ namespace zaimoni {
 	namespace math {
 		struct type {
 			virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
+			virtual bool is_totally_ordered() const = 0;
 			std::partial_ordering subclass(const type& rhs) const { return rhs._superclass(this); }
 			// evaluate type of canonical operations (generally binary functions)
 			virtual const type* self(_type_spec::canonical_functions op) const = 0;
@@ -194,6 +195,7 @@ namespace zaimoni {
 		enum { _allow_infinity = 1 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
 		const type* self(_type_spec::canonical_functions op) const override {
 			switch (op) {
 				case _type_spec::Addition :
@@ -211,6 +213,7 @@ namespace zaimoni {
 		enum { _allow_infinity = -1 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return true; }
 		const type* self(_type_spec::canonical_functions op) const override {
 			switch (op) {
 			case _type_spec::Addition:
@@ -229,6 +232,7 @@ namespace zaimoni {
 		enum { _allow_infinity = 0 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
 		const type* self(_type_spec::canonical_functions op) const override {
 			switch (op) {
 			case _type_spec::Addition: return this;
@@ -283,6 +287,7 @@ namespace zaimoni {
 		enum { _allow_infinity = 0 };
 
 		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return true; }
 		const type* self(_type_spec::canonical_functions op) const override {
 			switch (op) {
 			case _type_spec::Addition:
