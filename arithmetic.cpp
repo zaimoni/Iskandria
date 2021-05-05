@@ -3,8 +3,6 @@
 #include "arithmetic.hpp"
 #include "Zaimoni.STL/var.hpp"
 
-#include "func.hpp"
-
 namespace zaimoni {
 namespace math {
 

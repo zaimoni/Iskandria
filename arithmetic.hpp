@@ -21,6 +21,31 @@ std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::
 
 }
 
+// the following operations on fp_API types are closely related
+// additive inverse
+// left-multiplicative inverse
+// right-multiplicative inverse
+// scal_bn (power of 2 manipulation)
+
+class symbolic_fp final : public fp_API {
+	std::shared_ptr<fp_API> dest;
+	intmax_t scale_by;
+	uintmax_t bitmap;	// anything smaller incurs padding bytes anyway
+public:
+	enum class op {
+		inverse_add = 0,
+		left_inverse_mult,
+		right_inverse_mult
+	};
+
+	symbolic_fp(std::shared_ptr<fp_API>& src) noexcept : dest(src), scale_by(0), bitmap(0) {}
+	symbolic_fp(const symbolic_fp& src) = default;
+	symbolic_fp(symbolic_fp&& src) = default;
+	~symbolic_fp() = default;
+	symbolic_fp& operator=(const symbolic_fp& src) = default;
+	symbolic_fp& operator=(symbolic_fp&& src) = default;
+};
+
 struct _n_ary_op {
 	enum {
 		componentwise_evaluation = 1,
