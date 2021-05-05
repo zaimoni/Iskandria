@@ -38,12 +38,111 @@ public:
 		right_inverse_mult
 	};
 
-	symbolic_fp(std::shared_ptr<fp_API>& src) noexcept : dest(src), scale_by(0), bitmap(0) {}
+	symbolic_fp(std::shared_ptr<fp_API>& src) noexcept : dest(src), scale_by(0), bitmap(0) {
+		assert(src);
+	}
 	symbolic_fp(const symbolic_fp& src) = default;
 	symbolic_fp(symbolic_fp&& src) = default;
 	~symbolic_fp() = default;
 	symbolic_fp& operator=(const symbolic_fp& src) = default;
 	symbolic_fp& operator=(symbolic_fp&& src) = default;
+
+	bool add_inverted() const { return bitmap & (1ULL << (int)op::inverse_add); }
+	bool mult_inverted_left() const { return bitmap & (1ULL << (int)op::left_inverse_mult); }
+	bool mult_inverted_right() const { return bitmap & (1ULL << (int)op::right_inverse_mult); }
+	bool mult_inverted() const { return bitmap & ((1ULL << (int)op::left_inverse_mult) | (1ULL << (int)op::right_inverse_mult)); }
+
+	const math::type* domain() const override { return dest->domain(); }
+
+	bool is_zero() const override {
+		if (mult_inverted()) return false;
+		return dest->is_zero();
+	}
+
+	bool is_one() const override {
+		if (add_inverted() || 0 != scale_by) return false;
+		return dest->is_one();
+	}
+
+	bool is_scal_bn_identity() const override {
+		return is_zero() || is_inf();
+	}
+
+	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
+		std::pair<intmax_t, intmax_t> ret(0, 0);
+		if (0 < scale_by) {
+			ret.first = -scale_by;
+		} else if (0 > scale_by) {
+			ret.second = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
+		}
+		const auto interior = dest->scal_bn_safe_range();
+		if (0 > interior.first) {
+			if (mult_inverted()) {
+				if (INTMAX_MAX - ret.second >= -interior.first) ret.second -= interior.first;
+				else ret.second = INTMAX_MAX;
+			} else {
+				if (INTMAX_MIN - ret.first <= interior.first) ret.first += interior.first;
+				else ret.first = INTMAX_MIN;
+			}
+		}
+		if (0 < interior.second) {
+			if (mult_inverted()) {
+				if (ret.first - INTMAX_MIN >= interior.second) ret.first -= interior.second;
+				else ret.first = INTMAX_MIN;
+			} else {
+				if (INTMAX_MAX - ret.second >= interior.second) ret.second += interior.second;
+				else ret.second = INTMAX_MAX;
+			}
+		}
+		return ret;
+	}
+
+	intmax_t ideal_scal_bn() const override {
+		auto interior = dest->ideal_scal_bn();
+		const bool tweaked = mult_inverted() && -INTMAX_MAX > interior;
+		if (tweaked) ++interior;
+		if (mult_inverted()) interior = -interior;
+
+		if (0 <= scale_by && 0 >= interior) return scale_by + interior;
+		if (0 >= scale_by && 0 <= interior) return scale_by + interior;
+		if (0 < scale_by /* && 0 < interior */) return INTMAX_MAX - scale_by >= interior ? scale_by + interior : INTMAX_MAX;
+		/* if (0 > scale_by && 0 > interior )*/ return INTMAX_MIN - scale_by <= interior ? scale_by + interior : INTMAX_MIN;
+	}
+
+/*
+	fp_API* clone() const override {
+		if (0 == scale_by && !bitmap) return dest->clone();
+		return new symbolic_fp(*this);
+	}
+*/
+
+	std::string to_s() const override {
+		decltype(auto) ret(dest->to_s());
+		if (!scale_by && !bitmap) return ret;
+		if (scale_by || bitmap) {
+			ret = "(" + ret + ")";
+			if (mult_inverted()) ret += "<sup>-1</sup>";
+			if (add_inverted()) ret = "-" + ret;
+			if (scale_by) ret += "*2<sup>" + std::to_string(scale_by) + "</sup>";
+		}
+		return ret;
+	}
+
+
+	// coordinate with the sum/product types
+	int precedence() const override {
+		if (mult_inverted()) return 2;
+		return 1;
+	}
+
+	bool _is_inf() const override {
+		if (mult_inverted()) return dest->is_zero();
+		return dest->is_inf();
+	}
+	bool _is_finite() const override {
+		if (mult_inverted()) return !dest->is_zero();
+		return dest->is_finite();
+	}
 };
 
 struct _n_ary_op {
