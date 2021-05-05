@@ -189,7 +189,43 @@ namespace zaimoni {
 		return working;
 	}
 
-	// top-levels: _C_SHARP_, _R_SHARP_, _S1_
+	// top-levels: _C_SHARP_, _R_SHARP_, _S1_, _H_SHARP_, _O_SHARP_
+	template<>
+	struct _type<_type_spec::_O_SHARP_> : public virtual math::type {
+		enum { _allow_infinity = 1 };
+
+		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+	private:
+		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
+	};
+	static_assert(1 == _type<_type_spec::_O_SHARP_>::_allow_infinity);
+
+	template<>
+	struct _type<_type_spec::_H_SHARP_> : public virtual math::type {
+		enum { _allow_infinity = 1 };
+
+		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+	private:
+		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
+	};
+	static_assert(1 == _type<_type_spec::_H_SHARP_>::_allow_infinity);
+
 	template<>
 	struct _type<_type_spec::_C_SHARP_> : public virtual math::type {
 		enum { _allow_infinity = 1 };
@@ -263,13 +299,55 @@ namespace zaimoni {
 
 	// subspace relations
 	template<>
-	struct _type<_type_spec::_C_> : public _type<_type_spec::_C_SHARP_> {
+	struct _type<_type_spec::_O_> : public _type<_type_spec::_O_SHARP_> {
 		enum { _allow_infinity = 0 };
 
 		virtual ~_type() = default;
 
 		// numerical support -- these have coordinate-wise definitions available
 		int allow_infinity() const override { return _allow_infinity; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+	private:
+		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
+	};
+	static_assert(0 == _type<_type_spec::_O_>::_allow_infinity);
+
+	template<>
+	struct _type<_type_spec::_H_> : public _type<_type_spec::_O_>, public _type<_type_spec::_H_SHARP_> {
+		enum { _allow_infinity = 0 };
+
+		virtual ~_type() = default;
+
+		// numerical support -- these have coordinate-wise definitions available
+		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
+		const type* self(_type_spec::canonical_functions op) const override {
+			switch (op) {
+			case _type_spec::Addition:
+			case _type_spec::Multiplication: return this;
+			default: throw std::logic_error("unhandled operation");
+			}
+		}
+	private:
+		bool _nonstrictSuperclass(const type* rhs) const override { return nullptr != dynamic_cast<decltype(this)>(rhs); }
+	};
+	static_assert(0 == _type<_type_spec::_H_>::_allow_infinity);
+
+	template<>
+	struct _type<_type_spec::_C_> : public _type<_type_spec::_H_>, public _type<_type_spec::_C_SHARP_> {
+		enum { _allow_infinity = 0 };
+
+		virtual ~_type() = default;
+
+		// numerical support -- these have coordinate-wise definitions available
+		int allow_infinity() const override { return _allow_infinity; }
+		bool is_totally_ordered() const override { return false; }
 		const type* self(_type_spec::canonical_functions op) const override {
 			switch (op) {
 			case _type_spec::Addition:
