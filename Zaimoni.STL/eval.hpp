@@ -115,17 +115,15 @@ namespace zaimoni {
 		virtual const math::type* domain() const = 0; // for Kuroda grammar approach
 
 		virtual bool self_eval() = 0;
-		template<class T>
-		typename std::enable_if<std::is_base_of<fp_API, T>::value, bool >::type
-			static eval(std::shared_ptr<T>& dest) {
-			if (auto efficient = dynamic_cast<eval_shared_ptr<T>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
+		static bool eval(std::shared_ptr<fp_API>& dest) {
+			if (auto efficient = dynamic_cast<eval_shared_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
 				if (auto result = efficient->destructive_eval()) {
 					dest = result;
 					return true;
 				}
 			}
 			if (auto result = dest->_eval()) {
-				dest = std::shared_ptr<T>(dynamic_cast<T*>(result));
+				dest = std::shared_ptr<fp_API>(dynamic_cast<fp_API*>(result));
 				return true;
 			}
 			return false;

@@ -29,7 +29,7 @@ bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 // right-multiplicative inverse
 // scal_bn (power of 2 manipulation)
 
-class symbolic_fp final : public fp_API {
+class symbolic_fp final : public fp_API, public eval_shared_ptr<fp_API> {
 	std::shared_ptr<fp_API> dest;
 	intmax_t scale_by;
 	uintmax_t bitmap;	// anything smaller incurs padding bytes anyway
@@ -170,6 +170,12 @@ public:
 		self_eval();
 	}
 
+	std::shared_ptr<fp_API> destructive_eval() override
+	{
+		if (!scale_by && !bitmap) return dest;
+		return nullptr;
+	}
+
 	fp_API* _eval() const override
 	{
 		if (!scale_by && !bitmap) return dest->clone();
@@ -184,6 +190,21 @@ public:
 		if (mult_inverted()) return !dest->is_zero();
 		return dest->is_finite();
 	}
+};
+
+class power_fp final : public fp_API, public eval_shared_ptr<fp_API> {
+	std::shared_ptr<fp_API> x;
+	std::shared_ptr<fp_API> to_y;
+	_type_spec::canonical_functions op;
+
+public:
+	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y, _type_spec::canonical_functions op) noexcept : x(x), to_y(y), op(op) {}
+	power_fp(const power_fp& src) = default;
+	power_fp(power_fp&& src) = default;
+	~power_fp() = default;
+	power_fp& operator=(const power_fp& src) = default;
+	power_fp& operator=(power_fp&& src) = default;
+
 };
 
 struct _n_ary_op {
