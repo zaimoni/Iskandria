@@ -10,6 +10,7 @@
 #include <float.h>
 #include <cmath>
 #include <utility>
+#include <concepts>
 
 // namespace setup.  Anything we would want for high-precision arithmetic should be imported into both of our namespaces.
 // Favor once-and-only-once over technical efficiency.
@@ -380,8 +381,7 @@ namespace bits {
 		return 2 - mantissa[gt_index] <= scalbn(mantissa[lt_index], exponent[lt_index] - exponent[gt_index]);	// XXX \todo verify this
 	}
 
-	template<class T>
-	typename std::enable_if<std::is_floating_point<T>::value, int>::type rearrange_sum(T& lhs, T& rhs)
+	template<std::floating_point T> int rearrange_sum(T& lhs, T& rhs)
 	{
 //		assert(!trivial_sum(lhs, rhs));
 		bool any_change = false;

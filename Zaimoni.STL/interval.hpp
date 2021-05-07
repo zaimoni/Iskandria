@@ -39,8 +39,7 @@ template<class T>
 typename std::enable_if<std::is_integral<T>::value, void>::type
 round_set(int mode) {}
 
-template<class T>
-typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value ,int>::type rearrange_sum(T& lhs, T& rhs)
+template<std::unsigned_integral T> int rearrange_sum(T& lhs, T& rhs)
 {
 	if (std::numeric_limits<T>::max() <= lhs) return 0;
 	const T ub = std::numeric_limits<T>::max() - lhs;
@@ -54,8 +53,7 @@ typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value
 	return -2;
 }
 
-template<class T>
-typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, int>::type rearrange_sum(T& lhs, T& rhs)
+template<std::signed_integral T> int rearrange_sum(T& lhs, T& rhs)
 {
 	if (((0 <= lhs) ? (0 >= rhs) : (0 <= rhs)) || 0==lhs) {
 		lhs += rhs;

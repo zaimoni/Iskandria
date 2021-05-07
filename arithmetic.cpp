@@ -7,7 +7,7 @@ namespace zaimoni {
 namespace math {
 
 	// rearrange_sum support
-	template<class F> std::enable_if_t<std::is_floating_point<F>::value, int> rearrange_sum(F& lhs, F& rhs)
+	template<std::floating_point F> int rearrange_sum(F& lhs, F& rhs)
 	{
 		int ret = 0;
 
@@ -121,15 +121,15 @@ restart:
 		goto restart;
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits<std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+	int rearrange_sum(F& lhs, F2& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(F& lhs, F2& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+	int rearrange_sum(F& lhs, F2& rhs)
 	{
 		int ret = rearrange_sum(rhs, lhs);
 		switch (ret)
@@ -141,27 +141,25 @@ restart:
 	}
 
 	// CLang: sizeof(long double)==sizeof(double)
-	template<class F>
-	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, int> rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
+	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+	int rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
 	{
 		return rearrange_sum(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
 	}
 
-	template<class F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
+	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+	int rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
 	{
 		return rearrange_sum(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2>, int> rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
+	template<std::floating_point F, std::floating_point F2> int rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
+	template<std::floating_point F, std::floating_point F2> int rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
 	{
 		switch (int ret = rearrange_sum(rhs, lhs))
 		{
@@ -178,8 +176,7 @@ restart:
 		if (lhs.second > rhs.second) lhs.second = rhs.second;
 	}
 
-	template<class F>
-	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
+	template<std::floating_point F> int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
 
@@ -365,15 +362,15 @@ final_exit:
 		return ret;
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits), int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
 		FATAL("need to implement");
 		return 0;
 	}
 
-	template<class F, class F2>
-	std::enable_if_t<std::is_floating_point_v<F> && std::is_floating_point_v<F2> && (std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits), int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
 		switch (int ret = rearrange_sum(rhs, lhs))
 		{
@@ -383,20 +380,19 @@ final_exit:
 		}
 	}
 
-	template<class F>
-	std::enable_if_t<zaimoni::precise_demote_v<F> && std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
 	{
 		return rearrange_sum(reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
 	}
 
-	template<class F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>&& std::is_floating_point_v<F>, int> rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
+	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+	int rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
-	template<class F>
-	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(std::shared_ptr<fp_API>& lhs, F& rhs)
+	template<std::floating_point F> int rearrange_sum(std::shared_ptr<fp_API>& lhs, F& rhs)
 	{
 		std::remove_reference_t<decltype(lhs)> working(lhs);
 		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());
@@ -415,8 +411,7 @@ final_exit:
 		return ret;
 	}
 
-	template<class F>
-	std::enable_if_t<std::is_floating_point_v<F>, int> rearrange_sum(std::shared_ptr<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
+	template<std::floating_point F> int rearrange_sum(std::shared_ptr<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
 	{
 		std::remove_reference_t<decltype(lhs)> working(lhs);
 		if (2 < lhs.use_count()) working = decltype(working)(lhs->clone());

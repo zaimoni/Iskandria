@@ -598,8 +598,7 @@ int trivial_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 
 // the rearrange_sum family returns true/1 iff rhs has been annihilated with exact arithmetic, 2 if any change
 // negative values are reserved for C-style error codes, should they be eventually needed.
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , int>::type rearrange_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
+template<std::floating_point T> int rearrange_sum(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
 {
 	assert(!trivial_sum(lhs,rhs));
 	// all four coordinates are finite
