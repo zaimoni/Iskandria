@@ -316,6 +316,140 @@ public:
 	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
 };
 
+
+template<>
+class _fp_stats<uintmax_t>
+{
+protected:
+	mutable uintmax_t _mantissa;
+	mutable int _exponent;
+	mutable bool _valid;
+public:
+	_fp_stats() : _valid(false) {};
+	_fp_stats(uintmax_t src) : _valid(true), _mantissa(src), _exponent(1) {
+		_find_exponent();
+	};
+
+	void invalidate_stats() { _valid = false; }
+	bool valid() const { return _valid; }
+	void init_stats(uintmax_t x) const {
+		_mantissa = x;
+		_exponent = 1;
+		_valid = true;
+		_find_exponent();
+	}
+
+	// precondition: valid
+	// precondition: incoming lb/ub are initialized appropriately
+	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		if (0 == _mantissa) return;
+		intmax_t _lb = _find_min_scalbn();
+		intmax_t _ub = _exponent - 1;
+
+		if (lb < _lb) lb = _lb;
+		if (ub > _ub) ub = _ub;
+	}
+
+	// precondition: valid
+	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
+
+	// precondition: valid
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+
+private:
+	void _find_exponent() const {
+		if (0 != _mantissa) {
+			while (0 == _mantissa % 2) {
+				++_exponent;
+				_mantissa /= 2;
+			}
+		}
+	}
+
+	intmax_t _find_min_scalbn() const {
+		static constexpr const auto tripwire = std::numeric_limits<uintmax_t>::max() / 2;
+		auto test = _mantissa;
+		intmax_t ret = 0;
+		while (tripwire >= test) {
+			--ret;
+			test *= 2;
+		}
+		ret += (_exponent - 1);
+		return ret;
+	}
+};
+
+template<>
+class _fp_stats<intmax_t>
+{
+protected:
+	mutable intmax_t _mantissa;
+	mutable int _exponent;
+	mutable bool _valid;
+public:
+	_fp_stats() : _valid(false) {};
+	_fp_stats(intmax_t src) : _valid(true) {
+		_find_exponent();
+	};
+
+	void invalidate_stats() { _valid = false; }
+	bool valid() const { return _valid; }
+	void init_stats(intmax_t x) const {
+		_mantissa = x;
+		_exponent = 1;
+		_valid = true;
+		_find_exponent();
+	}
+
+	// precondition: valid
+	// precondition: incoming lb/ub are initialized appropriately
+	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
+		if (0 == _mantissa) return;
+		intmax_t _lb = _find_min_scalbn();
+		intmax_t _ub = _exponent - 1;
+
+		if (lb < _lb) lb = _lb;
+		if (ub > _ub) ub = _ub;
+	}
+
+	// precondition: valid
+	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
+
+	// precondition: valid
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+
+private:
+	void _find_exponent() const {
+		if (0 != _mantissa) {
+			while (0 == _mantissa % 2) {
+				++_exponent;
+				_mantissa /= 2;
+			}
+		}
+	}
+
+	intmax_t _find_min_scalbn() const {
+		static constexpr const auto tripwire = std::numeric_limits<intmax_t>::max() / 2;
+		static constexpr const auto tripwire2 = std::numeric_limits<intmax_t>::min() / 2;
+		auto test = _mantissa;
+		intmax_t ret = 0;
+		if (0 < test) {
+			while (tripwire >= test) {
+				--ret;
+				test *= 2;
+			}
+		}
+		else {
+			while (tripwire2 <= test) {
+				--ret;
+				test *= 2;
+			}
+		}
+		ret += (_exponent - 1);
+		return ret;
+	}
+};
+
 namespace math {
 
 template<class T>

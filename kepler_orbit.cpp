@@ -185,6 +185,9 @@ int main(int argc, char* argv[])
 	std::shared_ptr<zaimoni::fp_API> one_if(new zaimoni::var_fp< ISK_INTERVAL<float> >(1));
 	std::shared_ptr<zaimoni::fp_API> one_il(new zaimoni::var_fp< ISK_INTERVAL<long double> >(1));
 
+	std::shared_ptr<zaimoni::fp_API> one_s(new zaimoni::var_fp<intmax_t>(1));
+	std::shared_ptr<zaimoni::fp_API> one_u(new zaimoni::var_fp<uintmax_t>(1));
+
 	// inline prototype of reduced mass calculation as follows:
 	auto inv_reduced_mass = new zaimoni::sum();
 	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var_fp<mass::interval>(sun.GM())));
