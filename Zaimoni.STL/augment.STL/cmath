@@ -208,18 +208,33 @@ std::enable_if_t<std::is_floating_point_v<T>, std::remove_const_t<T> > scalBn(T 
 // not guaranteed effective for long double
 // it is possible to optimize this with reinterpret_cast goo
 // probably should fix the constants to cope with non-binary floating point
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, uintmax_t>::type _mantissa_as_int(T mantissa)
+template<std::floating_point F> uintmax_t _mantissa_as_int(F mantissa)
 {
 	uintmax_t ret = 0;
-	while (0.0<mantissa)
-	{
+	while (0.0<mantissa) {
 		ret <<= 1;
-		const bool have_bit = (T(0.5) <= mantissa);
+		const bool have_bit = (F(0.5) <= mantissa);
 		if (have_bit) ret += 1;
 		mantissa = scalbn(mantissa, 1);
 		mantissa -= have_bit;
 	}
+	return ret;
+}
+
+// for integer types, this just discards factors of two.  Definitions are to play nice with floating-point arithmetic
+template<std::unsigned_integral U> uintmax_t _mantissa_as_int(U mantissa)
+{
+	uintmax_t ret = mantissa;
+	if (0 == ret) return;
+	while (0 == (ret & 1)) ret >>= 1;
+	return ret;
+}
+
+template<std::signed_integral I> uintmax_t _mantissa_as_int(I mantissa)
+{
+	uintmax_t ret = (0 <= mantissa ? mantissa : (-std::numeric_limits<I>::max() <= mantissa ? -mantissa : (unsigned long long)(std::numeric_limits<I>::max()) + 1ULL));
+	if (0 == ret) return 0;
+	while (0 == (ret & 1)) ret >>= 1;
 	return ret;
 }
 
