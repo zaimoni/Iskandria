@@ -754,6 +754,20 @@ std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std:
 	return std::shared_ptr<fp_API>(new quotient(lhs, rhs));
 }
 
+std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scale) {
+	std::shared_ptr<fp_API> ret(src->clone());
+	ret->scal_bn(scale);
+	return ret;
+}
+
+void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale)
+{
+	auto working(src);
+	if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
+	working->scal_bn(scale);
+	src = working;
+}
+
 }	// namespace zaimoni
 
 #ifdef TEST_APP

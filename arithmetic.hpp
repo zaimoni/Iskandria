@@ -10,6 +10,9 @@
 
 namespace zaimoni {
 
+std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scale);
+void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale);
+
 namespace math {
 
 int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
@@ -640,7 +643,7 @@ public:
 	}
 private:
 	void _scal_bn(intmax_t scale) override {
-		for (auto& x : this->_x) this->__scal_bn(x,scale);
+		for (auto& x : this->_x) self_scalBn(x, scale);
 	}
 	fp_API* _eval() const override { return 0; }	// placeholder
 };
@@ -798,11 +801,11 @@ private:
 			const auto want = x->ideal_scal_bn();
 			if (0 < want && 0 < scale) {
 				const auto _scale = (want < scale) ? want : scale;
-				this->__scal_bn(x, _scale);
+				self_scalBn(x, _scale);
 				if (0 == (scale -= _scale)) return;
 			} else if (0 > want && 0 > scale) {
 				const auto _scale = (want > scale) ? want : scale;
-				this->__scal_bn(x, _scale);
+				self_scalBn(x, _scale);
 				if (0 == (scale -= _scale)) return;
 			}
 		};
@@ -811,11 +814,11 @@ private:
 			const auto legal = x->scal_bn_safe_range();
 			if (0 < scale && 0 < legal.second) {
 				const auto _scale = (legal.second < scale) ? legal.second : scale;
-				this->__scal_bn(x, _scale);
+				self_scalBn(x, _scale);
 				if (0 == (scale -= _scale)) return;
 			} else if (0 > scale && 0 > legal.first) {
 				const auto _scale = (legal.first > scale) ? legal.first : scale;
-				this->__scal_bn(x, _scale);
+				self_scalBn(x, _scale);
 				if (0 == (scale -= _scale)) return;
 			}
 		}
@@ -1017,42 +1020,42 @@ private:
 		if (0 < scale) {
 			if (0 > denominator_scale) {
 				const auto _scale = zaimoni::max(-scale, denominator_scale);
-				this->__scal_bn(_denominator, _scale);
+				self_scalBn(_denominator, _scale);
 				if (0 == (scale += _scale)) return;
 				denominator_scale -= _scale;
 			}
 			if (0 < numerator_scale) {
 				const auto _scale = zaimoni::min(scale, numerator_scale);
-				this->__scal_bn(_numerator, _scale);
+				self_scalBn(_numerator, _scale);
 				if (0 == (scale -= _scale)) return;
 				numerator_scale -= _scale;
 			}
 		} else if (0 > scale) {
 			if (0 < denominator_scale) {
 				const auto _scale = zaimoni::min(-scale, denominator_scale);
-				this->__scal_bn(_denominator, _scale);
+				self_scalBn(_denominator, _scale);
 				if (0 == (scale += _scale)) return;
 				denominator_scale -= _scale;
 			}
 			if (0 > numerator_scale) {
 				const auto _scale = zaimoni::max(scale, numerator_scale);
-				this->__scal_bn(_numerator, _scale);
+				self_scalBn(_numerator, _scale);
 				if (0 == (scale -= _scale)) return;
 				numerator_scale -= _scale;
 			}
 		}
 		const auto legal = _numerator->scal_bn_safe_range();
 		if (legal.first > scale) {
-			this->__scal_bn(_numerator,legal.first);
+			self_scalBn(_numerator, legal.first);
 			scale -= legal.first;
 		} else if (legal.second < scale) {
-			this->__scal_bn(_numerator,legal.second);
+			self_scalBn(_numerator, legal.second);
 			scale -= legal.second;
 		} else {
-			this->__scal_bn(_numerator,scale);
+			self_scalBn(_numerator, scale);
 			return;
 		}
-		this->__scal_bn(_denominator, -scale);
+		self_scalBn(_denominator, -scale);
 	}
 	fp_API* _eval() const override { return zaimoni::math::eval_quotient(_numerator,_denominator); }
 };

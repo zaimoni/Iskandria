@@ -163,29 +163,12 @@ namespace zaimoni {
 		virtual std::string to_s() const = 0;
 		virtual int precedence() const = 0;
 
-	protected:
-		template<class T>
-		typename std::enable_if<std::is_base_of<fp_API, T>::value, void >::type
-			static __scal_bn(std::shared_ptr<T>& dest, intmax_t scale) {
-			std::shared_ptr<T> working = (1 == dest.use_count()) ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
-			working->scal_bn(scale);
-			dest = working;
-		}
-
 	private:
 		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
 		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation
 		virtual bool _is_inf() const { throw std::logic_error("must define _is_inf"); }
 		virtual bool _is_finite() const { throw std::logic_error("must define _is_finite"); }
 	};
-
-	template<class T>
-	typename std::enable_if<std::is_base_of<fp_API, T>::value, std::shared_ptr<T> >::type
-		scalBn(const std::shared_ptr<T>& dest, intmax_t scale) {
-		auto working = dest.unique() ? dest : std::shared_ptr<T>(dynamic_cast<T*>(dest->clone()));
-		working->scal_bn(scale);
-		return working;
-	}
 
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_, _H_SHARP_, _O_SHARP_
 	template<>
