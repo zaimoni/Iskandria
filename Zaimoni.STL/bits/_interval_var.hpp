@@ -36,6 +36,14 @@ namespace detail {
 			_fp_stats<coord_type>(x.upper()).scal_bn_safe_range(ret.first, ret.second);
 			return ret;
 		}
+		static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+			const auto span(scal_bn_safe_range(x));
+			if (0 < scale) {
+				return span.second < scale ? span.second : scale;
+			} else /* if (0 > scale) */ {
+				return span.first > scale ? span.first : scale;
+			}
+		}
 		static intmax_t ideal_scal_bn(const param_type& x) {
 			if (_fp_stats<coord_type>(x.lower()).is_scal_bn_identity()) return _fp_stats<coord_type>(x.upper()).ideal_scal_bn();
 			if (_fp_stats<coord_type>(x.upper()).is_scal_bn_identity()) return _fp_stats<coord_type>(x.lower()).ideal_scal_bn();

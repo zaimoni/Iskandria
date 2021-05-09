@@ -33,6 +33,14 @@ namespace zaimoni {
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
 			}
+			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+				const auto span(scal_bn_safe_range(x));
+				if (0 < scale) {
+					return span.second < scale ? span.second : scale;
+				} else /* if (0 > scale) */ {
+					return span.first > scale ? span.first : scale;
+				}
+			}
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
@@ -60,6 +68,14 @@ namespace zaimoni {
 				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
+			}
+			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+				const auto span(scal_bn_safe_range(x));
+				if (0 < scale) {
+					return span.second < scale ? span.second : scale;
+				} else /* if (0 > scale) */ {
+					return span.first > scale ? span.first : scale;
+				}
 			}
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
@@ -89,6 +105,14 @@ namespace zaimoni {
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
 			}
+			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+				const auto span(scal_bn_safe_range(x));
+				if (0 < scale) {
+					return span.second < scale ? span.second : scale;
+				} else /* if (0 > scale) */ {
+					return span.first > scale ? span.first : scale;
+				}
+			}
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
@@ -115,6 +139,14 @@ namespace zaimoni {
 				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
+			}
+			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+				const auto span(scal_bn_safe_range(x));
+				if (0 < scale) {
+					return span.second < scale ? span.second : scale;
+				} else /* if (0 > scale) */ {
+					return span.first > scale ? span.first : scale;
+				}
 			}
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
@@ -147,6 +179,14 @@ namespace zaimoni {
 				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
 				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
 				return ret;
+			}
+			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+				const auto span(scal_bn_safe_range(x));
+				if (0 < scale) {
+					return span.second < scale ? span.second : scale;
+				} else /* if (0 > scale) */ {
+					return span.first > scale ? span.first : scale;
+				}
 			}
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
@@ -191,6 +231,7 @@ namespace zaimoni {
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		bool is_scal_bn_identity() const override { return detail::var_fp_impl<T>::is_scal_bn_identity(_x); }
 		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override { return detail::var_fp_impl<T>::scal_bn_safe_range(_x); }
+		intmax_t scal_bn_is_safe(intmax_t scale) const override { return detail::var_fp_impl<T>::scal_bn_is_safe(_x, scale); }
 		intmax_t ideal_scal_bn() const override { return detail::var_fp_impl<T>::ideal_scal_bn(_x); }
 
 		// technical infrastructure

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <optional>
 
 namespace zaimoni {
 
@@ -65,6 +66,10 @@ public:
 	const math::type* domain() const override { return dest->domain(); }
 
 	bool self_eval() override {
+		if (scale_by && dest->is_scal_bn_identity()) {
+			scale_by = 0;
+			return true;
+		}
 		if (!scale_by && !bitmap) {
 			auto working(dest);
 			if (auto r = dynamic_cast<symbolic_fp*>(working.get())) {
@@ -123,6 +128,52 @@ public:
 			ret.first -= scale_by;
 		}
 		return ret;
+	}
+
+private:
+	std::optional<intmax_t> _scal_bn_is_unsafe(intmax_t scale) const
+	{
+		if (0 <= scale) {
+			if (0 >= scale_by) return std::nullopt;
+			const auto delta = INTMAX_MAX - scale_by;
+			if (delta >= scale) return std::nullopt;
+			return delta;
+		}
+		// if (0 >= scale) {
+			if (0 <= scale_by) return std::nullopt;
+			const auto delta = INTMAX_MIN - scale_by;
+			if (delta <= scale) return std::nullopt;
+			return delta;
+		// }
+	}
+
+	intmax_t _probe_dest(intmax_t scale) const
+	{
+		if (mult_inverted()) {
+			auto neg_scale = (-INTMAX_MAX <= scale) ? -scale : INTMAX_MAX;
+			return -dest->scal_bn_is_safe(neg_scale);
+		}
+		else {
+			return dest->scal_bn_is_safe(scale);
+		}
+	}
+
+public:
+	intmax_t scal_bn_is_safe(intmax_t scale) const override
+	{
+		decltype(auto) delta = _scal_bn_is_unsafe(scale);
+		if (!delta) return scale;
+		// internal buffer wasn't enough
+		auto probe = _probe_dest(scale);
+		if (probe == scale) return scale;
+		auto error = scale - probe;
+		if (0 < error) {
+			if (*delta >= error) return scale;
+			return *delta + probe;
+		} else /* if (0 > error)*/ {
+			if (*delta <= error) return scale;
+			return *delta + probe;
+		}
 	}
 
 	intmax_t ideal_scal_bn() const override {
@@ -570,6 +621,22 @@ public:
 		}
 		return ret;
 	}
+
+	intmax_t scal_bn_is_safe(intmax_t scale) const override
+	{
+restart:
+		for (const auto& x : this->_x) {
+			if (x->is_scal_bn_identity()) continue;
+			intmax_t test = x->scal_bn_is_safe(scale);
+			if (test != scale) {
+				if (0 == test) return 0;
+				scale = test;
+				goto restart;
+			}
+		}
+		return scale;
+	}
+
 	intmax_t ideal_scal_bn() const override {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
@@ -726,6 +793,18 @@ public:
 		}
 		return ret;
 	}
+
+	intmax_t scal_bn_is_safe(intmax_t scale) const override {
+		intmax_t to_account_for = scale;
+		for (const auto& x : this->_x) {
+			if (x->is_scal_bn_identity()) return scale;
+			const auto probe = x->scal_bn_is_safe(to_account_for);
+			if (probe == to_account_for) return scale;
+			to_account_for -= probe;
+		}
+		return scale - to_account_for;
+	}
+
 	intmax_t ideal_scal_bn() const override {
 		if (is_scal_bn_identity() || is_one()) return 0;
 		intmax_t ret = 0;
@@ -963,6 +1042,18 @@ public:
 		clamped_diff_assign(ret.first, tmp.second);
 		return ret;
 	};
+
+	intmax_t scal_bn_is_safe(intmax_t scale) const override
+	{
+		auto probe_numerator = _numerator->scal_bn_is_safe(scale);
+		if (probe_numerator == scale) return scale;
+		auto to_account_for = scale - probe_numerator;
+		auto neg_to_account_for = (-INTMAX_MAX <= to_account_for ? -to_account_for : INTMAX_MAX);
+		auto probe_denominator = -_denominator->scal_bn_is_safe(neg_to_account_for);
+		if (probe_denominator == to_account_for) return scale;
+		return probe_numerator + probe_denominator;
+	}
+
 	intmax_t ideal_scal_bn() const override {
 		if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return 0;
 		intmax_t ret = _numerator->ideal_scal_bn();
