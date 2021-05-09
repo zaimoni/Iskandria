@@ -193,17 +193,29 @@ public:
 };
 
 class power_fp final : public fp_API, public eval_shared_ptr<fp_API> {
-	std::shared_ptr<fp_API> x;
-	std::shared_ptr<fp_API> to_y;
+	std::shared_ptr<fp_API> base;
+	std::shared_ptr<fp_API> exponent;
 	_type_spec::canonical_functions op;
 
 public:
-	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y, _type_spec::canonical_functions op) noexcept : x(x), to_y(y), op(op) {}
+	template<_type_spec::canonical_functions _op>
+	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y) noexcept : base(x), exponent(y), op(_op) {
+		static_assert(_type_spec::Addition != _op);
+	}
+
 	power_fp(const power_fp& src) = default;
 	power_fp(power_fp&& src) = default;
 	~power_fp() = default;
 	power_fp& operator=(const power_fp& src) = default;
 	power_fp& operator=(power_fp&& src) = default;
+
+	const math::type* domain() const override {
+		if (0 >= exponent->domain()->subclass(zaimoni::math::get<_type<_type_spec::_R_SHARP_>>())) {
+			// Some sort of Dedekind cut construction involved.  Correct for +, *
+			return base->domain();
+		}
+		throw zaimoni::math::numeric_error("unhandled domain() for power_fp");
+	}
 
 };
 
