@@ -411,27 +411,6 @@ namespace zaimoni {
 	};
 	static_assert(0 == _type<_type_spec::_Z_>::_allow_infinity);
 
-	template<class T>
-	struct eval {
-		enum {
-			has_self = 0,
-			has_destructive = 0
-		};
-		// required API of specializations
-#if 0
-		typedef ... in_type;
-
-		static bool self(in_type& x);
-		static out_type* destructive(in_type*& x);
-#endif
-	};	// override to do anything useful
-
-	template<class T>
-	typename std::enable_if<eval<T>::has_self, bool>::type self_eval(T& x) { return eval<T>::self(x); }
-
-	template<class T>
-	typename std::enable_if<eval<T>::has_destructive, typename eval<T>::out_type>::type destructive_eval(T*& x) { return eval<T>::destructive(x); }
-
 }	// namespace zaimoni
 
 #endif
