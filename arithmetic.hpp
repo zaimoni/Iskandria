@@ -1155,6 +1155,8 @@ std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std:
 std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 
+std::shared_ptr<fp_API> operator-(const std::shared_ptr<fp_API>& lhs);
+
 }
 
 #endif

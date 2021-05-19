@@ -690,7 +690,8 @@ final_exit:
 			return true;
 		} else if (auto r = dynamic_cast<symbolic_fp*>(src)) {
 			r->self_negate();
-			x = working;
+			if (auto test = r->destructive_eval()) x = test;
+			else x = working;
 			return true;
 		}
 		return false;
@@ -752,6 +753,15 @@ std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std:
 std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
 {
 	return std::shared_ptr<fp_API>(new quotient(lhs, rhs));
+}
+
+std::shared_ptr<fp_API> operator-(const std::shared_ptr<fp_API>& lhs)
+{
+	std::shared_ptr<fp_API> ret(lhs->clone());
+	if (zaimoni::math::in_place_negate(ret)) return ret;
+	std::unique_ptr<symbolic_fp> staging(new symbolic_fp(ret));
+	staging->self_negate();
+	return std::shared_ptr<fp_API>(staging.release());
 }
 
 std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scale) {
