@@ -791,6 +791,7 @@ retry:
 retry:
 		auto src = working.get();
 		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
+			if (would_overflow<float>::product(r->_x, r->_x)) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());
@@ -801,6 +802,8 @@ retry:
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<float> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
+			if (would_overflow<float>::product(r->_x.lower(), r->_x.lower())) return false;
+			if (would_overflow<float>::product(r->_x.upper(), r->_x.upper())) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());
@@ -810,6 +813,7 @@ retry:
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
+			if (would_overflow<double>::product(r->_x, r->_x)) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());
@@ -820,6 +824,8 @@ retry:
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
+			if (would_overflow<double>::product(r->_x.lower(), r->_x.lower())) return false;
+			if (would_overflow<double>::product(r->_x.upper(), r->_x.upper())) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());
@@ -829,6 +835,7 @@ retry:
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
+			if (would_overflow<long double>::product(r->_x, r->_x)) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());
@@ -839,6 +846,8 @@ retry:
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<long double> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
+			if (would_overflow<long double>::product(r->_x.lower(), r->_x.lower())) return false;
+			if (would_overflow<long double>::product(r->_x.upper(), r->_x.upper())) return false;
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(working->clone());
 				r = dynamic_cast<decltype(r)>(working.get());

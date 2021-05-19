@@ -332,7 +332,7 @@ public:
 	}
 
 	std::string to_s() const override {
-		decltype(auto) ret(base->to_s());
+		auto ret(base->to_s());
 		if (std::numeric_limits<int>::max() > base->precedence()) ret = "(" + ret + ")";
 		ret += "<sup>"+exponent->to_s()+"</sup>";
 		return ret;
