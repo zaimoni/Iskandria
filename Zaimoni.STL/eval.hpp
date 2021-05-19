@@ -164,6 +164,9 @@ namespace zaimoni {
 		virtual std::string to_s() const = 0;
 		virtual int precedence() const = 0;
 
+	protected:
+		bool is_scal_bn_identity_default() const { return is_zero() || is_inf(); }
+
 	private:
 		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
 		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation

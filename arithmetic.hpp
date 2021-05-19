@@ -23,6 +23,7 @@ int sum_implemented(const std::shared_ptr<fp_API>& x);
 int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 bool in_place_negate(std::shared_ptr<fp_API>& lhs);
+bool in_place_square(std::shared_ptr<fp_API>& lhs);
 bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 
 }
@@ -61,6 +62,22 @@ public:
 	void self_negate() {
 		if (add_inverted()) bitmap &= ~(1ULL << (int)op::inverse_add);
 		else bitmap |= 1ULL << (int)op::inverse_add;
+	}
+
+	bool self_square() {
+		if (is_zero() || is_one()) return true; // fixed points
+		// multiplicative inverse doesn't matter here.
+
+		if (0 < scale_by && 2 > INTMAX_MAX / scale_by) return false;
+		if (0 > scale_by && 2 > INTMAX_MIN / scale_by) return false;
+
+		if (zaimoni::math::in_place_square(dest)) {
+			bitmap &= ~(1ULL << (int)op::inverse_add); // no longer additively inverted
+			scale_by *= 2;
+			return true;
+		}
+
+		return false;
 	}
 
 	const math::type* domain() const override { return dest->domain(); }
@@ -116,9 +133,7 @@ public:
 		return dest->sgn();
 	}
 
-	bool is_scal_bn_identity() const override {
-		return is_zero() || is_inf();
-	}
+	bool is_scal_bn_identity() const override { return is_scal_bn_identity_default(); }
 
 	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
 		std::pair<intmax_t, intmax_t> ret(INTMAX_MIN, INTMAX_MAX);
@@ -230,11 +245,7 @@ public:
 		return nullptr;
 	}
 
-	fp_API* _eval() const override
-	{
-		if (!scale_by && !bitmap) return dest->clone();
-		return nullptr;
-	}
+	fp_API* _eval() const override { return nullptr; }
 
 	bool _is_inf() const override {
 		if (mult_inverted()) return dest->is_zero();
@@ -246,16 +257,15 @@ public:
 	}
 };
 
+// hard-coded to * for now
 class power_fp final : public fp_API, public eval_shared_ptr<fp_API> {
 	std::shared_ptr<fp_API> base;
 	std::shared_ptr<fp_API> exponent;
-	_type_spec::canonical_functions op;
+//	_type_spec::canonical_functions op;
 
 public:
-	template<_type_spec::canonical_functions _op>
-	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y) noexcept : base(x), exponent(y), op(_op) {
-		static_assert(_type_spec::Addition != _op);
-	}
+//	template<_type_spec::canonical_functions _op> // doesn't work -- uncallable?
+	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y) noexcept : base(x), exponent(y) {}
 
 	power_fp(const power_fp& src) = default;
 	power_fp(power_fp&& src) = default;
@@ -271,6 +281,74 @@ public:
 		throw zaimoni::math::numeric_error("unhandled domain() for power_fp");
 	}
 
+	bool self_square() {
+		if (is_zero() || is_one()) return true; // fixed points
+		if (exponent->is_scal_bn_identity()) return true;
+		if (1 == exponent->scal_bn_is_safe(1)) {
+			exponent->scal_bn(1);
+			return true;
+		}
+		if (zaimoni::math::in_place_square(base)) return true;
+		return false;
+	}
+
+	bool self_eval() override;
+
+	bool is_zero() const override {
+		// multiplication, for now
+		if (base->is_zero()) return !exponent->is_zero();	// 0^0 is technically undefined
+		return false;
+	}
+
+	bool is_one() const override {
+		// multiplication, for now
+		if (base->is_one()) return true;
+		if (exponent->is_zero()) return !base->is_zero();	// 0^0 is technically undefined
+		return false;
+	}
+
+	int sgn() const override {
+		if (is_zero()) return 0;
+		if (!domain()->is_totally_ordered()) return 1;
+		throw zaimoni::math::numeric_error("unhandled sgn() for power_fp");
+	}
+
+	bool is_scal_bn_identity() const override { return is_scal_bn_identity_default(); }
+
+	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
+		return std::pair(0, 0);	 // \todo replace null implementation
+	}
+
+	intmax_t scal_bn_is_safe(intmax_t scale) const override {
+		return 0;	 // \todo replace null implementation
+	}
+
+	intmax_t ideal_scal_bn() const override {
+		return 0;	 // \todo replace null implementation
+	}
+
+	fp_API* clone() const override {
+		return new power_fp(*this);
+	}
+
+	std::string to_s() const override {
+		decltype(auto) ret(base->to_s());
+		if (std::numeric_limits<int>::max() > base->precedence()) ret = "(" + ret + ")";
+		ret += "<sup>"+exponent->to_s()+"</sup>";
+		return ret;
+	}
+
+	// coordinate with the sum/product types
+	int precedence() const override {
+		return 3; // for multiplication
+	}
+
+	void _scal_bn(intmax_t scale) override {
+		throw zaimoni::math::numeric_error("power_fp: unhandled power-of-two scaling");
+	}
+
+	std::shared_ptr<fp_API> destructive_eval() override;
+	fp_API* _eval() const override;
 };
 
 struct _n_ary_op {
@@ -1156,6 +1234,8 @@ std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std:
 std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 
 std::shared_ptr<fp_API> operator-(const std::shared_ptr<fp_API>& lhs);
+
+std::shared_ptr<fp_API> pow(const std::shared_ptr<fp_API>& base, const std::shared_ptr<fp_API>& exponent);
 
 }
 

@@ -4,6 +4,66 @@
 #include "Zaimoni.STL/var.hpp"
 
 namespace zaimoni {
+
+bool power_fp::self_eval() {
+	// don't try to self_eval if we would be destructively evaluating
+	if (base->is_one()) return false;
+	if (exponent->is_one()) return false;
+	if (base->is_zero()) return false;
+	if (exponent->is_zero()) return false;
+
+	auto working_exp(exponent);
+retry:
+	auto src = working_exp.get();
+	if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
+		if (0 != r->_x % 2) return false;
+		if (!zaimoni::math::in_place_square(base)) return false;
+		if (2 < working_exp.use_count()) {
+			working_exp = std::shared_ptr<fp_API>(working_exp->clone());
+			r = dynamic_cast<decltype(r)>(working_exp.get());
+			if (!r) goto retry;
+		}
+		r->_x /= 2;
+		exponent = working_exp;
+		return true;
+	}
+	if (auto r = dynamic_cast<var_fp<intmax_t>*>(src)) {
+		if (0 != r->_x % 2) return false;
+		if (!zaimoni::math::in_place_square(base)) return false;
+		if (2 < working_exp.use_count()) {
+			working_exp = std::shared_ptr<fp_API>(working_exp->clone());
+			r = dynamic_cast<decltype(r)>(working_exp.get());
+			if (!r) goto retry;
+		}
+		r->_x /= 2;
+		exponent = working_exp;
+		return true;
+	}
+	return false;
+}
+
+// for code locality; not pinned here by var_fp
+std::shared_ptr<fp_API> power_fp::destructive_eval()
+{
+	if (base->is_one()) return base;
+	if (exponent->is_one()) return base;
+	if (base->is_zero()) {
+		if (exponent->is_zero()) throw zaimoni::math::numeric_error("tried to evaluate 0^0");
+		return base;
+	}
+	return nullptr;
+}
+
+fp_API* power_fp::_eval() const {
+	if (exponent->is_zero()) {
+		// \todo lift to a function against the type
+		if (0 >= base->domain()->subclass(zaimoni::math::get<_type<_type_spec::_O_SHARP_>>())) {
+			return new var_fp<double>(1); // some options here
+		}
+	}
+	return nullptr;
+}
+
 namespace math {
 
 	// rearrange_sum support
@@ -662,37 +722,145 @@ final_exit:
 	bool in_place_negate(std::shared_ptr<fp_API>& x)
 	{
 		auto working(x);
-		if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
+retry:
 		auto src = working.get();
 		if (auto r = dynamic_cast<var_fp<float>*>(src))  {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->_x = -r->_x;
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<symbolic_fp*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				goto retry;
+			}
 			r->self_negate();
 			if (auto test = r->destructive_eval()) x = test;
 			else x = working;
 			return true;
+		}
+		return false;
+	}
+
+	bool in_place_square(std::shared_ptr<fp_API>& x)
+	{
+		auto working(x);
+retry:
+		auto src = working.get();
+		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			auto stage = square(ISK_INTERVAL<float>(r->_x));
+			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<float> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
+			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<float> >(stage));
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			r->_x = square(r->_x);
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			auto stage = square(ISK_INTERVAL<double>(r->_x));
+			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
+			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(stage));
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			r->_x = square(r->_x);
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			auto stage = square(ISK_INTERVAL<long double>(r->_x));
+			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<long double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
+			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<long double> >(stage));
+			return true;
+		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			r->_x = square(r->_x);
+			x = working;
+			return true;
+		} else if (auto r = dynamic_cast<power_fp*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			return r->self_square();
+		} else if (auto r = dynamic_cast<symbolic_fp*>(src)) {
+			if (2 < working.use_count()) {
+				working = std::shared_ptr<fp_API>(working->clone());
+				r = dynamic_cast<decltype(r)>(working.get());
+				if (!r) goto retry;
+			}
+			return r->self_square();
 		}
 		return false;
 	}
@@ -768,6 +936,12 @@ std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scal
 	std::shared_ptr<fp_API> ret(src->clone());
 	ret->scal_bn(scale);
 	return ret;
+}
+
+std::shared_ptr<fp_API> pow(const std::shared_ptr<fp_API>& base, const std::shared_ptr<fp_API>& exponent)
+{
+	// base case
+	return std::shared_ptr<fp_API>(new power_fp(base, exponent));
 }
 
 void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale)
