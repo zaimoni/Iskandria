@@ -916,6 +916,22 @@ std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std:
 	return std::shared_ptr<fp_API>(ret.release());
 }
 
+std::shared_ptr<fp_API>& operator+=(std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+{
+	auto src(lhs);
+	if (auto r = dynamic_cast<sum*>(src.get())) {
+		if (2 < src.use_count()) {
+			std::unique_ptr<sum> staging(new sum(*r));
+			lhs = std::shared_ptr<fp_API>(r = staging.release());
+		}
+		r->append_term(rhs);
+	} else {	// yes, want the count-lock to leak into the else clause
+		lhs = lhs + rhs;
+	}
+
+	return lhs;
+}
+
 std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
 {
 	std::unique_ptr<product> ret(new product());

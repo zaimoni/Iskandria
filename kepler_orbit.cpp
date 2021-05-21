@@ -204,6 +204,17 @@ int main(int argc, char* argv[])
 	INFORM(reduced_mass.to_s().c_str());
 	while(reduced_mass.self_eval()) INFORM(reduced_mass.to_s().c_str());
 
+	// geometrized Lorentz metric demo
+	std::shared_ptr<zaimoni::fp_API> one_half(new zaimoni::var_fp<double>(0.5));
+	std::shared_ptr<zaimoni::fp_API> two(new zaimoni::var_fp<uintmax_t>(2));
+	std::shared_ptr<zaimoni::fp_API> Spatial = pow(one_half, two);
+	Spatial += pow(one_half, two);
+	Spatial += pow(one_half, two);
+	std::shared_ptr<zaimoni::fp_API> Lorentz = pow(one, two) + -Spatial;
+	STRING_LITERAL_TO_STDOUT("example Lorentz metric squared (+, -, -, -)\n");
+	INFORM(Lorentz->to_s().c_str());
+	while (Lorentz->self_eval()) INFORM(Lorentz->to_s().c_str());
+
 	// \todo units conversion...put astronomical unit AU somewhere, then use it below
 	conic unit_circle(1);
 	STRING_LITERAL_TO_STDOUT("unit circle\n");
