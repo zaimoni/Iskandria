@@ -51,6 +51,7 @@ namespace zaimoni {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
+			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
 			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
 		};
@@ -92,6 +93,7 @@ namespace zaimoni {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
+			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
 			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
 		};
@@ -133,6 +135,7 @@ namespace zaimoni {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
+			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
 			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
 		};
@@ -168,6 +171,7 @@ namespace zaimoni {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
+			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) {
 				if (0 > scale) {
 					x >>= -scale;
@@ -208,6 +212,7 @@ namespace zaimoni {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
 			static fp_API* clone(const param_type& x) { return nullptr; }
+			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) {
 				if (0 > scale) {
 					x >>= -scale;
@@ -255,6 +260,8 @@ namespace zaimoni {
 			if (fp_API* test = detail::var_fp_impl<T>::clone(_x)) return test;
 			return new var_fp(_x);
 		}
+		auto typed_clone() const requires requires() { detail::var_fp_impl<T>::clone(); } { return new var_fp(_x); }
+
 		std::string to_s() const override { return detail::var_fp_impl<T>::to_s(_x); }
 		int precedence() const override { return std::numeric_limits<int>::max(); }	// things like numerals generally outrank all operators
 
