@@ -30,8 +30,7 @@ bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 
 // the following operations on fp_API types are closely related
 // additive inverse
-// left-multiplicative inverse
-// right-multiplicative inverse
+// multiplicative inverse
 // scal_bn (power of 2 manipulation)
 
 class symbolic_fp final : public fp_API, public eval_shared_ptr<fp_API> {
@@ -41,8 +40,7 @@ class symbolic_fp final : public fp_API, public eval_shared_ptr<fp_API> {
 public:
 	enum class op {
 		inverse_add = 0,
-		left_inverse_mult,
-		right_inverse_mult
+		inverse_mult,
 	};
 
 	symbolic_fp(std::shared_ptr<fp_API>& src) noexcept : dest(src), scale_by(0), bitmap(0) {
@@ -55,9 +53,7 @@ public:
 	symbolic_fp& operator=(symbolic_fp&& src) = default;
 
 	bool add_inverted() const { return bitmap & (1ULL << (int)op::inverse_add); }
-	bool mult_inverted_left() const { return bitmap & (1ULL << (int)op::left_inverse_mult); }
-	bool mult_inverted_right() const { return bitmap & (1ULL << (int)op::right_inverse_mult); }
-	bool mult_inverted() const { return bitmap & ((1ULL << (int)op::left_inverse_mult) | (1ULL << (int)op::right_inverse_mult)); }
+	bool mult_inverted() const { return bitmap & (1ULL << (int)op::inverse_mult); }
 
 	void self_negate() {
 		if (add_inverted()) bitmap &= ~(1ULL << (int)op::inverse_add);
@@ -80,7 +76,10 @@ public:
 		return false;
 	}
 
-	const math::type* domain() const override { return dest->domain(); }
+	const math::type* domain() const override {
+		if (mult_inverted()) return dest->domain()->inverse(_type_spec::Multiplication);
+		return dest->domain();
+	}
 
 	bool self_eval() override {
 		if (scale_by && dest->is_scal_bn_identity()) {

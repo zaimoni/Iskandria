@@ -17,7 +17,6 @@ bool power_fp::self_eval() {
 	if (base_eval || exp_eval) return true;
 
 	auto working_exp(exponent);
-retry:
 	auto src = working_exp.get();
 	if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
 		if (0 != r->_x % 2) return false;
@@ -64,6 +63,7 @@ std::shared_ptr<fp_API> power_fp::destructive_eval()
 		if (exponent->is_zero()) throw zaimoni::math::numeric_error("tried to evaluate 0^0");
 		return base;
 	}
+	if (exponent->is_zero()) return nullptr; // forwarding to raw evaluation
 	return nullptr;
 }
 
