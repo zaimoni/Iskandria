@@ -123,7 +123,7 @@ namespace zaimoni {
 				}
 			}
 			if (auto result = dest->_eval()) {
-				dest = std::shared_ptr<fp_API>(dynamic_cast<fp_API*>(result));
+				dest = std::shared_ptr<fp_API>(result);
 				return true;
 			}
 			return false;

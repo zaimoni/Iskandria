@@ -95,13 +95,11 @@ public:
 			}
 			return false;
 		}
-		bool ret = false;
 		if (add_inverted() && zaimoni::math::in_place_negate(dest)) {
 			bitmap &= ~(1ULL << (int)op::inverse_add);
 			return true;
 		}
 		if (scale_by) {
-			auto range = dest->scal_bn_safe_range();
 			if (!mult_inverted()) {
 				if (zaimoni::math::scal_bn(dest, scale_by)) return true;
 			} else {
@@ -114,7 +112,11 @@ public:
 			}
 		}
 		// \todo multiplicative inverse
-		return ret;
+
+		// final failover
+		if (dest->self_eval()) return true;
+		if (fp_API::eval(dest)) return true;
+		return false;
 	}
 
 	bool is_zero() const override {

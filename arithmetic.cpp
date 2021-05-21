@@ -12,12 +12,18 @@ bool power_fp::self_eval() {
 	if (base->is_zero()) return false;
 	if (exponent->is_zero()) return false;
 
+	bool base_eval = base->self_eval();
+	bool exp_eval = exponent->self_eval();
+	if (base_eval || exp_eval) return true;
+
 	auto working_exp(exponent);
 retry:
 	auto src = working_exp.get();
 	if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
 		if (0 != r->_x % 2) return false;
-		if (!zaimoni::math::in_place_square(base)) return false;
+		auto working_base(base);
+		if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
+		if (!zaimoni::math::in_place_square(working_base)) return false;
 		if (2 < working_exp.use_count()) {
 			working_exp = std::shared_ptr<fp_API>(working_exp->clone());
 			r = dynamic_cast<decltype(r)>(working_exp.get());
@@ -25,10 +31,13 @@ retry:
 		}
 		r->_x /= 2;
 		exponent = working_exp;
+		base = working_base;
 		return true;
 	}
 	if (auto r = dynamic_cast<var_fp<intmax_t>*>(src)) {
 		if (0 != r->_x % 2) return false;
+		auto working_base(base);
+		if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
 		if (!zaimoni::math::in_place_square(base)) return false;
 		if (2 < working_exp.use_count()) {
 			working_exp = std::shared_ptr<fp_API>(working_exp->clone());
@@ -37,9 +46,15 @@ retry:
 		}
 		r->_x /= 2;
 		exponent = working_exp;
+		base = working_base;
 		return true;
 	}
-	return false;
+
+	// final failover
+	base_eval = fp_API::eval(base);
+	exp_eval = fp_API::eval(exponent);
+
+	return base_eval || exp_eval;
 }
 
 // for code locality; not pinned here by var_fp
@@ -876,37 +891,19 @@ retry:
 
 	bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale)
 	{
+		if (0 == scale) return true;	// no-op
 		auto working(x);
+		auto actual = x->scal_bn_is_safe(scale);
+		if (0 == actual) return false;
 		if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
 		try {
-			working->scal_bn(scale);
-			scale = 0;
+			working->scal_bn(actual);
+			scale -= actual;
 			x = working;
 			return true;
 		} catch (std::runtime_error& e) {
+			return false;
 		}
-		auto legal = working->scal_bn_safe_range();
-		if (0 < scale && scale > legal.second) {
-			auto delta = legal.second;
-			try {
-				working->scal_bn(delta);
-				scale -= delta;
-				x = working;
-				return true;
-			} catch (std::runtime_error& e) {
-			}
-		}
-		if (0 > scale && scale < legal.first) {
-			auto delta = legal.first;
-			try {
-				working->scal_bn(delta);
-				scale -= delta;
-				x = working;
-				return true;
-			} catch (std::runtime_error& e) {
-			}
-		}
-		return false;
 	}
 
 }	// namespace math
