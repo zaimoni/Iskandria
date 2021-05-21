@@ -6,6 +6,7 @@
 // We expect float, double, and long double to work out of the box.
 #include "augment.STL/cmath"
 #include "numeric_error.hpp"
+#include <charconv>
 
 namespace zaimoni {
 
@@ -24,7 +25,12 @@ namespace zaimoni {
 			}
 			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) { return std::to_string(x); }
+			static std::string to_s(const param_type& x) {
+				char buffer[30];
+				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
+				*ret.ptr = 0;
+				return std::string(buffer);
+			}
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
 			}
@@ -60,7 +66,12 @@ namespace zaimoni {
 			}
 			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) { return std::to_string(x); }
+			static std::string to_s(const param_type& x) {
+				char buffer[30];
+				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
+				*ret.ptr = 0;
+				return std::string(buffer);
+			}
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
 			}
@@ -96,7 +107,12 @@ namespace zaimoni {
 			}
 			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) { return std::to_string(x); }
+			static std::string to_s(const param_type& x) {
+				char buffer[30];
+				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
+				*ret.ptr = 0;
+				return std::string(buffer);
+			}
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
 			}
