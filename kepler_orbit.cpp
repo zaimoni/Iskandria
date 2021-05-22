@@ -3,6 +3,7 @@
 #include "interpolate.hpp"
 #include "quotient.hpp"
 #include "product.hpp"
+#include "sum.hpp"
 
 namespace kepler {
 

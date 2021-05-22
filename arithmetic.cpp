@@ -6,6 +6,7 @@
 #include "power_fp.hpp"
 #include "quotient.hpp"
 #include "product.hpp"
+#include "sum.hpp"
 
 namespace zaimoni {
 
