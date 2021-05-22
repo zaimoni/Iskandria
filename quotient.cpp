@@ -1,6 +1,7 @@
 #include "quotient.hpp"
 #include "Zaimoni.STL/numeric_error.hpp"
 #include "arithmetic.hpp"
+#include "Zaimoni.STL/flat_alg2.hpp"
 
 namespace zaimoni {
 

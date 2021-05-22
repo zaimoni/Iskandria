@@ -1,4 +1,6 @@
 #include "product.hpp"
+#include "Zaimoni.STL/numeric_error.hpp"
+#include "Zaimoni.STL/Logging.h"
 
 namespace zaimoni {
 

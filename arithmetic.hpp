@@ -2,13 +2,8 @@
 #define ARITHMETIC_HPP 1
 
 #include "Zaimoni.STL/eval.hpp"
-#include "Zaimoni.STL/numeric_error.hpp"
-#include "Zaimoni.STL/flat_alg2.hpp"
-#include "Zaimoni.STL/Logging.h"
-#include <memory>
 #include <vector>
 #include <map>
-#include <optional>
 
 namespace zaimoni {
 
