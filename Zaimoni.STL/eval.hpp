@@ -149,14 +149,7 @@ namespace zaimoni {
 		virtual intmax_t scal_bn_is_safe(intmax_t scale) const = 0; // return value might be less extreme than requested
 		void scal_bn(intmax_t scale) {
 			if (0 == scale || is_scal_bn_identity()) return;	// no-op
-			const auto legal = scal_bn_safe_range();
-			if (0 < scale) {
-				if (scale > legal.second) throw std::runtime_error("attempted overflow scal_bn");
-			}
-			else {	// if (0 > scale)
-				if (scale < legal.first) throw std::runtime_error("attempted underflow scal_bn");
-			}
-
+			if (const auto try_this = scal_bn_is_safe(scale); try_this != scale) throw std::logic_error("attempted unsafe scal_bn");
 			_scal_bn(scale);
 		};	// power-of-two
 		virtual intmax_t ideal_scal_bn() const = 0; // what would set our fp exponent to 1

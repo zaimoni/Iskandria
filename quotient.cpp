@@ -2,6 +2,7 @@
 #include "Zaimoni.STL/numeric_error.hpp"
 #include "arithmetic.hpp"
 #include "Zaimoni.STL/flat_alg2.hpp"
+#include "symbolic_fp.hpp"
 
 namespace zaimoni {
 
@@ -181,49 +182,48 @@ const char* quotient::_constructor_fatal() const {
 }
 
 void quotient::_scal_bn(intmax_t scale) {
-	auto numerator_scale = _numerator->ideal_scal_bn();
-	auto denominator_scale = _denominator->ideal_scal_bn();
-	// try to normalize the denominator first
-	if (0 < scale) {
+	// normalize denominator
+	if (const auto denominator_scale = _denominator->ideal_scal_bn()) {
 		if (0 > denominator_scale) {
-			const auto _scale = zaimoni::max(-scale, denominator_scale);
-			self_scalBn(_denominator, _scale);
-			if (0 == (scale += _scale)) return;
-			denominator_scale -= _scale;
+			if (0 < scale && -scale <= denominator_scale) {
+				self_scalBn(_denominator, denominator_scale);
+				if (0 == (scale += denominator_scale)) return;
+			}
+		} else /* if (0 < denominator_scale) */ {
+			if (0 > scale && scale <= -denominator_scale) {
+				self_scalBn(_denominator, denominator_scale);
+				if (0 == (scale += denominator_scale)) return;
+			}
 		}
+	}
+	// normalize numerator
+	if (const auto numerator_scale = _numerator->ideal_scal_bn()) {
 		if (0 < numerator_scale) {
-			const auto _scale = zaimoni::min(scale, numerator_scale);
-			self_scalBn(_numerator, _scale);
-			if (0 == (scale -= _scale)) return;
-			numerator_scale -= _scale;
+			if (0 < scale && numerator_scale <= scale) {
+				self_scalBn(_numerator, numerator_scale);
+				if (0 == (scale -= numerator_scale)) return;
+			}
 		}
-	} else if (0 > scale) {
-		if (0 < denominator_scale) {
-			const auto _scale = zaimoni::min(-scale, denominator_scale);
-			self_scalBn(_denominator, _scale);
-			if (0 == (scale += _scale)) return;
-			denominator_scale -= _scale;
-		}
-		if (0 > numerator_scale) {
-			const auto _scale = zaimoni::max(scale, numerator_scale);
-			self_scalBn(_numerator, _scale);
-			if (0 == (scale -= _scale)) return;
-			numerator_scale -= _scale;
+		else /* if (0 > numerator_scale) */ {
+			if (0 > scale && numerator_scale >= scale) {
+				self_scalBn(_numerator, numerator_scale);
+				if (0 == (scale -= numerator_scale)) return;
+			}
 		}
 	}
 
-	const auto legal = _numerator->scal_bn_safe_range();
-	if (legal.first > scale) {
-		self_scalBn(_numerator, legal.first);
-		scale -= legal.first;
-	} else if (legal.second < scale) {
-		self_scalBn(_numerator, legal.second);
-		scale -= legal.second;
-	} else {
-		self_scalBn(_numerator, scale);
-		return;
+	if (const auto numerator_soak = _numerator->scal_bn_is_safe(scale)) {
+		self_scalBn(_numerator, numerator_soak);
+		if (0 == (scale -= numerator_soak)) return;
 	}
-	self_scalBn(_denominator, -scale);
+	if (const auto denominator_soak = _denominator->scal_bn_is_safe(-INTMAX_MAX > scale ? INTMAX_MAX : -scale )) {
+		self_scalBn(_denominator, denominator_soak);
+		if (0 == (scale += denominator_soak)) return;
+	}
+	// didn't fit: install residual into numerator
+	std::unique_ptr<symbolic_fp> stage(new symbolic_fp(_numerator));
+	stage->scal_bn(scale);
+	_numerator = std::shared_ptr<fp_API>(stage.release());
 }
 
 fp_API* quotient::_eval() const { return zaimoni::math::eval_quotient(_numerator, _denominator); }

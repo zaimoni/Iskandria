@@ -179,11 +179,11 @@ int symbolic_fp::precedence() const {
 void symbolic_fp::_scal_bn(intmax_t scale)
 {
 	if (0 < scale) {
-		if (0 > scale_by || INTMAX_MAX - scale_by >= scale) scale_by += scale;
+		if (0 >= scale_by || INTMAX_MAX - scale_by >= scale) scale_by += scale;
 		else throw zaimoni::math::numeric_error("overflowed power-of-two scaling");
 	}
 	else if (0 > scale) {
-		if (0 < scale_by || -INTMAX_MIN - scale_by <= scale) scale_by += scale;
+		if (0 <= scale_by || -INTMAX_MIN - scale_by <= scale) scale_by += scale;
 		else throw zaimoni::math::numeric_error("overflowed power-of-two scaling");
 	}
 	self_eval();
