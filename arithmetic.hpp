@@ -4,6 +4,7 @@
 #include "Zaimoni.STL/eval.hpp"
 #include "Zaimoni.STL/numeric_error.hpp"
 #include "Zaimoni.STL/flat_alg2.hpp"
+#include "Zaimoni.STL/Logging.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -27,100 +28,6 @@ bool in_place_square(std::shared_ptr<fp_API>& lhs);
 bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 
 }
-
-// hard-coded to * for now
-class power_fp final : public fp_API, public eval_shared_ptr<fp_API> {
-	std::shared_ptr<fp_API> base;
-	std::shared_ptr<fp_API> exponent;
-//	_type_spec::canonical_functions op;
-
-public:
-//	template<_type_spec::canonical_functions _op> // doesn't work -- uncallable?
-	power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y) noexcept : base(x), exponent(y) {}
-
-	power_fp(const power_fp& src) = default;
-	power_fp(power_fp&& src) = default;
-	~power_fp() = default;
-	power_fp& operator=(const power_fp& src) = default;
-	power_fp& operator=(power_fp&& src) = default;
-
-	const math::type* domain() const override {
-		if (0 >= exponent->domain()->subclass(zaimoni::math::get<_type<_type_spec::_R_SHARP_>>())) {
-			// Some sort of Dedekind cut construction involved.  Correct for +, *
-			return base->domain();
-		}
-		throw zaimoni::math::numeric_error("unhandled domain() for power_fp");
-	}
-
-	bool self_square() {
-		if (is_zero() || is_one()) return true; // fixed points
-		if (exponent->is_scal_bn_identity()) return true;
-		if (1 == exponent->scal_bn_is_safe(1)) {
-			exponent->scal_bn(1);
-			return true;
-		}
-		if (zaimoni::math::in_place_square(base)) return true;
-		return false;
-	}
-
-	bool self_eval() override;
-
-	bool is_zero() const override {
-		// multiplication, for now
-		if (base->is_zero()) return !exponent->is_zero();	// 0^0 is technically undefined
-		return false;
-	}
-
-	bool is_one() const override {
-		// multiplication, for now
-		if (base->is_one()) return true;
-		if (exponent->is_zero()) return !base->is_zero();	// 0^0 is technically undefined
-		return false;
-	}
-
-	int sgn() const override {
-		if (is_zero()) return 0;
-		if (!domain()->is_totally_ordered()) return 1;
-		throw zaimoni::math::numeric_error("unhandled sgn() for power_fp");
-	}
-
-	bool is_scal_bn_identity() const override { return is_scal_bn_identity_default(); }
-
-	std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override {
-		return std::pair(0, 0);	 // \todo replace null implementation
-	}
-
-	intmax_t scal_bn_is_safe(intmax_t scale) const override {
-		return 0;	 // \todo replace null implementation
-	}
-
-	intmax_t ideal_scal_bn() const override {
-		return 0;	 // \todo replace null implementation
-	}
-
-	fp_API* clone() const override {
-		return new power_fp(*this);
-	}
-
-	std::string to_s() const override {
-		auto ret(base->to_s());
-		if (std::numeric_limits<int>::max() > base->precedence()) ret = "(" + ret + ")";
-		ret += "<sup>"+exponent->to_s()+"</sup>";
-		return ret;
-	}
-
-	// coordinate with the sum/product types
-	int precedence() const override {
-		return 3; // for multiplication
-	}
-
-	void _scal_bn(intmax_t scale) override {
-		throw zaimoni::math::numeric_error("power_fp: unhandled power-of-two scaling");
-	}
-
-	std::shared_ptr<fp_API> destructive_eval() override;
-	fp_API* _eval() const override;
-};
 
 struct _n_ary_op {
 	enum {

@@ -3,80 +3,9 @@
 #include "arithmetic.hpp"
 #include "Zaimoni.STL/var.hpp"
 #include "symbolic_fp.hpp"
+#include "power_fp.hpp"
 
 namespace zaimoni {
-
-bool power_fp::self_eval() {
-	// don't try to self_eval if we would be destructively evaluating
-	if (base->is_one()) return false;
-	if (exponent->is_one()) return false;
-	if (base->is_zero()) return false;
-	if (exponent->is_zero()) return false;
-
-	bool base_eval = base->self_eval();
-	bool exp_eval = exponent->self_eval();
-	if (base_eval || exp_eval) return true;
-
-	auto working_exp(exponent);
-	auto src = working_exp.get();
-	if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
-		if (0 != r->_x % 2) return false;
-		auto working_base(base);
-		if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
-		if (!zaimoni::math::in_place_square(working_base)) return false;
-		if (2 < working_exp.use_count()) {
-			std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-			working_exp = std::shared_ptr<fp_API>(r = stage.release());
-		}
-		r->_x /= 2;
-		exponent = working_exp;
-		base = working_base;
-		return true;
-	}
-	if (auto r = dynamic_cast<var_fp<intmax_t>*>(src)) {
-		if (0 != r->_x % 2) return false;
-		auto working_base(base);
-		if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
-		if (!zaimoni::math::in_place_square(base)) return false;
-		if (2 < working_exp.use_count()) {
-			std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-			working_exp = std::shared_ptr<fp_API>(r = stage.release());
-		}
-		r->_x /= 2;
-		exponent = working_exp;
-		base = working_base;
-		return true;
-	}
-
-	// final failover
-	base_eval = fp_API::eval(base);
-	exp_eval = fp_API::eval(exponent);
-
-	return base_eval || exp_eval;
-}
-
-// for code locality; not pinned here by var_fp
-std::shared_ptr<fp_API> power_fp::destructive_eval()
-{
-	if (base->is_one()) return base;
-	if (exponent->is_one()) return base;
-	if (base->is_zero()) {
-		if (exponent->is_zero()) throw zaimoni::math::numeric_error("tried to evaluate 0^0");
-		return base;
-	}
-	if (exponent->is_zero()) return nullptr; // forwarding to raw evaluation
-	return nullptr;
-}
-
-fp_API* power_fp::_eval() const {
-	if (exponent->is_zero()) {
-		// \todo lift to a function against the type
-		if (0 >= base->domain()->subclass(zaimoni::math::get<_type<_type_spec::_O_SHARP_>>())) {
-			return new var_fp<double>(1); // some options here
-		}
-	}
-	return nullptr;
-}
 
 namespace math {
 
