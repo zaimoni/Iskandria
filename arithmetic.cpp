@@ -4,6 +4,7 @@
 #include "Zaimoni.STL/var.hpp"
 #include "symbolic_fp.hpp"
 #include "power_fp.hpp"
+#include "quotient.hpp"
 
 namespace zaimoni {
 

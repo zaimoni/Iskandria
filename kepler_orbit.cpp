@@ -1,6 +1,7 @@
 #include "kepler_orbit.hpp"
 #include "Zaimoni.STL/Pure.CPP/LRUcache.hpp"
 #include "interpolate.hpp"
+#include "quotient.hpp"
 
 namespace kepler {
 
