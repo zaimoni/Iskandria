@@ -2,6 +2,7 @@
 #include "Zaimoni.STL/Pure.CPP/LRUcache.hpp"
 #include "interpolate.hpp"
 #include "quotient.hpp"
+#include "product.hpp"
 
 namespace kepler {
 
