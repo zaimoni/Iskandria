@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <compare>
+#include <stdexcept>
 #include "augment.STL/type_traits"
 #include "zero.hpp"
 

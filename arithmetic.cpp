@@ -2,6 +2,7 @@
 #include "interval_shim.hpp"
 #include "arithmetic.hpp"
 #include "Zaimoni.STL/var.hpp"
+#include "symbolic_fp.hpp"
 
 namespace zaimoni {
 
