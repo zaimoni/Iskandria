@@ -826,10 +826,7 @@ retry:
 		auto src = working.get();
 		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
 			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
+			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<float>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<float> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<float> >(stage));
@@ -845,10 +842,7 @@ retry:
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
 			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
+			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<double>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(stage));
@@ -864,10 +858,7 @@ retry:
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
 			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
+			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<long double>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<long double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<long double> >(stage));

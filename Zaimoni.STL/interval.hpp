@@ -23,21 +23,10 @@ template<class T> class trivial;
 
 namespace bits {
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, int>::type
-round_get() { return fegetround(); }
-
-template<class T>
-typename std::enable_if<std::is_integral<T>::value, int>::type
-round_get() {return FE_TONEAREST;}
-
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, void>::type
-round_set(int mode) { fesetround(mode); }
-
-template<class T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-round_set(int mode) {}
+template<std::floating_point F> int round_get() { return fegetround(); }
+template<std::integral T> int round_get() {return FE_TONEAREST;}
+template<std::floating_point F> void round_set(int mode) { fesetround(mode); }
+template<std::integral T> void round_set(int mode) {}
 
 template<std::unsigned_integral T> int rearrange_sum(T& lhs, T& rhs)
 {
