@@ -54,7 +54,7 @@ bool power_fp::self_eval() {
 		if (0 != r->_x % 2) return false;
 		auto working_base(base);
 		if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
-		if (!zaimoni::math::in_place_square(base)) return false;
+		if (!zaimoni::math::in_place_square(working_base)) return false;
 		if (2 < working_exp.use_count()) {
 			std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
 			working_exp = std::shared_ptr<fp_API>(r = stage.release());

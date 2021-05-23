@@ -635,6 +635,7 @@ struct would_overflow<long double>
 {
 	static bool sum(long double lhs, long double rhs) { return bits::sum_overflows(lhs, rhs); }
 	static int product(long double lhs, long double rhs) { return bits::product_denormalizes(lhs, rhs); }
+	static int square(long double lhs) { return bits::product_denormalizes(lhs, lhs); }
 };
 
 template<>
@@ -642,6 +643,7 @@ struct would_overflow<double>
 {
 	static bool sum(double lhs, double rhs) { return bits::sum_overflows(lhs, rhs); }
 	static int product(double lhs, double rhs) { return bits::product_denormalizes(lhs, rhs); }
+	static int square(double lhs) { return bits::product_denormalizes(lhs, lhs); }
 };
 
 template<>
@@ -649,6 +651,7 @@ struct would_overflow<float>
 {
 	static bool sum(float lhs, float rhs) { return bits::sum_overflows(lhs, rhs); }
 	static int product(float lhs, float rhs) { return bits::product_denormalizes(lhs, rhs); }
+	static int square(float lhs) { return bits::product_denormalizes(lhs, lhs); }
 };
 
 }	// namespace math
