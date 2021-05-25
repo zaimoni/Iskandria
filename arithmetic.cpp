@@ -825,14 +825,20 @@ retry:
 retry:
 		auto src = working.get();
 		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (would_overflow<decltype(r->_x)>::square(r->_x)) { // upgrade resolution
+				working = std::shared_ptr<fp_API>(new var_fp<double>(r->_x));
+				goto retry;
+			}
 			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<float>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<float> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<float> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (would_overflow<decltype(r->_x)>::square(r->_x)) { // upgrade resolution
+				working = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(r->_x));
+				goto retry;
+			}
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(src = r->clone());
 				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
@@ -841,14 +847,28 @@ retry:
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
+				stage_arg->scal_bn(-delta);
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+				working = std::move(stage);
+				goto retry;
+			}
 			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<double>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<fp_API> stage_arg(r->clone());
+				stage_arg->scal_bn(-delta);
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+				working = std::move(stage);
+				goto retry;
+			}
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(src = r->clone());
 				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
@@ -857,14 +877,28 @@ retry:
 			x = working;
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
+				stage_arg->scal_bn(-delta);
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+				working = std::move(stage);
+				goto retry;
+			}
 			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
 			auto stage = square(ISK_INTERVAL<long double>(r->_x));
 			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<long double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
 			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<long double> >(stage));
 			return true;
 		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) return false;
+			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<fp_API> stage_arg(r->clone());
+				stage_arg->scal_bn(-delta);
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+				working = std::move(stage);
+				goto retry;
+			}
 			if (2 < working.use_count()) {
 				working = std::shared_ptr<fp_API>(src = r->clone());
 				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
