@@ -251,7 +251,6 @@ namespace zaimoni {
 		int sgn() const override { return detail::var_fp_impl<T>::sgn(_x); }
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		bool is_scal_bn_identity() const override { return detail::var_fp_impl<T>::is_scal_bn_identity(_x); }
-		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override { return detail::var_fp_impl<T>::scal_bn_safe_range(_x); }
 		intmax_t scal_bn_is_safe(intmax_t scale) const override { return detail::var_fp_impl<T>::scal_bn_is_safe(_x, scale); }
 		intmax_t ideal_scal_bn() const override { return detail::var_fp_impl<T>::ideal_scal_bn(_x); }
 

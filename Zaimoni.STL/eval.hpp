@@ -145,7 +145,6 @@ namespace zaimoni {
 		virtual int sgn() const = 0;
 		// scalbn: scale by power of 2.  Important operation as it's infinite-precision (when it works)
 		virtual bool is_scal_bn_identity() const = 0;
-		virtual std::pair<intmax_t, intmax_t> scal_bn_safe_range() const = 0;	// return value is (lower bound, upper bound); 0 >= lower bound, 0 <= upper bound; bounds are non-strict
 		virtual intmax_t scal_bn_is_safe(intmax_t scale) const = 0; // return value might be less extreme than requested
 		void scal_bn(intmax_t scale) {
 			if (0 == scale || is_scal_bn_identity()) return;	// no-op

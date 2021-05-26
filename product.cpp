@@ -55,19 +55,6 @@ int product::sgn() const {
 	return ret;
 }
 
-std::pair<intmax_t, intmax_t> product::scal_bn_safe_range() const {
-	std::pair<intmax_t, intmax_t> ret(0, 0);
-	if (this->_x.empty()) return ret;	// should have evaluated
-	for (const auto& x : this->_x) {
-		if (x->is_scal_bn_identity()) return fp_API::max_scal_bn_safe_range();
-		const auto tmp = x->scal_bn_safe_range();
-		clamped_sum_assign(ret.first, tmp.first);
-		clamped_sum_assign(ret.second, tmp.second);
-		if (std::numeric_limits<intmax_t>::min() >= ret.first && std::numeric_limits<intmax_t>::max() <= ret.second) return ret;
-	}
-	return ret;
-}
-
 intmax_t product::scal_bn_is_safe(intmax_t scale) const {
 	intmax_t to_account_for = scale;
 	for (const auto& x : this->_x) {
@@ -165,16 +152,9 @@ void product::_scal_bn(intmax_t scale) {
 	};
 	if (saw_identity) return;	// likely should not be happening
 	for (auto& x : this->_x) {
-		const auto legal = x->scal_bn_safe_range();
-		if (0 < scale && 0 < legal.second) {
-			const auto _scale = (legal.second < scale) ? legal.second : scale;
-			self_scalBn(x, _scale);
-			if (0 == (scale -= _scale)) return;
-		}
-		else if (0 > scale && 0 > legal.first) {
-			const auto _scale = (legal.first > scale) ? legal.first : scale;
-			self_scalBn(x, _scale);
-			if (0 == (scale -= _scale)) return;
+		if (const auto legal = x->scal_bn_is_safe(scale)) {
+			self_scalBn(x, legal);
+			if (0 == (scale -= legal)) return;
 		}
 	}
 	if (0 != scale) throw zaimoni::math::numeric_error("scal_bn needed additional factors added");

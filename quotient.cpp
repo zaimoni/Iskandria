@@ -112,17 +112,6 @@ int quotient::sgn() const {
 	else return n_sgn;	// division by zero hard-errors so more like "don't know"
 }
 
-std::pair<intmax_t, intmax_t> quotient::scal_bn_safe_range() const {
-	std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-	if (_numerator->is_scal_bn_identity() || _denominator->is_scal_bn_identity()) return ret;
-
-	ret = _numerator->scal_bn_safe_range();
-	const auto tmp = _denominator->scal_bn_safe_range();
-	clamped_diff_assign(ret.second, tmp.second);
-	clamped_diff_assign(ret.first, tmp.second);
-	return ret;
-};
-
 intmax_t quotient::scal_bn_is_safe(intmax_t scale) const
 {
 	auto probe_numerator = _numerator->scal_bn_is_safe(scale);

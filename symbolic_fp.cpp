@@ -84,17 +84,6 @@ int symbolic_fp::sgn() const {
 	return dest->sgn();
 }
 
-std::pair<intmax_t, intmax_t> symbolic_fp::scal_bn_safe_range() const {
-	std::pair<intmax_t, intmax_t> ret(INTMAX_MIN, INTMAX_MAX);
-	if (0 < scale_by) {
-		ret.second -= scale_by;
-	}
-	else if (0 > scale_by) {
-		ret.first -= scale_by;
-	}
-	return ret;
-}
-
 std::optional<intmax_t> symbolic_fp::_scal_bn_is_unsafe(intmax_t scale) const
 {
 	if (0 <= scale) {

@@ -49,8 +49,6 @@ namespace zaimoni {
 
 		bool is_scal_bn_identity() const override { return is_scal_bn_identity_default(); }
 
-		std::pair<intmax_t, intmax_t> scal_bn_safe_range() const override;
-
 	private:
 		std::optional<intmax_t> _scal_bn_is_unsafe(intmax_t scale) const;
 		intmax_t _probe_dest(intmax_t scale) const;

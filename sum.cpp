@@ -79,17 +79,6 @@ int sum::sgn() const {
 	throw zaimoni::math::numeric_error("sum needs to evaluate enough to calculate sgn()");
 }
 
-std::pair<intmax_t, intmax_t> sum::scal_bn_safe_range() const {
-	std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-	for (const auto& x : this->_x) {
-		if (x->is_scal_bn_identity()) continue;
-		const auto tmp = x->scal_bn_safe_range();
-		if (ret.first < tmp.first) ret.first = tmp.first;
-		if (ret.second > tmp.second) ret.second = tmp.second;
-	}
-	return ret;
-}
-
 intmax_t sum::scal_bn_is_safe(intmax_t scale) const
 {
 restart:
