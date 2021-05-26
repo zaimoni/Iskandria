@@ -1,6 +1,7 @@
 #ifndef PRODUCT_HPP
 #define PRODUCT_HPP 1
 
+#include "n_ary.hpp"
 #include "arithmetic.hpp"
 
 namespace zaimoni {
