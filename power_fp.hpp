@@ -46,9 +46,7 @@ namespace zaimoni {
 		std::string to_s() const override;
 
 		// coordinate with the sum/product types
-		int precedence() const override {
-			return 3; // for multiplication
-		}
+		int precedence() const override { return _type_spec::Multiplication + 1; }
 
 		void _scal_bn(intmax_t scale) override;
 		std::shared_ptr<fp_API> destructive_eval() override;

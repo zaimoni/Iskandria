@@ -46,7 +46,7 @@ public:
 	const math::type* domain() const override;
 	fp_API* clone() const override { return new sum(*this); }
 	std::string to_s() const override;
-	int precedence() const override { return 1; }
+	int precedence() const override { return _type_spec::Addition; }
 	bool _is_inf() const override;
 	bool _is_finite() const override;
 

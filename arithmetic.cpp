@@ -7,6 +7,7 @@
 #include "quotient.hpp"
 #include "product.hpp"
 #include "sum.hpp"
+#include "complex.hpp"
 
 namespace zaimoni {
 

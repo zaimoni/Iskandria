@@ -161,8 +161,8 @@ std::string symbolic_fp::to_s() const {
 
 // coordinate with the sum/product types
 int symbolic_fp::precedence() const {
-	if (mult_inverted()) return 2;
-	return 1;
+	if (mult_inverted()) return _type_spec::Multiplication;
+	return _type_spec::Addition;
 }
 
 void symbolic_fp::_scal_bn(intmax_t scale)

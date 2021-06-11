@@ -33,7 +33,7 @@ namespace zaimoni {
 			_O_SHARP_,	// extended octonions
 			_S1_		// unit circle
 		};
-		enum canonical_functions {
+		enum canonical_functions { // also precedence values
 			Addition = 1,
 			Multiplication
 		};
