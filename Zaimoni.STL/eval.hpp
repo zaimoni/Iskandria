@@ -156,6 +156,7 @@ namespace zaimoni {
 		virtual fp_API* clone() const = 0;	// result is a value-clone; internal representation may be more efficient than the source
 		virtual std::string to_s() const = 0;
 		virtual int precedence() const = 0;
+		virtual int precedence_to_s() const { return precedence(); }
 
 	protected:
 		bool is_scal_bn_identity_default() const { return is_zero() || is_inf(); }

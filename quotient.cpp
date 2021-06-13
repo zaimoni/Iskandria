@@ -143,9 +143,9 @@ const math::type* quotient::domain() const
 
 std::string quotient::to_s() const {
 	auto n = _numerator->to_s();
-	if (precedence() >= _numerator->precedence()) n = std::string("(") + n + ')';
+	if (_precedence >= _numerator->precedence_to_s()) n = std::string("(") + n + ')';
 	auto d = _denominator->to_s();
-	if (precedence() >= _denominator->precedence()) d = std::string("(") + d + ')';
+	if (_precedence >= _denominator->precedence_to_s()) d = std::string("(") + d + ')';
 	return n + '/' + d;
 }
 

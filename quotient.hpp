@@ -50,11 +50,12 @@ namespace zaimoni {
 		const math::type* domain() const override;
 		fp_API* clone() const override { return new quotient(*this); };
 		std::string to_s() const override;
-		int precedence() const override { return _type_spec::Multiplication; }
+		int precedence() const override { return _precedence; }
 		bool _is_inf() const override { return _numerator->is_inf(); } // cf. _transform_fatal which requires finite denominator in this case
 		bool _is_finite() const override;
 
 	private:
+		static constexpr const auto _precedence = _type_spec::Multiplication;
 		static const char* _transform_fatal(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
 		const char* _constructor_fatal() const;
 		void _scal_bn(intmax_t scale) override;

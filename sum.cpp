@@ -141,14 +141,12 @@ std::string sum::to_s() const {
 	if (this->_x.empty()) return "0";
 	const auto _size = this->_x.size();
 	if (1 == _size) return this->_x.front()->to_s();
-	bool first = true;
 	std::string ret;
 	for (auto& x : this->_x) {
 		auto tmp = x->to_s();
-		if (precedence() >= x->precedence()) tmp = std::string("(") + tmp + ')';
-		if (first) {
+		if (_precedence >= x->precedence_to_s()) tmp = std::string("(") + tmp + ')';
+		if (ret.empty()) {
 			ret = std::move(tmp);
-			first = false;
 		} else {
 			ret += '+' + tmp;
 		}
