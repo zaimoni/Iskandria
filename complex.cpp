@@ -98,11 +98,10 @@ intmax_t complex::ideal_scal_bn() const {
 std::string complex::to_s() const {
 	std::string ret_re(a->to_s());
 	std::string ret_im(b->to_s());
-	// \todo following should be testing "display precedence"; quotient also has this issue
-	if (std::numeric_limits<int>::max() > a->precedence()) {
+	if (_type_spec::Addition > a->precedence_to_s()) {
 		ret_re = "(" + ret_re + ")";
 	}
-	if (std::numeric_limits<int>::max() > b->precedence()) {
+	if (_type_spec::Multiplication > b->precedence_to_s()) {
 		ret_im = "(" + ret_im + ")";
 	}
 	return ret_re + " + " + ret_im + "<i>i</i>";
