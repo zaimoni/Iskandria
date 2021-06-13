@@ -923,6 +923,119 @@ retry:
 		return false;
 	}
 
+	bool in_place_square(COW<fp_API>& x)
+	{
+	retry:
+		if (auto r = x.get_rw<var_fp<float> >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (would_overflow<decltype(test->_x)>::square(test->_x)) { // upgrade resolution
+				x = std::unique_ptr<fp_API>(new var_fp<double>(test->_x));
+				goto upgrade_double;
+			}
+			auto stage = square(ISK_INTERVAL<float>(test->_x));
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (would_overflow<decltype(test->_x)>::square(test->_x)) { // upgrade resolution
+				x = std::unique_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(test->_x));
+				goto upgrade_interval_double;
+			}
+			auto stage = square(test->_x);
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+upgrade_double:
+		if (auto r = x.get_rw<var_fp<double> >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (auto extreme = would_overflow<decltype(test->_x)>::square(test->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<std::remove_reference_t<decltype(*(test->typed_clone()))> > stage_arg(test->typed_clone());
+				stage_arg->scal_bn(-delta);
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+				goto symbolic_overflow;
+			}
+			auto stage = square(ISK_INTERVAL<double>(test->_x));
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+upgrade_interval_double:
+		if (auto r = x.get_rw< var_fp<ISK_INTERVAL<double> > >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (auto extreme = would_overflow<decltype(test->_x)>::square(test->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<fp_API> stage_arg(test->clone());
+				stage_arg->scal_bn(-delta);
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+				goto symbolic_overflow;
+			}
+			auto stage = square(test->_x);
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<long double> >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (auto extreme = would_overflow<decltype(test->_x)>::square(test->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<std::remove_reference_t<decltype(*(test->typed_clone()))> > stage_arg(test->typed_clone());
+				stage_arg->scal_bn(-delta);
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+				goto symbolic_overflow;
+			}
+			auto stage = square(ISK_INTERVAL<long double>(test->_x));
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+		if (auto r = x.get_rw< var_fp<ISK_INTERVAL<long double> > >()) {
+			auto data_ptr = unpack(*r);
+			auto test = data_ptr.second;
+			if (auto extreme = would_overflow<decltype(test->_x)>::square(test->_x)) {
+				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
+				std::unique_ptr<fp_API> stage_arg(test->clone());
+				stage_arg->scal_bn(-delta);
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+				goto symbolic_overflow;
+			}
+			auto stage = square(test->_x);
+			if (auto rewrite = zaimoni::detail::var_fp_impl<decltype(stage)>::clone(stage)) x = std::unique_ptr<fp_API>(rewrite);
+			else x = std::unique_ptr<fp_API>(new var_fp<decltype(stage)>(stage));
+			return true;
+		}
+		if (auto r = x.get_rw<power_fp>()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				x = std::unique_ptr<fp_API>(test->clone());
+				r = x.get_rw<power_fp>();
+				if (!r) goto retry;
+			}
+			if (auto exec = data_ptr.first) return exec->self_square();
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+symbolic_overflow:
+		if (auto r = x.get_rw<symbolic_fp>()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				x = std::unique_ptr<fp_API>(test->clone());
+				r = x.get_rw<symbolic_fp>();
+				if (!r) goto retry;
+			}
+			if (auto exec = data_ptr.first) return exec->self_square();
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		return false;
+	}
+
 	bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale)
 	{
 		if (0 == scale) return true;	// no-op

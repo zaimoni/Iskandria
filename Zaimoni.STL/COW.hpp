@@ -2,14 +2,15 @@
 #define ZAIMONI_STL_COW_HPP 1
 
 #include <memory>
+#include <variant>
+#include <optional>
 
 // copy-on-write -- prioritizing RAM over speed
-// intentionally not using std::variant here -- behavior of operator= is not what we want
 namespace zaimoni {
 
 template<class T>
 class COW final {
-	std::shared_ptr<const T> _read;
+	std::shared_ptr<const T> _read; // std::variant here would break operator=
 	std::unique_ptr<T> _write;
 
 public:
@@ -69,6 +70,12 @@ public:
 		return nullptr;
 	}
 
+	template<class U> std::optional<std::variant<U*, const U*> > get_rw() {
+		if (_read) return dynamic_cast<const U*>(_read.get());
+		if (_write) return dynamic_cast<U*>(_write.get());
+		return std::nullopt;
+	}
+
 /*
 	operator const T* () const { return get_c(); }
 	operator T* () { return get(); }
@@ -80,6 +87,19 @@ private:
 	}
 
 };
+
+// \todo unclear where this belongs
+template<class U>
+std::pair<U*, const U*> unpack(const std::variant<U*, const U*>& src)
+{
+	std::pair<U*, const U*> ret;
+	auto pre_exec = std::get_if<U*>(&src);
+	ret.second = ret.first = pre_exec ? *pre_exec : nullptr;
+	if (!ret.second) {
+		if (auto pre_test = std::get_if<const U*>(&src)) ret.second = *pre_test;
+	}
+	return ret;
+}
 
 }
 
