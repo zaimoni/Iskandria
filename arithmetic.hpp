@@ -19,6 +19,7 @@ std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::
 bool in_place_negate(std::shared_ptr<fp_API>& lhs);
 bool in_place_square(std::shared_ptr<fp_API>& lhs);
 bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
+bool scal_bn(COW<fp_API>& x, intmax_t& scale);
 
 }
 

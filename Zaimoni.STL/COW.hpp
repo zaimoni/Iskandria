@@ -62,22 +62,23 @@ public:
 	}
 
 	const T* get() const { return get_c(); }
-	T* get() {
-		if (_write) return _write.get();
-		if (_read) {
-			if constexpr (requires { _read->clone(); })
-				_write = std::unique_ptr<T>(_read->clone());
-			else
-				_write = std::unique_ptr<T>(new T(*_read));
 
-			_read.reset();
-			return _write.get();
-		}
+	T* get() { // multi-threaded: race condition against operoator=(COW& src)
+		if (_read) _rw_clone();
+		if (_write) return _write.get();
 		return nullptr;
 	}
 
+/*
 	operator const T* () const { return get_c(); }
 	operator T* () { return get(); }
+*/
+private:
+	void _rw_clone() requires requires() { _read->clone(); } {
+		_write = std::unique_ptr<T>(_read->clone());
+		_read.reset();
+	}
+
 };
 
 }

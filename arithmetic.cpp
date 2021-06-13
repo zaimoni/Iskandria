@@ -940,6 +940,19 @@ retry:
 		}
 	}
 
+	bool scal_bn(COW<fp_API>& x, intmax_t& scale)
+	{
+		if (0 == scale) return true;	// no-op
+		auto actual = x.get_c()->scal_bn_is_safe(scale);
+		if (0 == actual) return false;
+		try {
+			x.get()->scal_bn(actual);
+			return true;
+		} catch (std::runtime_error& e) {
+			return false;
+		}
+	}
+
 }	// namespace math
 
 std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
