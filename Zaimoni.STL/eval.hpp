@@ -4,12 +4,12 @@
 #include <limits.h>
 #include <limits>
 #include <utility>
-#include <memory>
 #include <string>
 #include <compare>
 #include <stdexcept>
 #include "augment.STL/type_traits"
 #include "zero.hpp"
+#include "COW.hpp"
 
 namespace zaimoni {
 
