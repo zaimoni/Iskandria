@@ -820,6 +820,110 @@ retry:
 		return false;
 	}
 
+	bool in_place_negate(COW<fp_API>& x)
+	{
+retry:
+		if (auto r = x.get_rw<var_fp<float> >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) x = std::unique_ptr<fp_API>(data_ptr.first = test->typed_clone());
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) {
+					x = std::unique_ptr<fp_API>(test->clone());
+					r = x.get_rw<var_fp<ISK_INTERVAL<float> > >();
+					if (!r) goto retry;
+					data_ptr = unpack(*r);
+				}
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<var_fp<double> >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) x = std::unique_ptr<fp_API>(data_ptr.first = test->typed_clone());
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) {
+					x = std::unique_ptr<fp_API>(test->clone());
+					r = x.get_rw<var_fp<ISK_INTERVAL<double> > >();
+					if (!r) goto retry;
+					data_ptr = unpack(*r);
+				}
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<var_fp<long double> >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) x = std::unique_ptr<fp_API>(data_ptr.first = test->typed_clone());
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) {
+					x = std::unique_ptr<fp_API>(test->clone());
+					r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >();
+					if (!r) goto retry;
+					data_ptr = unpack(*r);
+				}
+			}
+			if (auto exec = data_ptr.first) {
+				exec->_x = -exec->_x;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		if (auto r = x.get_rw<symbolic_fp>()) {
+			auto data_ptr = unpack(*r);
+			if (auto test = data_ptr.second) {
+				if (!data_ptr.first) {
+					x = std::unique_ptr<fp_API>(test->clone());
+					r = x.get_rw<symbolic_fp>();
+					if (!r) goto retry;
+					data_ptr = unpack(*r);
+				}
+			}
+			if (auto exec = data_ptr.first) {
+				exec->self_negate();
+				if (auto test = exec->destructive_eval()) x = test;
+				return true;
+			}
+			throw std::logic_error("double-null return from COW::get_rw");
+		}
+		return false;
+	}
+
 	bool in_place_square(std::shared_ptr<fp_API>& x)
 	{
 		auto working(x);
@@ -925,7 +1029,7 @@ retry:
 
 	bool in_place_square(COW<fp_API>& x)
 	{
-	retry:
+retry:
 		if (auto r = x.get_rw<var_fp<float> >()) {
 			auto data_ptr = unpack(*r);
 			auto test = data_ptr.second;
