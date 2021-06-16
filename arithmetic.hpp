@@ -17,7 +17,9 @@ int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs
 fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
 fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d);
 int sum_implemented(const std::shared_ptr<fp_API>& x);
+int sum_implemented(const COW<fp_API>& x);
 int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
+int sum_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
 std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs);
 bool in_place_negate(std::shared_ptr<fp_API>& lhs);
 bool in_place_negate(COW<fp_API>& lhs);
