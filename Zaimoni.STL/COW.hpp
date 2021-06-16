@@ -70,9 +70,18 @@ public:
 		return nullptr;
 	}
 
-	template<class U> std::optional<std::variant<U*, const U*> > get_rw() {
-		if (_read) return dynamic_cast<const U*>(_read.get());
-		if (_write) return dynamic_cast<U*>(_write.get());
+	/// <returns>std::nullopt, or .second is non-null and .first is non-null if non-const operations are not logic errors</returns>
+	template<class U> std::optional<std::pair<U*, const U*> > get_rw() {
+		if (auto r = _get_rw<U>()) {
+			std::pair<U*, const U*> ret;
+			auto pre_exec = std::get_if<U*>(&(*r));
+			ret.second = ret.first = pre_exec ? *pre_exec : nullptr;
+			if (!ret.second) {
+				if (auto pre_test = std::get_if<const U*>(&(*r))) ret.second = *pre_test;
+				else return std::nullopt;
+			}
+			return ret;
+		}
 		return std::nullopt;
 	}
 
@@ -86,20 +95,12 @@ private:
 		_read.reset();
 	}
 
-};
-
-// \todo unclear where this belongs
-template<class U>
-std::pair<U*, const U*> unpack(const std::variant<U*, const U*>& src)
-{
-	std::pair<U*, const U*> ret;
-	auto pre_exec = std::get_if<U*>(&src);
-	ret.second = ret.first = pre_exec ? *pre_exec : nullptr;
-	if (!ret.second) {
-		if (auto pre_test = std::get_if<const U*>(&src)) ret.second = *pre_test;
+	template<class U> std::optional<std::variant<U*, const U*> > _get_rw() {
+		if (_read) return dynamic_cast<const U*>(_read.get());
+		if (_write) return dynamic_cast<U*>(_write.get());
+		return std::nullopt;
 	}
-	return ret;
-}
+};
 
 }
 
