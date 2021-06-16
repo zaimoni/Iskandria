@@ -552,7 +552,7 @@ retry:
 	{
 		try {
 			auto ret = n / d;
-			if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+			if (ret.lower() == ret.upper()) return new var_fp<decltype(ret.upper())>(ret.upper());
 			return new var_fp<decltype(ret)>(ret);
 		} catch (zaimoni::math::numeric_error& e) {
 			return nullptr;
@@ -601,6 +601,22 @@ retry:
 		return 0;
 	}
 
+	template<std::floating_point F> fp_API* eval_quotient(const COW<fp_API>& n, const ISK_INTERVAL<F>& d)
+	{
+		if (d == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
+		if (F(0) > d.lower() && F(0) < d.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
+
+		auto n_src = n.get_c();
+		if (auto l = dynamic_cast<const var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
+		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->_x, d);
+		else if (auto l = dynamic_cast<const var_fp<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->_x), d);
+		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->_x, d);
+		else if (auto l = dynamic_cast<const var_fp<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->_x), d);
+		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->_x, d);
+
+		return nullptr;
+	}
+
 	fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto working(d); // for the count lock
@@ -613,6 +629,18 @@ retry:
 		else if (auto r = dynamic_cast<var_fp<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->_x));
 		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->_x);
 		return 0;
+	}
+
+	fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d)
+	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
+		auto d_src = d.get_c();
+		if (auto r = dynamic_cast<const var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->_x);
+		else if (auto r = dynamic_cast<const var_fp<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->_x);
+		else if (auto r = dynamic_cast<const var_fp<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->_x);
+		return nullptr;
 	}
 
 	// generally speaking, for floating point numerals we want to destructively add the smallest two exponents first.
