@@ -28,7 +28,6 @@ public:
 		}
 	}
 
-	COW& operator=(const COW& src) = delete;
 	COW& operator=(COW&& src) = default;
 
 	COW& operator=(const std::shared_ptr<const T>& src) noexcept {
@@ -54,6 +53,12 @@ public:
 		_read = std::shared_ptr<const T>(src._write.release());
 		src = _read;
 		return *this;
+	}
+
+	// deleting this operator is exceptionally painful
+	COW& operator=(const COW& src) {
+		if (src._write) return *this = _w_clone();
+		return *this = _read;
 	}
 
 	const T* get_c() const {
@@ -90,6 +95,10 @@ public:
 	operator T* () { return get(); }
 */
 private:
+	auto _w_clone() requires requires() { _write->clone(); } {
+		return std::unique_ptr<T>(_write->clone());
+	}
+
 	void _rw_clone() requires requires() { _read->clone(); } {
 		_write = std::unique_ptr<T>(_read->clone());
 		_read.reset();
