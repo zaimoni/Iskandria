@@ -17,8 +17,9 @@ public:
 	COW() = default;
 	COW(const COW& src) = delete;
 	COW(COW&& src) = default;
-	COW(const std::shared_ptr<const T>& src) noexcept : _read(src) {};
-	COW(std::unique_ptr<T>&& src)  noexcept : _write(std::move(src)) {};
+	COW(const std::shared_ptr<const T>& src) noexcept : _read(src) {}
+	COW(std::unique_ptr<T>&& src)  noexcept : _write(std::move(src)) {}
+	COW(T* src) noexcept : _write(src) {}
 	~COW() = default;
 
 	COW(COW& src) : _read(src._read) {
@@ -61,6 +62,8 @@ public:
 		return *this = _read;
 	}
 
+	explicit operator bool() const { return _read || _write; }
+
 	const T* get_c() const {
 		if (_read) return _read.get();
 		if (_write) return _write.get();
@@ -74,6 +77,9 @@ public:
 		if (_write) return _write.get();
 		return nullptr;
 	}
+
+	const T* operator->() const { return get_c(); }
+	T* operator->() { return get(); }
 
 	/// <returns>std::nullopt, or .second is non-null and .first is non-null if non-const operations are not logic errors</returns>
 	template<class U> std::optional<std::pair<U*, const U*> > get_rw() {
