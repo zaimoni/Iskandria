@@ -1175,6 +1175,12 @@ std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scal
 	return ret;
 }
 
+COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale) {
+	std::unique_ptr<fp_API> ret(src.get_c()->clone());
+	ret->scal_bn(scale);
+	return ret;
+}
+
 std::shared_ptr<fp_API> pow(const std::shared_ptr<fp_API>& base, const std::shared_ptr<fp_API>& exponent)
 {
 	// base case
@@ -1187,6 +1193,11 @@ void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale)
 	if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
 	working->scal_bn(scale);
 	src = working;
+}
+
+void self_scalBn(COW<fp_API>& src, intmax_t scale)
+{
+	src.get()->scal_bn(scale);
 }
 
 }	// namespace zaimoni
