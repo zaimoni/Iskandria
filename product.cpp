@@ -19,7 +19,7 @@ void product::append_term(smart_ptr&& src) {
 bool product::would_fpAPI_eval() const { return 1 >= this->_x.size(); }
 
 // eval_shared_ptr
-product::result_type product::destructive_eval() {
+product::eval_type product::destructive_eval() {
 	if (1 == this->_x.size()) return this->_x.front();
 	return 0;
 }

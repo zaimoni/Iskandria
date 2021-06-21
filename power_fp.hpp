@@ -49,7 +49,7 @@ namespace zaimoni {
 		int precedence() const override { return _type_spec::Multiplication + 1; }
 
 		void _scal_bn(intmax_t scale) override;
-		result_type destructive_eval() override;
+		eval_type destructive_eval() override;
 		fp_API* _eval() const override;
 	};
 

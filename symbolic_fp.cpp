@@ -178,7 +178,7 @@ void symbolic_fp::_scal_bn(intmax_t scale)
 	self_eval();
 }
 
-symbolic_fp::result_type symbolic_fp::destructive_eval()
+symbolic_fp::eval_type symbolic_fp::destructive_eval()
 {
 	if (!scale_by && !bitmap) return dest;
 	return nullptr;

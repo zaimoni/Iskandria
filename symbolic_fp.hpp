@@ -60,7 +60,7 @@ namespace zaimoni {
 		std::string to_s() const override;
 		int precedence() const override;
 		void _scal_bn(intmax_t scale) override;
-		result_type destructive_eval() override;
+		eval_type destructive_eval() override;
 
 		fp_API* _eval() const override { return nullptr; }
 
