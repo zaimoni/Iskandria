@@ -16,14 +16,14 @@ namespace zaimoni {
 		};
 	public:
 		quotient() = default;
-		quotient(const std::shared_ptr<fp_API>& numerator, const std::shared_ptr<fp_API>& denominator);
-		quotient(const std::shared_ptr<fp_API>& numerator, std::shared_ptr<fp_API>&& denominator);
-		quotient(const std::shared_ptr<fp_API>& numerator, fp_API* denominator);
-		quotient(std::shared_ptr<fp_API>&& numerator, const std::shared_ptr<fp_API>& denominator);
-		quotient(std::shared_ptr<fp_API>&& numerator, std::shared_ptr<fp_API>&& denominator);
-		quotient(std::shared_ptr<fp_API>&& numerator, fp_API* denominator);
-		quotient(fp_API* numerator, const std::shared_ptr<fp_API>& denominator);
-		quotient(fp_API* numerator, std::shared_ptr<fp_API>&& denominator);
+		quotient(const decltype(_numerator)& numerator, const decltype(_denominator)& denominator);
+		quotient(const decltype(_numerator)& numerator, decltype(_denominator)&& denominator);
+		quotient(const decltype(_numerator)& numerator, fp_API* denominator);
+		quotient(decltype(_numerator)&& numerator, const decltype(_denominator)& denominator);
+		quotient(decltype(_numerator)&& numerator, decltype(_denominator)&& denominator);
+		quotient(decltype(_numerator)&& numerator, fp_API* denominator);
+		quotient(fp_API* numerator, const decltype(_denominator)& denominator);
+		quotient(fp_API* numerator, decltype(_denominator)&& denominator);
 		quotient(fp_API* numerator, fp_API* denominator);
 		quotient(const quotient& src) = default;
 		quotient(quotient&& src) = default;
