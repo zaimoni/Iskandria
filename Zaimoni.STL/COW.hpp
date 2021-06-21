@@ -15,7 +15,12 @@ class COW final {
 
 public:
 	COW() = default;
-	COW(const COW& src) = delete;
+
+	// deleting this constructor is exceptionally painful
+	COW(const COW& src) : _read(src._read) {
+		if (src._write) _write = _w_clone();
+	}
+
 	COW(COW&& src) = default;
 	COW(const std::shared_ptr<const T>& src) noexcept : _read(src) {}
 	COW(std::unique_ptr<T>&& src)  noexcept : _write(std::move(src)) {}
