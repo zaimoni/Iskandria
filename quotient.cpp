@@ -156,7 +156,7 @@ bool quotient::_is_finite() const {
 	return false;
 }
 
-const char* quotient::_transform_fatal(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d)
+const char* quotient::_transform_fatal(const decltype(_numerator)& n, const decltype(_denominator)& d)
 {
 	if (d->is_zero()) return "zero denominator";
 	if (n->is_inf() && d->is_inf()) return "infinity/infinity";

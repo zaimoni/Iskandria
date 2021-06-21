@@ -56,7 +56,7 @@ namespace zaimoni {
 
 	private:
 		static constexpr const auto _precedence = _type_spec::Multiplication;
-		static const char* _transform_fatal(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
+		static const char* _transform_fatal(const decltype(_numerator)& n, const decltype(_denominator)& d);
 		const char* _constructor_fatal() const;
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override;
