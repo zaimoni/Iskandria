@@ -130,6 +130,20 @@ namespace zaimoni {
 			return false;
 		}
 
+		static bool eval(COW<fp_API>& dest) {
+			if (auto efficient = dynamic_cast<eval_shared_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
+				if (auto result = efficient->destructive_eval()) {
+					dest = result;
+					return true;
+				}
+			}
+			if (auto result = dest->_eval()) {
+				dest = std::unique_ptr<fp_API>(result);
+				return true;
+			}
+			return false;
+		}
+
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
 		virtual bool is_inf() const {
