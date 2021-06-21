@@ -39,7 +39,7 @@ void sum::append_term(smart_ptr&& src) {
 
 bool sum::would_fpAPI_eval() const { return 1 >= this->_x.size(); }
 
-sum::smart_ptr sum::destructive_eval() {
+sum::result_type sum::destructive_eval() {
 	if (1 == this->_x.size()) return this->_x.front();
 	return nullptr;
 }

@@ -49,7 +49,7 @@ bool quotient::would_destructive_eval() const {
 }
 
 // eval_shared_ptr
-std::shared_ptr<fp_API> quotient::destructive_eval() {
+quotient::result_type quotient::destructive_eval() {
 	if (_denominator->is_one()) return _numerator;
 	if (_numerator->is_zero()) return _numerator;
 	return nullptr;

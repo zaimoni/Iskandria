@@ -101,7 +101,9 @@ namespace zaimoni {
 	template<class T>
 	struct eval_shared_ptr
 	{
-		virtual std::shared_ptr<T> destructive_eval() = 0;
+		using result_type = std::shared_ptr<T>;
+
+		virtual result_type destructive_eval() = 0;
 	};
 
 	struct fp_API {	// virtual base

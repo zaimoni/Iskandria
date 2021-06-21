@@ -35,7 +35,7 @@ namespace zaimoni {
 		bool would_destructive_eval() const;
 
 	public:
-		std::shared_ptr<fp_API> destructive_eval() override; // eval_shared_ptr
+		result_type destructive_eval() override; // eval_shared_ptr
 
 		// fp_API
 		bool self_eval() override;

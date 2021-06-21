@@ -46,7 +46,7 @@ public:
 	int precedence() const override { return std::numeric_limits<int>::max(); }	// numerals outrank all operators
 	int precedence_to_s() const override { return _type_spec::Addition; }
 
-	std::shared_ptr<fp_API> destructive_eval() override {
+	result_type destructive_eval() override {
 		if (b->is_zero()) return a;
 		return nullptr;
 	}

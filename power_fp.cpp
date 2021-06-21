@@ -102,7 +102,7 @@ void power_fp::_scal_bn(intmax_t scale) {
 	throw zaimoni::math::numeric_error("power_fp: unhandled power-of-two scaling");
 }
 
-std::shared_ptr<fp_API> power_fp::destructive_eval()
+power_fp::result_type power_fp::destructive_eval()
 {
 	if (base->is_one()) return base;
 	if (exponent->is_one()) return base;
