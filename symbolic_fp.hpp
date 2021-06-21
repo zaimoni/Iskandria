@@ -23,13 +23,12 @@ namespace zaimoni {
 			inverse_mult,
 		};
 
-		explicit symbolic_fp(const std::shared_ptr<fp_API>& src) noexcept : dest(src), scale_by(0), bitmap(0) {
-			assert(src);
-		}
-		symbolic_fp(const std::shared_ptr<fp_API>& src, intmax_t scale_by) noexcept : dest(src), scale_by(scale_by), bitmap(0) {
-			// this doesn't trigger self-evaluation, unlike the scal_bn call
-			assert(src);
-		}
+		explicit symbolic_fp(const decltype(dest)& src) noexcept : dest(src), scale_by(0), bitmap(0) { assert(src); }
+		symbolic_fp(decltype(dest)&& src) noexcept : dest(std::move(src)), scale_by(0), bitmap(0) { assert(src); }
+		// this doesn't trigger self-evaluation, unlike the scal_bn call
+		symbolic_fp(const decltype(dest)& src, intmax_t scale_by) noexcept : dest(src), scale_by(scale_by), bitmap(0) { assert(src); }
+		symbolic_fp(decltype(dest)&& src, intmax_t scale_by) noexcept : dest(std::move(src)), scale_by(scale_by), bitmap(0) { assert(src); }
+
 		symbolic_fp(const symbolic_fp& src) = default;
 		symbolic_fp(symbolic_fp&& src) = default;
 		~symbolic_fp() = default;

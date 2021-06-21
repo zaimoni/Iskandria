@@ -13,7 +13,10 @@ namespace zaimoni {
 
 	public:
 		//	template<_type_spec::canonical_functions _op> // doesn't work -- uncallable?
-		power_fp(std::shared_ptr<fp_API> x, std::shared_ptr<fp_API> y) noexcept : base(x), exponent(y) {}
+		power_fp(const decltype(base)& x, const decltype(exponent)& y) noexcept : base(x), exponent(y) {}
+		power_fp(const decltype(base)& x, decltype(exponent)&& y) noexcept : base(x), exponent(std::move(y)) {}
+		power_fp(decltype(base)&& x, const decltype(exponent)& y) noexcept : base(std::move(x)), exponent(y) {}
+		power_fp(decltype(base)&& x, decltype(exponent) && y) noexcept : base(std::move(x)), exponent(std::move(y)) {}
 
 		power_fp(const power_fp& src) = default;
 		power_fp(power_fp&& src) = default;
