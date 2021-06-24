@@ -7,8 +7,8 @@ namespace zaimoni {
 
 	class quotient final : public fp_API, public eval_to_ptr<fp_API>
 	{
-		std::shared_ptr<fp_API> _numerator;
-		std::shared_ptr<fp_API> _denominator;
+		eval_type _numerator;
+		eval_type _denominator;
 		std::pair<unsigned int, unsigned int> _heuristic;
 		enum {
 			componentwise_evaluation = 1,

@@ -13,7 +13,7 @@ namespace zaimoni {
 	// scal_bn (power of 2 manipulation)
 
 	class symbolic_fp final : public fp_API, public eval_to_ptr<fp_API> {
-		std::shared_ptr<fp_API> dest;
+		eval_type dest;
 		intmax_t scale_by;
 		uintmax_t bitmap;	// anything smaller incurs padding bytes anyway
 

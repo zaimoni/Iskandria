@@ -7,8 +7,8 @@ namespace zaimoni {
 
 	// hard-coded to * for now
 	class power_fp final : public fp_API, public eval_to_ptr<fp_API> {
-		std::shared_ptr<fp_API> base;
-		std::shared_ptr<fp_API> exponent;
+		eval_type base;
+		eval_type exponent;
 		//	_type_spec::canonical_functions op;
 
 	public:
