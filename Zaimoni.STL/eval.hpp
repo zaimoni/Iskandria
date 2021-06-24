@@ -99,7 +99,7 @@ namespace zaimoni {
 	};
 
 	template<class T>
-	struct eval_shared_ptr
+	struct eval_to_ptr
 	{
 		using eval_type = std::shared_ptr<T>;
 
@@ -119,7 +119,7 @@ namespace zaimoni {
 
 		virtual bool self_eval() = 0;
 		static bool eval(std::shared_ptr<fp_API>& dest) {
-			if (auto efficient = dynamic_cast<eval_shared_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
+			if (auto efficient = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
 				if (auto result = efficient->destructive_eval()) {
 					dest = result;
 					return true;
@@ -133,7 +133,7 @@ namespace zaimoni {
 		}
 
 		static bool eval(COW<fp_API>& dest) {
-			if (auto efficient = dynamic_cast<eval_shared_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
+			if (auto efficient = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
 				if (auto result = efficient->destructive_eval()) {
 					dest = result;
 					return true;

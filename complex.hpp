@@ -7,7 +7,7 @@ namespace zaimoni {
 namespace math {
 
 // Cartesian coordinate representation.
-class complex : public fp_API, public eval_shared_ptr<fp_API> {
+class complex : public fp_API, public eval_to_ptr<fp_API> {
 	std::shared_ptr<fp_API> a;
 	std::shared_ptr<fp_API> b;
 	mutable unsigned char heuristics;

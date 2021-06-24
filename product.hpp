@@ -6,7 +6,7 @@
 
 namespace zaimoni {
 
-class product final : public fp_API, public eval_shared_ptr<fp_API>, protected n_ary_op<fp_API>
+class product final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<fp_API>
 {
 	enum { strict_max_heuristic = _n_ary_op::strict_max_core_heuristic };
 
@@ -29,7 +29,7 @@ private:
 	bool would_fpAPI_eval() const override;
 
 public:
-	eval_type destructive_eval() override; // eval_shared_ptr
+	eval_type destructive_eval() override; // eval_to_ptr
 	
 	// fp_API
 	bool self_eval() override;

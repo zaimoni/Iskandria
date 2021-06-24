@@ -5,7 +5,7 @@
 
 namespace zaimoni {
 
-	class quotient final : public fp_API, public eval_shared_ptr<fp_API>
+	class quotient final : public fp_API, public eval_to_ptr<fp_API>
 	{
 		std::shared_ptr<fp_API> _numerator;
 		std::shared_ptr<fp_API> _denominator;
@@ -35,7 +35,7 @@ namespace zaimoni {
 		bool would_destructive_eval() const;
 
 	public:
-		eval_type destructive_eval() override; // eval_shared_ptr
+		eval_type destructive_eval() override; // eval_to_ptr
 
 		// fp_API
 		bool self_eval() override;
