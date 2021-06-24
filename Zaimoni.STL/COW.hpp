@@ -105,6 +105,24 @@ public:
 	operator const T* () const { return get_c(); }
 	operator T* () { return get(); }
 */
+	// value equality of contents
+	friend bool operator==(const COW& lhs, const COW& rhs) {
+		if (&lhs == &rhs) return true;
+		if (lhs._read) {
+			if (rhs._read) {
+				return *lhs._read == *rhs._read;
+			} else if (rhs._write) {
+				return *lhs._read == *rhs._write;
+			} else return false;
+		} else if (lhs._write) {
+			if (rhs._read) {
+				return *lhs._write == *rhs._read;
+			} else if (rhs._write) {
+				return *lhs._write == *rhs._write;
+			} else return false;
+		} else return !rhs._read && !rhs._write;
+	}
+
 private:
 	auto _w_clone() requires requires() { _write->clone(); } {
 		return std::unique_ptr<T>(_write->clone());
