@@ -546,6 +546,7 @@ retry:
 
 	// no-op implementation to enable building
 	int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs) { return 0; }
+	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) { return 0; }
 
 	// eval_quotient support
 	template<std::floating_point F> fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d)
@@ -1284,12 +1285,12 @@ symbolic_overflow:
 	}
 }	// namespace math
 
-std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+eval_to_ptr<fp_API>::eval_type operator+(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
 	std::unique_ptr<sum> ret(new sum());
 	ret->append_term(lhs);
 	ret->append_term(rhs);
-	return std::shared_ptr<fp_API>(ret.release());
+	return eval_to_ptr<fp_API>::eval_type(ret.release());
 }
 
 std::shared_ptr<fp_API>& operator+=(std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
@@ -1308,12 +1309,12 @@ std::shared_ptr<fp_API>& operator+=(std::shared_ptr<fp_API>& lhs, const std::sha
 	return lhs;
 }
 
-std::shared_ptr<fp_API> operator*(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+eval_to_ptr<fp_API>::eval_type operator*(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
 	std::unique_ptr<product> ret(new product());
 	ret->append_term(lhs);
 	ret->append_term(rhs);
-	return std::shared_ptr<fp_API>(ret.release());
+	return eval_to_ptr<fp_API>::eval_type(ret.release());
 }
 
 std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
