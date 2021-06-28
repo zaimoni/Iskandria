@@ -14,7 +14,7 @@ enum complex_state : uintmax_t
 	Im_eval = 1ULL << 3
 };
 
-complex::complex(const std::shared_ptr<fp_API>& re, const std::shared_ptr<fp_API>& im) : a(re), b(im), heuristics(Re_self_eval | Im_self_eval | Re_eval | Im_eval) {
+complex::complex(const decltype(a)& re, const decltype(b)& im) : a(re), b(im), heuristics(Re_self_eval | Im_self_eval | Re_eval | Im_eval) {
 	decltype(auto) R = get<_type<_type_spec::_R_SHARP_> >();
 	const zaimoni::math::type* domain;
 	if (!(domain = re->domain()) || 0 < domain->subclass(R)) throw new std::logic_error("non-real coordinate for real part");
@@ -22,10 +22,10 @@ complex::complex(const std::shared_ptr<fp_API>& re, const std::shared_ptr<fp_API
 };
 
 // friend functions
-std::shared_ptr<fp_API> Conj(const complex& z) { return std::shared_ptr<fp_API>(new complex(z.a, -z.b)); }
+complex::eval_type Conj(const complex& z) { return complex::eval_type(new complex(z.a, -z.b)); }
 
-std::shared_ptr<fp_API> norm2(const complex& z) {
-	std::shared_ptr<fp_API> two(new var_fp<intmax_t>(2));
+complex::eval_type norm2(const complex& z) {
+	complex::eval_type two(new var_fp<intmax_t>(2));
 	return pow(z.a, two) + pow(z.b, two);
 }
 

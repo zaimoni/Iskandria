@@ -8,12 +8,12 @@ namespace math {
 
 // Cartesian coordinate representation.
 class complex : public fp_API, public eval_to_ptr<fp_API> {
-	std::shared_ptr<fp_API> a;
-	std::shared_ptr<fp_API> b;
+	eval_type a;
+	eval_type b;
 	mutable unsigned char heuristics;
 
 public:
-	complex(const std::shared_ptr<fp_API>& re, const std::shared_ptr<fp_API>& im);
+	complex(const decltype(a)& re, const decltype(b)& im);
 	complex(const complex& src) = default;
 	complex(complex&& src) = default;
 	~complex() = default;
@@ -24,8 +24,8 @@ public:
 
 	friend auto Re(const complex& z) { return z.a; }
 	friend auto Im(const complex& z) { return z.b; }
-	friend std::shared_ptr<fp_API> Conj(const complex& z);
-	friend std::shared_ptr<fp_API> norm2(const complex& z);
+	friend eval_type Conj(const complex& z);
+	friend eval_type norm2(const complex& z);
 
 	const math::type* domain() const override {
 		if (_is_finite()) return &get<_type<_type_spec::_C_> >();
