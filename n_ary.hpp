@@ -30,7 +30,7 @@ namespace zaimoni {
 	class n_ary_op
 	{
 	public:
-		using smart_ptr = std::shared_ptr<T>;
+		using smart_ptr = eval_to_ptr<fp_API>::eval_type;
 		using eval_spec = std::pair<int, size_t>;
 	protected:
 		std::vector<smart_ptr> _x;

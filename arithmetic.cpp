@@ -1342,10 +1342,10 @@ COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale) {
 	return ret;
 }
 
-std::shared_ptr<fp_API> pow(const std::shared_ptr<fp_API>& base, const std::shared_ptr<fp_API>& exponent)
+eval_to_ptr<fp_API>::eval_type pow(const eval_to_ptr<fp_API>::eval_type& base, const eval_to_ptr<fp_API>::eval_type& exponent)
 {
 	// base case
-	return std::shared_ptr<fp_API>(new power_fp(base, exponent));
+	return eval_to_ptr<fp_API>::eval_type(new power_fp(base, exponent));
 }
 
 void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale)

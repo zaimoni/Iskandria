@@ -41,7 +41,7 @@ std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std:
 
 std::shared_ptr<fp_API> operator-(const std::shared_ptr<fp_API>& lhs);
 
-std::shared_ptr<fp_API> pow(const std::shared_ptr<fp_API>& base, const std::shared_ptr<fp_API>& exponent);
+eval_to_ptr<fp_API>::eval_type pow(const eval_to_ptr<fp_API>::eval_type& base, const eval_to_ptr<fp_API>::eval_type& exponent);
 
 }
 
