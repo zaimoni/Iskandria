@@ -1227,6 +1227,61 @@ symbolic_overflow:
 		}
 	}
 
+	/// <summary>By call graph, should be in power_fp.cpp</summary>
+	/// <returns>1: updated; -1: no change, stalled (should rewrite as product); 0: no change, not stalled</returns>
+	int rearrange_pow(std::shared_ptr<fp_API>& base, std::shared_ptr<fp_API>& exponent)
+	{
+		auto working_exp(exponent);
+		auto src = working_exp.get();
+		if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
+			if (0 != r->_x % 2) return -1;
+			auto working_base(base);
+			if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
+			if (!zaimoni::math::in_place_square(working_base)) return -1;
+			if (2 < working_exp.use_count()) {
+				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
+				working_exp = std::shared_ptr<fp_API>(r = stage.release());
+			}
+			r->_x /= 2;
+			exponent = working_exp;
+			base = working_base;
+			return 1;
+		}
+		if (auto r = dynamic_cast<var_fp<intmax_t>*>(src)) {
+			if (0 != r->_x % 2) return -1;
+			auto working_base(base);
+			if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
+			if (!zaimoni::math::in_place_square(working_base)) return -1;
+			if (2 < working_exp.use_count()) {
+				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
+				working_exp = std::shared_ptr<fp_API>(r = stage.release());
+			}
+			r->_x /= 2;
+			exponent = working_exp;
+			base = working_base;
+			return 1;
+		}
+		return 0;
+	}
+
+	int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent)
+	{
+		if (auto r = exponent.get_rw<var_fp<uintmax_t> >()) {
+			if (0 != r->second->_x % 2) return -1;
+			if (!r->first) exponent = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone()); // need this to fail first to be ACID
+			if (!zaimoni::math::in_place_square(base)) return -1;
+			r->first->_x /= 2;
+			return 1;
+		}
+		if (auto r = exponent.get_rw<var_fp<intmax_t> >()) {
+			if (0 != r->second->_x % 2) return -1;
+			if (!r->first) exponent = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone()); // need this to fail first to be ACID
+			if (!zaimoni::math::in_place_square(base)) return -1;
+			r->first->_x /= 2;
+			return 1;
+		}
+		return 0;
+	}
 }	// namespace math
 
 std::shared_ptr<fp_API> operator+(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)

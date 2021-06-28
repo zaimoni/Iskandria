@@ -28,6 +28,8 @@ bool in_place_square(std::shared_ptr<fp_API>& lhs);
 bool in_place_square(COW<fp_API>& x);
 bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale);
 bool scal_bn(COW<fp_API>& x, intmax_t& scale);
+int rearrange_pow(std::shared_ptr<fp_API>& base, std::shared_ptr<fp_API>& exponent);
+int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent);
 
 }
 
