@@ -13,6 +13,7 @@ void self_scalBn(COW<fp_API>& src, intmax_t scale);
 namespace math {
 
 int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
+int rearrange_sum(COW<fp_API>& lhs, COW<fp_API>& rhs);
 int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs);
 int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs);
 fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d);
