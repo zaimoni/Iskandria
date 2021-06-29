@@ -959,15 +959,15 @@ retry:
 		return nullptr;
 	}
 
-	std::unique_ptr<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
+	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
 		auto src = rhs.get_c();
-		if (auto r = dynamic_cast<const var_fp<float>*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->_x)));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, r->_x));
-		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->_x)));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, r->_x));
-		else if (auto r = dynamic_cast<const var_fp<long double>*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->_x)));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return std::unique_ptr<fp_API>(eval_sum(lhs, r->_x));
+		if (auto r = dynamic_cast<const var_fp<float>*>(src)) return eval_sum(lhs, ISK_INTERVAL<float>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return eval_sum(lhs, ISK_INTERVAL<double>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(lhs, r->_x);
+		else if (auto r = dynamic_cast<const var_fp<long double>*>(src)) return eval_sum(lhs, ISK_INTERVAL<long double>(r->_x));
+		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return eval_sum(lhs, r->_x);
 		return nullptr;
 	}
 
