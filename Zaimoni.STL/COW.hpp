@@ -110,15 +110,15 @@ public:
 		if (&lhs == &rhs) return true;
 		if (lhs._read) {
 			if (rhs._read) {
-				return *lhs._read == *rhs._read;
+				return 0 == *lhs._read <=> *rhs._read;
 			} else if (rhs._write) {
-				return *lhs._read == *rhs._write;
+				return 0 == *lhs._read <=> *rhs._write;
 			} else return false;
 		} else if (lhs._write) {
 			if (rhs._read) {
-				return *lhs._write == *rhs._read;
+				return 0 == *lhs._write <=> *rhs._read;
 			} else if (rhs._write) {
-				return *lhs._write == *rhs._write;
+				return 0 == *lhs._write <=> *rhs._write;
 			} else return false;
 		} else return !rhs._read && !rhs._write;
 	}

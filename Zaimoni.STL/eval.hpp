@@ -165,6 +165,13 @@ namespace zaimoni {
 		virtual int precedence() const = 0;
 		virtual int precedence_to_s() const { return precedence(); }
 
+		std::partial_ordering value_compare(const fp_API* rhs) const {
+			if (!rhs) return std::partial_ordering::unordered; // might need this to "work"
+			if (this == rhs) return std::partial_ordering::equivalent; // self-compare
+			return _value_compare(rhs); // delegate
+		}
+		friend std::partial_ordering operator<=>(const fp_API& lhs, const fp_API& rhs) { return lhs.value_compare(&rhs); }
+
 	protected:
 		bool is_scal_bn_identity_default() const { return is_zero() || is_inf(); }
 
@@ -173,6 +180,7 @@ namespace zaimoni {
 		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation
 		virtual bool _is_inf() const { throw std::logic_error("must define _is_inf"); }
 		virtual bool _is_finite() const { throw std::logic_error("must define _is_finite"); }
+		virtual std::partial_ordering _value_compare(const fp_API* rhs) const { return std::partial_ordering::unordered; } // stub \todo make abstract
 	};
 
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_, _H_SHARP_, _O_SHARP_
