@@ -972,8 +972,71 @@ retry:
 	}
 
 	// this must *not* dynamically allocate a symbolic_fp object
-	bool in_place_negate(std::shared_ptr<fp_API>& x)
+	bool in_place_negate(eval_to_ptr<fp_API>::eval_type& x)
 	{
+#if EVAL_COW_BRIDGE
+retry:
+		if (auto r = x.get_rw<var_fp<float> >()) {
+			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
+			if (!r->first) {
+				x = std::unique_ptr<fp_API>(r->second->clone());
+				r = x.get_rw<var_fp<ISK_INTERVAL<float> > >();
+				if (!r) goto retry;
+			}
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<double> >()) {
+			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
+			if (!r->first) {
+				x = std::unique_ptr<fp_API>(r->second->clone());
+				r = x.get_rw<var_fp<ISK_INTERVAL<double> > >();
+				if (!r) goto retry;
+			}
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<long double> >()) {
+			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
+			if (!r->first) {
+				x = std::unique_ptr<fp_API>(r->second->clone());
+				r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >();
+				if (!r) goto retry;
+			}
+			auto exec = r->first;
+			exec->_x = -exec->_x;
+			return true;
+		}
+		if (auto r = x.get_rw<symbolic_fp>()) {
+			if (!r->first) {
+				x = std::unique_ptr<fp_API>(r->second->clone());
+				r = x.get_rw<symbolic_fp>();
+				if (!r) goto retry;
+			}
+			auto exec = r->first;
+			exec->self_negate();
+			if (auto test = exec->destructive_eval()) x = test;
+			return true;
+		}
+		return false;
+#else
 		auto working(x);
 retry:
 		auto src = working.get();
@@ -1036,71 +1099,7 @@ retry:
 			return true;
 		}
 		return false;
-	}
-
-	bool in_place_negate(COW<fp_API>& x)
-	{
-retry:
-		if (auto r = x.get_rw<var_fp<float> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<float> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<double> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<double> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<long double> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<symbolic_fp>()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<symbolic_fp>();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->self_negate();
-			if (auto test = exec->destructive_eval()) x = test;
-			return true;
-		}
-		return false;
+#endif
 	}
 
 	bool in_place_square(std::shared_ptr<fp_API>& x)
