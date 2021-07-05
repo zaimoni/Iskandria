@@ -45,6 +45,7 @@ public:
 	intmax_t ideal_scal_bn() const override;
 	const math::type* domain() const override;
 	fp_API* clone() const override { return new sum(*this); }
+	sum* typed_clone() const { return new sum(*this); }
 	std::string to_s() const override;
 	int precedence() const override { return _precedence; }
 	bool _is_inf() const override;

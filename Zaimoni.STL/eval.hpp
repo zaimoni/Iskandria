@@ -98,10 +98,15 @@ namespace zaimoni {
 		static_assert(unconditional_v<bool, false, DOM>, "must specialize this");
 	};
 
+// #define EVAL_COW_BRIDGE 1
 	template<class T>
 	struct eval_to_ptr
 	{
+#if EVAL_COW_BRIDGE
+		using eval_type = COW<T>;
+#else
 		using eval_type = std::shared_ptr<T>;
+#endif
 
 		virtual eval_type destructive_eval() = 0;
 	};
