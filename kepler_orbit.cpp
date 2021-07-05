@@ -180,16 +180,16 @@ int main(int argc, char* argv[])
 	mass saturn(mass::ASTRODYNAMIC, fundamental_constants::MKS, mass::interval(3.7931178e16, 3.7931196e16));
 
 	// \todo reduced mass of the above three (yes, testing infrastructure for a wargame scenario)
-	std::shared_ptr<zaimoni::fp_API> one(new zaimoni::var_fp<double>(1));		// will need this later on; others are code coverage
-	std::shared_ptr<zaimoni::fp_API> one_f(new zaimoni::var_fp<float>(1));
-	std::shared_ptr<zaimoni::fp_API> one_l(new zaimoni::var_fp<long double>(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one(new zaimoni::var_fp<double>(1));		// will need this later on; others are code coverage
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_f(new zaimoni::var_fp<float>(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_l(new zaimoni::var_fp<long double>(1));
 
-	std::shared_ptr<zaimoni::fp_API> one_i(new zaimoni::var_fp<ISK_INTERVAL<double> >(1));
-	std::shared_ptr<zaimoni::fp_API> one_if(new zaimoni::var_fp< ISK_INTERVAL<float> >(1));
-	std::shared_ptr<zaimoni::fp_API> one_il(new zaimoni::var_fp< ISK_INTERVAL<long double> >(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_i(new zaimoni::var_fp<ISK_INTERVAL<double> >(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_if(new zaimoni::var_fp< ISK_INTERVAL<float> >(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_il(new zaimoni::var_fp< ISK_INTERVAL<long double> >(1));
 
-	std::shared_ptr<zaimoni::fp_API> one_s(new zaimoni::var_fp<intmax_t>(1));
-	std::shared_ptr<zaimoni::fp_API> one_u(new zaimoni::var_fp<uintmax_t>(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_s(new zaimoni::var_fp<intmax_t>(1));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_u(new zaimoni::var_fp<uintmax_t>(1));
 
 	// inline prototype of reduced mass calculation as follows:
 	auto inv_reduced_mass = new zaimoni::sum();
@@ -208,12 +208,12 @@ int main(int argc, char* argv[])
 	while(reduced_mass.self_eval()) INFORM(reduced_mass.to_s().c_str());
 
 	// geometrized Lorentz metric demo
-	std::shared_ptr<zaimoni::fp_API> one_half(new zaimoni::var_fp<double>(0.5));
-	std::shared_ptr<zaimoni::fp_API> two(new zaimoni::var_fp<uintmax_t>(2));
-	std::shared_ptr<zaimoni::fp_API> Spatial = pow(one_half, two);
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_half(new zaimoni::var_fp<double>(0.5));
+	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type two(new zaimoni::var_fp<uintmax_t>(2));
+	auto Spatial = pow(one_half, two);
 	Spatial += pow(one_half, two);
 	Spatial += pow(one_half, two);
-	std::shared_ptr<zaimoni::fp_API> Lorentz = pow(one, two) + -Spatial;
+	auto Lorentz = pow(one, two) + -Spatial;
 	STRING_LITERAL_TO_STDOUT("example Lorentz metric squared (+, -, -, -)\n");
 	INFORM(Lorentz->to_s().c_str());
 	while (Lorentz->self_eval()) INFORM(Lorentz->to_s().c_str());

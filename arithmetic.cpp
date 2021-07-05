@@ -1135,7 +1135,11 @@ retry:
 				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
 				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
 				stage_arg->scal_bn(-delta);
+#if EVAL_COW_BRIDGE
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(stage_arg.release(), delta));
+#else
 				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+#endif
 				working = std::move(stage);
 				goto retry;
 			}
@@ -1165,7 +1169,11 @@ retry:
 				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
 				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
 				stage_arg->scal_bn(-delta);
+#if EVAL_COW_BRIDGE
+				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(stage_arg.release(), delta));
+#else
 				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
+#endif
 				working = std::move(stage);
 				goto retry;
 			}
@@ -1238,7 +1246,11 @@ upgrade_double:
 				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
 				std::unique_ptr<std::remove_reference_t<decltype(*(test->typed_clone()))> > stage_arg(test->typed_clone());
 				stage_arg->scal_bn(-delta);
+#if EVAL_COW_BRIDGE
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(stage_arg.release(), delta));
+#else
 				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+#endif
 				goto symbolic_overflow;
 			}
 			auto stage = square(ISK_INTERVAL<double>(test->_x));
@@ -1267,7 +1279,11 @@ upgrade_interval_double:
 				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
 				std::unique_ptr<std::remove_reference_t<decltype(*(test->typed_clone()))> > stage_arg(test->typed_clone());
 				stage_arg->scal_bn(-delta);
+#if EVAL_COW_BRIDGE
+				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(stage_arg.release(), delta));
+#else
 				x = std::unique_ptr<symbolic_fp>(new symbolic_fp(std::move(stage_arg), delta));
+#endif
 				goto symbolic_overflow;
 			}
 			auto stage = square(ISK_INTERVAL<long double>(test->_x));
@@ -1404,8 +1420,16 @@ eval_to_ptr<fp_API>::eval_type operator+(const eval_to_ptr<fp_API>::eval_type& l
 	return eval_to_ptr<fp_API>::eval_type(ret.release());
 }
 
-std::shared_ptr<fp_API>& operator+=(std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+eval_to_ptr<fp_API>::eval_type& operator+=(eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
+#if EVAL_COW_BRIDGE
+	if (auto r = lhs.get_rw<sum>()) {
+		if (!r->first) lhs = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+		r->first->append_term(rhs);
+	} else {
+		lhs = lhs + rhs;
+	}
+#else
 	auto src(lhs);
 	if (auto r = dynamic_cast<sum*>(src.get())) {
 		if (2 < src.use_count()) {
@@ -1416,6 +1440,7 @@ std::shared_ptr<fp_API>& operator+=(std::shared_ptr<fp_API>& lhs, const std::sha
 	} else {	// yes, want the count-lock to leak into the else clause
 		lhs = lhs + rhs;
 	}
+#endif
 
 	return lhs;
 }
@@ -1428,18 +1453,26 @@ eval_to_ptr<fp_API>::eval_type operator*(const eval_to_ptr<fp_API>::eval_type& l
 	return eval_to_ptr<fp_API>::eval_type(ret.release());
 }
 
-std::shared_ptr<fp_API> operator/(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
+eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
-	return std::shared_ptr<fp_API>(new quotient(lhs, rhs));
+	return eval_to_ptr<fp_API>::eval_type(new quotient(lhs, rhs));
 }
 
-std::shared_ptr<fp_API> operator-(const std::shared_ptr<fp_API>& lhs)
+eval_to_ptr<fp_API>::eval_type operator-(const eval_to_ptr<fp_API>::eval_type& lhs)
 {
+#if EVAL_COW_BRIDGE
+	COW<fp_API> ret(lhs);
+	if (zaimoni::math::in_place_negate(ret)) return ret;
+	std::unique_ptr<symbolic_fp> staging(new symbolic_fp(ret));
+	staging->self_negate();
+	return staging.release();
+#else
 	std::shared_ptr<fp_API> ret(lhs->clone());
 	if (zaimoni::math::in_place_negate(ret)) return ret;
 	std::unique_ptr<symbolic_fp> staging(new symbolic_fp(ret));
 	staging->self_negate();
 	return std::shared_ptr<fp_API>(staging.release());
+#endif
 }
 
 std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scale) {
