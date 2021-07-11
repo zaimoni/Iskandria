@@ -18,7 +18,7 @@ public:
 
 	// deleting this constructor is exceptionally painful
 	COW(const COW& src) : _read(src._read) {
-		if (src._write) _write = _w_clone();
+		if (src._write) _write = src._w_clone();
 	}
 
 	COW(COW&& src) = default;
@@ -50,7 +50,7 @@ public:
 
 	COW& operator=(COW& src) noexcept {
 		if (this == &src) return *this;
-		if (src._read) return *this = _read;
+		if (src._read) return *this = src._read;
 		if (!src._write) {
 			_read.reset();
 			_write.reset();
@@ -63,8 +63,9 @@ public:
 
 	// deleting this operator is exceptionally painful
 	COW& operator=(const COW& src) {
-		if (src._write) return *this = _w_clone();
-		return *this = _read;
+		if (this == &src) return *this;
+		if (src._write) return *this = src._w_clone();
+		return *this = src._read;
 	}
 
 	explicit operator bool() const { return _read || _write; }
@@ -124,7 +125,7 @@ public:
 	}
 
 private:
-	auto _w_clone() requires requires() { _write->clone(); } {
+	auto _w_clone() const requires requires() { _write->clone(); } {
 		return std::unique_ptr<T>(_write->clone());
 	}
 
@@ -134,8 +135,12 @@ private:
 	}
 
 	template<class U> std::optional<std::variant<U*, const U*> > _get_rw() {
-		if (_read) return dynamic_cast<const U*>(_read.get());
-		if (_write) return dynamic_cast<U*>(_write.get());
+		if (_read) {
+			if (auto test = dynamic_cast<const U*>(_read.get())) return test;
+		};
+		if (_write) {
+			if (auto test = dynamic_cast<U*>(_write.get())) return test;
+		};
 		return std::nullopt;
 	}
 };
