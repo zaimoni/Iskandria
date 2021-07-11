@@ -399,54 +399,6 @@ final_exit:
 		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
 	}
 
-	template<std::floating_point F> int rearrange_sum(std::shared_ptr<fp_API>& lhs, F& rhs)
-	{
-		int ret = 0;
-		auto working(lhs);
-		auto src = working.get();
-retry:
-		if (auto l = dynamic_cast<var_fp<float>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<long double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		}
-
-		if (ret) lhs = working;
-		return ret;
-	}
-
 	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, F& rhs)
 	{
 		int ret = 0;
@@ -480,54 +432,6 @@ retry:
 				if (!(l = lhs.get_rw <std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
 			ret = rearrange_sum(l->first->_x, rhs);
-		}
-
-		if (ret) lhs = working;
-		return ret;
-	}
-
-	template<std::floating_point F> int rearrange_sum(std::shared_ptr<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
-	{
-		int ret = 0;
-		auto working(lhs);
-		auto src = working.get();
-retry:
-		if (auto l = dynamic_cast<var_fp<float>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<long double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*l->typed_clone())> > stage(l->typed_clone());
-				working = std::shared_ptr<fp_API>(l = stage.release());
-			}
-			ret = rearrange_sum(l->_x, rhs);
-		} else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = l->clone());
-				if (!(l = dynamic_cast<decltype(l)>(src))) goto retry;
-			}
-			ret = rearrange_sum(l->_x, rhs);
 		}
 
 		if (ret) lhs = working;
@@ -646,23 +550,6 @@ retry:
 		return eval_quotient(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
 	}
 
-	template<std::floating_point F> fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const ISK_INTERVAL<F>& d)
-	{
-		if (d == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
-		if (F(0) > d.lower() && F(0) < d.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
-
-		auto working(n); // for the count lock
-		auto n_src = n.get();
-		if (auto l = dynamic_cast<var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->_x, d);
-		else if (auto l = dynamic_cast<var_fp<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->_x), d);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->_x, d);
-		else if (auto l = dynamic_cast<var_fp<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->_x), d);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->_x, d);
-
-		return 0;
-	}
-
 	template<std::floating_point F> fp_API* eval_quotient(const COW<fp_API>& n, const ISK_INTERVAL<F>& d)
 	{
 		if (d == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
@@ -708,19 +595,6 @@ retry:
 		return std::numeric_limits<long double>::max_exponent - test.exponent();
 	}
 
-	int sum_score(const std::shared_ptr<fp_API>& lhs)
-	{
-		auto working(lhs); // for the count lock
-		auto src = lhs.get();
-		if (auto l = dynamic_cast<var_fp<float>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->_x);
-		return std::numeric_limits<int>::min();
-	}
-
 	int sum_score(const COW<fp_API>& lhs)
 	{
 		auto src = lhs.get_c();
@@ -745,25 +619,7 @@ retry:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<std::floating_point F> int sum_score(const std::shared_ptr<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
-			const int r_score = sum_score(rhs);
-			return l_score < r_score ? l_score : r_score;
-		}
-		return std::numeric_limits<int>::min();
-	}
-
 	template<std::floating_point F> int sum_score(const COW<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
-			const int r_score = sum_score(rhs);
-			return l_score < r_score ? l_score : r_score;
-		}
-		return std::numeric_limits<int>::min();
-	}
-
-	template<std::floating_point F> int sum_score(const std::shared_ptr<fp_API>& lhs, const F& rhs)
 	{
 		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
 			const int r_score = sum_score(rhs);
@@ -829,19 +685,6 @@ retry:
 	std::enable_if_t<zaimoni::precise_demote_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
 	{
 		return eval_sum(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
-	}
-
-	template<std::floating_point F> fp_API* eval_sum(const std::shared_ptr<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		auto working(lhs); // for the count lock
-		auto src = lhs.get();
-		if (auto l = dynamic_cast<var_fp<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->_x), rhs);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->_x, rhs);
-		else if (auto l = dynamic_cast<var_fp<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->_x), rhs);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->_x, rhs);
-		else if (auto l = dynamic_cast<var_fp<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->_x), rhs);
-		else if (auto l = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->_x, rhs);
-		return 0;
 	}
 
 	template<std::floating_point F> fp_API* eval_sum(const COW<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
