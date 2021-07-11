@@ -401,113 +401,107 @@ final_exit:
 
 	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, F& rhs)
 	{
-		int ret = 0;
-		auto working(lhs);
-		auto src = working.get();
 retry:
 		if (auto l = lhs.get_rw<var_fp<float> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw <std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<double> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw <std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<long double> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw <std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		}
 
-		if (ret) lhs = working;
-		return ret;
+		return 0;
 	}
 
 	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
 	{
-		int ret = 0;
 retry:
 		if (auto l = lhs.get_rw<var_fp<float> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw<std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<double> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw<std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<long double> >()) {
 			if (!l->first) lhs = std::unique_ptr<std::remove_reference_t<decltype(*(l->second->typed_clone()))> >(l->first = l->second->typed_clone());
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		} else if (auto l = lhs.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
 			if (!l->first) {
 				lhs = std::unique_ptr<fp_API>(l->second->clone());
 				if (!(l = lhs.get_rw<std::remove_reference_t<decltype(*(l->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(l->first->_x, rhs);
+			return rearrange_sum(l->first->_x, rhs);
 		}
-		return ret;
+		return 0;
 	}
 
 	int rearrange_sum(COW<fp_API>& lhs, COW<fp_API>& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
-		int ret = 0;
 retry:
 		if (auto r = rhs.get_rw<var_fp<float> >()) {
 			if (!r->first) rhs = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone());
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		} else if (auto r = rhs.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
 			if (!r->first) {
 				rhs = std::unique_ptr<fp_API>(r->second->clone());
 				if (!(r = rhs.get_rw<std::remove_reference_t<decltype(*(r->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		} else if (auto r = rhs.get_rw<var_fp<double> >()) {
 			if (!r->first) rhs = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone());
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		} else if (auto r = rhs.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
 			if (!r->first) {
 				rhs = std::unique_ptr<fp_API>(r->second->clone());
 				if (!(r = rhs.get_rw<std::remove_reference_t<decltype(*(r->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		} else if (auto r = rhs.get_rw<var_fp<long double> >()) {
 			if (!r->first) rhs = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone());
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		} else if (auto r = rhs.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
 			if (!r->first) {
 				rhs = std::unique_ptr<fp_API>(r->second->clone());
 				if (!(r = rhs.get_rw<std::remove_reference_t<decltype(*(r->first))> >())) goto retry;
 			}
-			ret = rearrange_sum(lhs, r->first->_x);
+			return rearrange_sum(lhs, r->first->_x);
 		}
 
-		return ret;
+		return 0;
 	}
 
 	// no-op implementation to enable building
