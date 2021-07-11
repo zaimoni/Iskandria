@@ -892,27 +892,6 @@ symbolic_overflow:
 			return false;
 		}
 	}
-
-	/// <summary>By call graph, should be in power_fp.cpp</summary>
-	/// <returns>1: updated; -1: no change, stalled (should rewrite as product); 0: no change, not stalled</returns>
-	int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent)
-	{
-		if (auto r = exponent.get_rw<var_fp<uintmax_t> >()) {
-			if (0 != r->second->_x % 2) return -1;
-			if (!r->first) exponent = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone()); // need this to fail first to be ACID
-			if (!zaimoni::math::in_place_square(base)) return -1;
-			r->first->_x /= 2;
-			return 1;
-		}
-		if (auto r = exponent.get_rw<var_fp<intmax_t> >()) {
-			if (0 != r->second->_x % 2) return -1;
-			if (!r->first) exponent = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone()); // need this to fail first to be ACID
-			if (!zaimoni::math::in_place_square(base)) return -1;
-			r->first->_x /= 2;
-			return 1;
-		}
-		return 0;
-	}
 }	// namespace math
 
 eval_to_ptr<fp_API>::eval_type operator+(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)

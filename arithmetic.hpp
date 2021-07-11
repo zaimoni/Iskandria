@@ -19,7 +19,6 @@ COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
 bool in_place_negate(eval_to_ptr<fp_API>::eval_type& lhs);
 bool in_place_square(COW<fp_API>& x);
 bool scal_bn(COW<fp_API>& x, intmax_t& scale);
-int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent);
 
 }
 
