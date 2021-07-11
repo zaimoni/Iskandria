@@ -98,12 +98,19 @@ namespace zaimoni {
 		static_assert(unconditional_v<bool, false, DOM>, "must specialize this");
 	};
 
+	// C#-style interfaces
 	template<class T>
 	struct eval_to_ptr
 	{
 		using eval_type = COW<T>;
 
 		virtual eval_type destructive_eval() = 0;
+	};
+
+	template<class T>
+	struct eval_rearrange_sum
+	{
+		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
 	};
 
 	struct fp_API {	// virtual base

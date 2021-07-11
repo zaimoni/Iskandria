@@ -7,7 +7,7 @@ namespace zaimoni {
 namespace math {
 
 // Cartesian coordinate representation.
-class complex : public fp_API, public eval_to_ptr<fp_API> {
+class complex : public fp_API, public eval_to_ptr<fp_API>, eval_rearrange_sum<fp_API> {
 	eval_type a;
 	eval_type b;
 	mutable unsigned char heuristics;
@@ -50,6 +50,8 @@ public:
 		if (b->is_zero()) return a;
 		return nullptr;
 	}
+
+	int rearrange_sum(eval_type& rhs) override;
 
 private:
 	void _scal_bn(intmax_t scale) override;

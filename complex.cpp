@@ -113,5 +113,81 @@ void complex::_scal_bn(intmax_t scale) {
 	heuristics = 0x0F;
 }
 
+int complex::rearrange_sum(eval_type& rhs)
+{
+retry:
+	if (auto r = rhs.get_rw<complex>()) {
+		if (!r->first) {
+			rhs = r->second->clone();
+			goto retry;
+		}
+		int ret = 0;
+		int zero_rhs = 0;
+		if (r->first->a->is_zero()) {
+			zero_rhs += 1;
+		} else if (a->is_zero()) {
+			swap(a, r->first->a);
+			zero_rhs += 1;
+		}
+		if (r->first->b->is_zero()) {
+			zero_rhs += 2;
+		} else if (b->is_zero()) {
+			swap(b, r->first->b);
+			zero_rhs += 2;
+		}
+		if (3 == zero_rhs) return 1;	// rhs now zero
+		if (2 != zero_rhs) {
+			switch (const int code = zaimoni::math::rearrange_sum(b, r->first->b)) {
+			case -1: // lhs annihilation requested
+				swap(b, r->first->b);
+				[[fallthrough]];
+			case -2: // mutual annihilation requested
+			case 1: // rhs annihilation requested
+				zero_rhs += 2;
+				if (3 == zero_rhs) return 1;	// rhs now zero
+				break;
+			case 2:
+				ret = 2;	// pass through "changed"
+			}
+		}
+		if (1 != zero_rhs) {
+			switch (const int code = zaimoni::math::rearrange_sum(a, r->first->a)) {
+			case -1: // lhs annihilation requested
+				swap(a, r->first->a);
+				[[fallthrough]];
+			case -2: // mutual annihilation requested
+			case 1: // rhs annihilation requested
+				zero_rhs += 1;
+				if (3 == zero_rhs) return 1;	// rhs now zero
+				break;
+			case 2:
+				ret = 2;	// pass through "changed"
+			}
+		}
+		return ret;
+	}
+
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return 0;	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		// extended real number -- try to delegate
+		if (a->is_zero()) {
+			swap(a, rhs);
+			return 1; // request annihilating rhs
+		}
+		switch (const int code = zaimoni::math::rearrange_sum(a, rhs)) {
+		case -1: // lhs annihilation requested
+			swap(a, rhs);
+			return 1; // request annihilating rhs rather than lhs
+		case -2: // double annihilation requested
+			return b->is_zero() ? -2 : 1;  // but only pass through if our imaginary part is zero, otherwise just request rhs
+		default:
+			return code;	// original value doesn't request annihilating us
+		}
+	}
+
+	return 0;
+}
+
 }
 }
