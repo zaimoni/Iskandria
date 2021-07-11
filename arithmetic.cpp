@@ -569,55 +569,6 @@ retry:
 		return ret;
 	}
 
-	int rearrange_sum(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs)
-	{	// we assume we are being called from the zaimoni::sum object.
-		// that is, all of the zero and infinity symbolic processing has already happened.
-		int ret = 0;
-		auto working(rhs);
-		auto src = working.get();
-retry:
-		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
-			if (2 < working.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working = std::shared_ptr<fp_API>(r = stage.release());
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			ret = rearrange_sum(lhs, r->_x);
-		}
-
-		if (ret) rhs = working;
-		return ret;
-	}
-
 	int rearrange_sum(COW<fp_API>& lhs, COW<fp_API>& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
@@ -656,7 +607,6 @@ retry:
 	}
 
 	// no-op implementation to enable building
-	int rearrange_product(std::shared_ptr<fp_API>& lhs, std::shared_ptr<fp_API>& rhs) { return 0; }
 	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) { return 0; }
 
 	// eval_quotient support
@@ -729,20 +679,6 @@ retry:
 		return nullptr;
 	}
 
-	fp_API* eval_quotient(const std::shared_ptr<fp_API>& n, const std::shared_ptr<fp_API>& d)
-	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
-		auto working(d); // for the count lock
-
-		auto d_src = d.get();
-		if (auto r = dynamic_cast<var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->_x);
-		else if (auto r = dynamic_cast<var_fp<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->_x));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->_x);
-		else if (auto r = dynamic_cast<var_fp<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->_x));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->_x);
-		return 0;
-	}
-
 	fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		auto d_src = d.get_c();
@@ -797,19 +733,6 @@ retry:
 		return std::numeric_limits<int>::min();
 	}
 
-	int sum_implemented(const std::shared_ptr<fp_API>& x)
-	{
-		auto working(x); // for the count lock
-		auto src = x.get();
-		if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->_x);
-		return std::numeric_limits<int>::min();
-	}
-
 	int sum_implemented(const COW<fp_API>& x)
 	{
 		auto src = x.get_c();
@@ -855,19 +778,6 @@ retry:
 			const int r_score = sum_score(rhs);
 			return l_score < r_score ? l_score : r_score;
 		}
-		return std::numeric_limits<int>::min();
-	}
-
-	int sum_score(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
-	{
-		auto working(rhs); // for the count lock
-		auto src = rhs.get();
-		if (auto r = dynamic_cast<var_fp<float>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->_x);
 		return std::numeric_limits<int>::min();
 	}
 
@@ -946,19 +856,6 @@ retry:
 		return nullptr;
 	}
 
-	std::shared_ptr<fp_API> eval_sum(const std::shared_ptr<fp_API>& lhs, const std::shared_ptr<fp_API>& rhs)
-	{
-		auto working(rhs); // for the count lock
-		auto src = rhs.get();
-		if (auto r = dynamic_cast<var_fp<float>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<float>(r->_x)));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
-		else if (auto r = dynamic_cast<var_fp<double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<double>(r->_x)));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
-		else if (auto r = dynamic_cast<var_fp<long double>*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, ISK_INTERVAL<long double>(r->_x)));
-		else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) return std::shared_ptr<fp_API>(eval_sum(lhs, r->_x));
-		return nullptr;
-	}
-
 	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
 		auto src = rhs.get_c();
@@ -1033,109 +930,6 @@ retry:
 			exec->self_negate();
 			if (auto test = exec->destructive_eval()) x = test;
 			return true;
-		}
-		return false;
-	}
-
-	bool in_place_square(std::shared_ptr<fp_API>& x)
-	{
-		auto working(x);
-retry:
-		auto src = working.get();
-		if (auto r = dynamic_cast<var_fp<float>*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) { // upgrade resolution
-				working = std::shared_ptr<fp_API>(new var_fp<double>(r->_x));
-				goto retry;
-			}
-			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
-			auto stage = square(ISK_INTERVAL<float>(r->_x));
-			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<float> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
-			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<float> >(stage));
-			return true;
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<float> >*>(src)) {
-			if (would_overflow<decltype(r->_x)>::square(r->_x)) { // upgrade resolution
-				working = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(r->_x));
-				goto retry;
-			}
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			r->_x = square(r->_x);
-			x = working;
-			return true;
-		} else if (auto r = dynamic_cast<var_fp<double>*>(src)) {
-			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
-				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
-				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
-				stage_arg->scal_bn(-delta);
-				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(stage_arg.release(), delta));
-				working = std::move(stage);
-				goto retry;
-			}
-			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
-			auto stage = square(ISK_INTERVAL<double>(r->_x));
-			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
-			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<double> >(stage));
-			return true;
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<double> >*>(src)) {
-			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
-				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
-				std::unique_ptr<fp_API> stage_arg(r->clone());
-				stage_arg->scal_bn(-delta);
-				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
-				working = std::move(stage);
-				goto retry;
-			}
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			r->_x = square(r->_x);
-			x = working;
-			return true;
-		} else if (auto r = dynamic_cast<var_fp<long double>*>(src)) {
-			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
-				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
-				std::unique_ptr<std::remove_reference_t<decltype(*r)> > stage_arg(r->typed_clone());
-				stage_arg->scal_bn(-delta);
-				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(stage_arg.release(), delta));
-				working = std::move(stage);
-				goto retry;
-			}
-			if (2 < working.use_count()) working = std::shared_ptr<fp_API>(r = r->typed_clone());
-			auto stage = square(ISK_INTERVAL<long double>(r->_x));
-			if (auto test = zaimoni::detail::var_fp_impl<ISK_INTERVAL<long double> >::clone(stage)) x = std::shared_ptr<fp_API>(test);
-			else x = std::shared_ptr<fp_API>(new var_fp<ISK_INTERVAL<long double> >(stage));
-			return true;
-		} else if (auto r = dynamic_cast<var_fp<ISK_INTERVAL<long double> >*>(src)) {
-			if (auto extreme = would_overflow<decltype(r->_x)>::square(r->_x)) {
-				auto delta = extreme / 2 + (0 < extreme ? 1 : -1);
-				std::unique_ptr<fp_API> stage_arg(r->clone());
-				stage_arg->scal_bn(-delta);
-				std::unique_ptr<symbolic_fp> stage(new symbolic_fp(std::move(stage_arg), delta));
-				working = std::move(stage);
-				goto retry;
-			}
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			r->_x = square(r->_x);
-			x = working;
-			return true;
-		} else if (auto r = dynamic_cast<power_fp*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			return r->self_square();
-		} else if (auto r = dynamic_cast<symbolic_fp*>(src)) {
-			if (2 < working.use_count()) {
-				working = std::shared_ptr<fp_API>(src = r->clone());
-				if (!(r = dynamic_cast<decltype(r)>(src))) goto retry;
-			}
-			return r->self_square();
 		}
 		return false;
 	}
@@ -1243,23 +1037,6 @@ symbolic_overflow:
 		return false;
 	}
 
-	bool scal_bn(std::shared_ptr<fp_API>& x, intmax_t& scale)
-	{
-		if (0 == scale) return true;	// no-op
-		auto working(x);
-		auto actual = x->scal_bn_is_safe(scale);
-		if (0 == actual) return false;
-		if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
-		try {
-			working->scal_bn(actual);
-			scale -= actual;
-			x = working;
-			return true;
-		} catch (std::runtime_error& e) {
-			return false;
-		}
-	}
-
 	bool scal_bn(COW<fp_API>& x, intmax_t& scale)
 	{
 		if (0 == scale) return true;	// no-op
@@ -1275,41 +1052,6 @@ symbolic_overflow:
 
 	/// <summary>By call graph, should be in power_fp.cpp</summary>
 	/// <returns>1: updated; -1: no change, stalled (should rewrite as product); 0: no change, not stalled</returns>
-	int rearrange_pow(std::shared_ptr<fp_API>& base, std::shared_ptr<fp_API>& exponent)
-	{
-		auto working_exp(exponent);
-		auto src = working_exp.get();
-		if (auto r = dynamic_cast<var_fp<uintmax_t>*>(src)) {
-			if (0 != r->_x % 2) return -1;
-			auto working_base(base);
-			if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
-			if (!zaimoni::math::in_place_square(working_base)) return -1;
-			if (2 < working_exp.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working_exp = std::shared_ptr<fp_API>(r = stage.release());
-			}
-			r->_x /= 2;
-			exponent = working_exp;
-			base = working_base;
-			return 1;
-		}
-		if (auto r = dynamic_cast<var_fp<intmax_t>*>(src)) {
-			if (0 != r->_x % 2) return -1;
-			auto working_base(base);
-			if (2 < working_base.use_count()) working_base = std::shared_ptr<fp_API>(working_base->clone());
-			if (!zaimoni::math::in_place_square(working_base)) return -1;
-			if (2 < working_exp.use_count()) {
-				std::unique_ptr<std::remove_reference_t<decltype(*r->typed_clone())> > stage(r->typed_clone());
-				working_exp = std::shared_ptr<fp_API>(r = stage.release());
-			}
-			r->_x /= 2;
-			exponent = working_exp;
-			base = working_base;
-			return 1;
-		}
-		return 0;
-	}
-
 	int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent)
 	{
 		if (auto r = exponent.get_rw<var_fp<uintmax_t> >()) {
@@ -1372,12 +1114,6 @@ eval_to_ptr<fp_API>::eval_type operator-(const eval_to_ptr<fp_API>::eval_type& l
 	return staging.release();
 }
 
-std::shared_ptr<fp_API> scalBn(const std::shared_ptr<fp_API>& src, intmax_t scale) {
-	std::shared_ptr<fp_API> ret(src->clone());
-	ret->scal_bn(scale);
-	return ret;
-}
-
 COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale) {
 	std::unique_ptr<fp_API> ret(src.get_c()->clone());
 	ret->scal_bn(scale);
@@ -1390,18 +1126,7 @@ eval_to_ptr<fp_API>::eval_type pow(const eval_to_ptr<fp_API>::eval_type& base, c
 	return eval_to_ptr<fp_API>::eval_type(new power_fp(base, exponent));
 }
 
-void self_scalBn(std::shared_ptr<fp_API>& src, intmax_t scale)
-{
-	auto working(src);
-	if (2 < working.use_count()) working = std::shared_ptr<fp_API>(working->clone());
-	working->scal_bn(scale);
-	src = working;
-}
-
-void self_scalBn(COW<fp_API>& src, intmax_t scale)
-{
-	src.get()->scal_bn(scale);
-}
+void self_scalBn(COW<fp_API>& src, intmax_t scale) { src->scal_bn(scale); }
 
 }	// namespace zaimoni
 
