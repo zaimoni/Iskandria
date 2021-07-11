@@ -471,6 +471,30 @@ retry:
 	int rearrange_sum(COW<fp_API>& lhs, COW<fp_API>& rhs)
 	{	// we assume we are being called from the zaimoni::sum object.
 		// that is, all of the zero and infinity symbolic processing has already happened.
+		// check for opt-in interface
+retry_l:
+		if (auto l = lhs.get_rw<API_sum<fp_API> >()) {
+			if (!l->first) {
+				lhs = lhs->clone();
+				goto retry_l;
+			}
+			if (const int code = l->first->rearrange_sum(rhs)) return code;
+		}
+
+retry_r:
+		if (auto r = rhs.get_rw<API_sum<fp_API> >()) {
+			if (!r->first) {
+				rhs = rhs->clone();
+				goto retry_r;
+			}
+			switch(const int code = r->first->rearrange_sum(lhs)) {
+			case -1: return 1; // left and right arguments are transposed here
+			case 1: return -1;
+			default: return code; // otherwise, pass through the code unchanged
+			}
+		}
+
+		// these RHS do not implement the opt-in interface
 retry:
 		if (auto r = rhs.get_rw<var_fp<float> >()) {
 			if (!r->first) rhs = std::unique_ptr<std::remove_reference_t<decltype(*(r->second->typed_clone()))> >(r->first = r->second->typed_clone());

@@ -108,7 +108,7 @@ namespace zaimoni {
 	};
 
 	template<class T>
-	struct eval_rearrange_sum
+	struct API_sum
 	{
 		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
 	};
