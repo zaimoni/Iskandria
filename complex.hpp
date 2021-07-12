@@ -52,6 +52,7 @@ public:
 	}
 
 	int rearrange_sum(eval_type& rhs) override;
+	fp_API* eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 
 private:
 	void _scal_bn(intmax_t scale) override;

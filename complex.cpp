@@ -189,5 +189,24 @@ retry:
 	return 0;
 }
 
+fp_API* complex::eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const
+{
+retry:
+	auto src = rhs.get_c();
+	if (auto r = dynamic_cast<const complex*>(src)) {
+		std::unique_ptr<complex> ret(new complex(a + r->a, b + r->b));
+		return ret.release();
+	}
+
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return nullptr;	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		std::unique_ptr<complex> ret(new complex(a + rhs, b));
+		return ret.release();
+	}
+
+	return nullptr;
+}
+
 }
 }

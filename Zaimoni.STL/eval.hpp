@@ -107,12 +107,6 @@ namespace zaimoni {
 		virtual eval_type destructive_eval() = 0;
 	};
 
-	template<class T>
-	struct API_sum
-	{
-		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
-	};
-
 	struct fp_API {	// virtual base
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 
@@ -183,6 +177,13 @@ namespace zaimoni {
 		virtual bool _is_inf() const { throw std::logic_error("must define _is_inf"); }
 		virtual bool _is_finite() const { throw std::logic_error("must define _is_finite"); }
 		virtual std::partial_ordering _value_compare(const fp_API* rhs) const { return std::partial_ordering::unordered; } // stub \todo make abstract
+	};
+
+	template<class T>
+	struct API_sum
+	{
+		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
+		virtual fp_API* eval_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 	};
 
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_, _H_SHARP_, _O_SHARP_

@@ -719,8 +719,11 @@ retry:
 
 	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
+		if (auto l = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c())) return l->eval_sum(rhs);
+
 		auto src = rhs.get_c();
-		if (auto r = dynamic_cast<const var_fp<float>*>(src)) return eval_sum(lhs, ISK_INTERVAL<float>(r->_x));
+		if (auto r = dynamic_cast<const API_sum<fp_API>*>(src)) return r->eval_sum(lhs);
+		else if (auto r = dynamic_cast<const var_fp<float>*>(src)) return eval_sum(lhs, ISK_INTERVAL<float>(r->_x));
 		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(lhs, r->_x);
 		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return eval_sum(lhs, ISK_INTERVAL<double>(r->_x));
 		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(lhs, r->_x);
