@@ -948,13 +948,20 @@ eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& l
 	return eval_to_ptr<fp_API>::eval_type(new quotient(lhs, rhs));
 }
 
+void negate_in_place(eval_to_ptr<fp_API>::eval_type& lhs)
+{
+	if (!zaimoni::math::in_place_negate(lhs)) {
+		std::unique_ptr<symbolic_fp> staging(new symbolic_fp(lhs));
+		staging->self_negate();
+		lhs = staging.release();
+	}
+}
+
 eval_to_ptr<fp_API>::eval_type operator-(const eval_to_ptr<fp_API>::eval_type& lhs)
 {
 	COW<fp_API> ret(lhs);
-	if (zaimoni::math::in_place_negate(ret)) return ret;
-	std::unique_ptr<symbolic_fp> staging(new symbolic_fp(ret));
-	staging->self_negate();
-	return staging.release();
+	negate_in_place(ret);
+	return ret;
 }
 
 COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale) {
