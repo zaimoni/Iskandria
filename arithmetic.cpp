@@ -907,7 +907,8 @@ symbolic_overflow:
 		auto actual = x.get_c()->scal_bn_is_safe(scale);
 		if (0 == actual) return false;
 		try {
-			x.get()->scal_bn(actual);
+			x->scal_bn(actual);
+			scale -= actual;
 			return true;
 		} catch (std::runtime_error& e) {
 			return false;

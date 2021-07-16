@@ -50,8 +50,7 @@ bool symbolic_fp::self_eval() {
 	if (scale_by) {
 		if (!mult_inverted()) {
 			if (zaimoni::math::scal_bn(dest, scale_by)) return true;
-		}
-		else {
+		} else {
 			intmax_t ref_scale = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
 			intmax_t dest_scale = ref_scale;
 			if (zaimoni::math::scal_bn(dest, dest_scale)) {
