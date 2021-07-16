@@ -108,8 +108,8 @@ std::string complex::to_s() const {
 }
 
 void complex::_scal_bn(intmax_t scale) {
-	self_scalBn(a, scale);
-	self_scalBn(b, scale);
+	a->scal_bn(scale);
+	b->scal_bn(scale);
 	heuristics = 0x0F;
 }
 

@@ -165,7 +165,7 @@ bool sum::_is_finite() const {
 }
 
 void sum::_scal_bn(intmax_t scale) {
-	for (auto& x : this->_x) self_scalBn(x, scale);
+	for (auto& x : this->_x) x->scal_bn(scale);
 }
 
 } // namespace zaimoni

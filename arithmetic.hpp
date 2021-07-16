@@ -6,7 +6,6 @@
 namespace zaimoni {
 
 COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale);
-void self_scalBn(COW<fp_API>& src, intmax_t scale);
 
 namespace math {
 

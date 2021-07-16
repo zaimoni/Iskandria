@@ -965,7 +965,7 @@ eval_to_ptr<fp_API>::eval_type operator-(const eval_to_ptr<fp_API>::eval_type& l
 }
 
 COW<fp_API> scalBn(const COW<fp_API>& src, intmax_t scale) {
-	std::unique_ptr<fp_API> ret(src.get_c()->clone());
+	auto ret(src);
 	ret->scal_bn(scale);
 	return ret;
 }
@@ -975,8 +975,6 @@ eval_to_ptr<fp_API>::eval_type pow(const eval_to_ptr<fp_API>::eval_type& base, c
 	// base case
 	return eval_to_ptr<fp_API>::eval_type(new power_fp(base, exponent));
 }
-
-void self_scalBn(COW<fp_API>& src, intmax_t scale) { src->scal_bn(scale); }
 
 }	// namespace zaimoni
 

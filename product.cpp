@@ -138,19 +138,19 @@ void product::_scal_bn(intmax_t scale) {
 		const auto want = x->ideal_scal_bn();
 		if (0 < want && 0 < scale) {
 			const auto _scale = (want < scale) ? want : scale;
-			self_scalBn(x, _scale);
+			x->scal_bn(_scale);
 			if (0 == (scale -= _scale)) return;
 		}
 		else if (0 > want && 0 > scale) {
 			const auto _scale = (want > scale) ? want : scale;
-			self_scalBn(x, _scale);
+			x->scal_bn(_scale);
 			if (0 == (scale -= _scale)) return;
 		}
 	};
 	if (saw_identity) return;	// likely should not be happening
 	for (auto& x : this->_x) {
 		if (const auto legal = x->scal_bn_is_safe(scale)) {
-			self_scalBn(x, legal);
+			x->scal_bn(legal);
 			if (0 == (scale -= legal)) return;
 		}
 	}
