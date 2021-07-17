@@ -114,6 +114,11 @@ namespace zaimoni {
 		virtual T* eval_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 	};
 
+	struct API_addinv
+	{
+		virtual void self_negate() = 0;
+	};
+
 	struct fp_API {	// virtual base
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 

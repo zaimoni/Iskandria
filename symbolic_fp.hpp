@@ -12,7 +12,7 @@ namespace zaimoni {
 	// multiplicative inverse
 	// scal_bn (power of 2 manipulation)
 
-	class symbolic_fp final : public fp_API, public eval_to_ptr<fp_API> {
+	class symbolic_fp final : public fp_API, public eval_to_ptr<fp_API>, public API_addinv {
 		eval_type dest;
 		intmax_t scale_by;
 		uintmax_t bitmap;	// anything smaller incurs padding bytes anyway
@@ -38,7 +38,7 @@ namespace zaimoni {
 		bool add_inverted() const { return bitmap & (1ULL << (int)op::inverse_add); }
 		bool mult_inverted() const { return bitmap & (1ULL << (int)op::inverse_mult); }
 
-		void self_negate();
+		void self_negate() override;
 		bool self_square();
 		const math::type* domain() const override;
 		bool self_eval() override;

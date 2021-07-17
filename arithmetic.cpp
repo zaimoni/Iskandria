@@ -735,6 +735,17 @@ retry:
 	// this must *not* dynamically allocate a symbolic_fp object
 	bool in_place_negate(eval_to_ptr<fp_API>::eval_type& x)
 	{
+		if (auto r = x.get_rw<API_addinv>()) {
+			if (!r->first) {
+				x = std::unique_ptr<fp_API>(x.get_c()->clone());
+				if (!(r = x.get_rw<API_addinv>())) goto retry;
+			}
+			r->first->self_negate();
+//			if (auto test = exec->destructive_eval()) x = test; // legacy
+//			fp_API::algebraic_reduce(x); // desired abstraction
+			return true;
+		}
+
 retry:
 		if (auto r = x.get_rw<var_fp<float> >()) {
 			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
@@ -782,17 +793,6 @@ retry:
 			}
 			auto exec = r->first;
 			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<symbolic_fp>()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<symbolic_fp>();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->self_negate();
-			if (auto test = exec->destructive_eval()) x = test;
 			return true;
 		}
 		return false;

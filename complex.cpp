@@ -204,5 +204,11 @@ retry:
 	return nullptr;
 }
 
+void complex::self_negate()
+{
+	negate_in_place(a);
+	negate_in_place(b);
+}
+
 }
 }
