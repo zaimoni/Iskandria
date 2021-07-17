@@ -11,6 +11,29 @@
 
 namespace zaimoni {
 
+// static converter
+namespace ptr
+{
+	template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) requires requires(const T* x) { x->typed_clone(); } {
+		if (auto r = src.get_rw<T>()) {
+			if (!r->first) src = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+			return r->first;
+		}
+		return nullptr;
+	}
+
+	template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) {
+		if (auto r = src.get_rw<T>()) {
+			if (!r->first) {
+				src = std::unique_ptr<fp_API>(src.get_c()->clone());
+				if (!(r = src.get_rw<T>())) return nullptr;
+			}
+			return r->first;
+		}
+		return nullptr;
+	}
+};
+
 namespace math {
 
 	// rearrange_sum support
@@ -732,66 +755,50 @@ retry:
 		return nullptr;
 	}
 
+	namespace bits {
+		// uintmax_t intentionally omitted
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<API_addinv*,
+			var_fp<float>*,
+			var_fp<ISK_INTERVAL<float> >*,
+			var_fp<double>*,
+			var_fp<ISK_INTERVAL<double> >*,
+			var_fp<long double>*,
+			var_fp<ISK_INTERVAL<long double> >*,
+			var_fp<intmax_t>*
+		> > parse_for_negate(eval_to_ptr<fp_API>::eval_type& src) {
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<double> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<long double> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<intmax_t> >(src)) return x;
+			return std::nullopt;
+		}
+
+		struct in_place_negate
+		{
+			eval_to_ptr<fp_API>::eval_type& src; // non-copyable isn't an issue
+
+			in_place_negate(eval_to_ptr<fp_API>::eval_type& src) : src(src) {}
+
+			void operator()(API_addinv* x) {
+				x->self_negate();
+				while (fp_API::algebraic_reduce(src));
+			}
+
+			void operator()(var_fp<intmax_t>* x) { x->_x = -x->_x; }
+			template<std::floating_point F> void operator()(var_fp<F>* x) { x->_x = -x->_x; }
+			template<std::floating_point F> void operator()(var_fp<ISK_INTERVAL<F> >* x) { x->_x = -x->_x; }
+		};
+	}
+
 	// this must *not* dynamically allocate a symbolic_fp object
 	bool in_place_negate(eval_to_ptr<fp_API>::eval_type& x)
 	{
-		if (auto r = x.get_rw<API_addinv>()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(x.get_c()->clone());
-				if (!(r = x.get_rw<API_addinv>())) goto retry;
-			}
-			r->first->self_negate();
-			while(fp_API::algebraic_reduce(x));
-			return true;
-		}
-
-retry:
-		if (auto r = x.get_rw<var_fp<float> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<float> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<float> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<double> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<double> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<double> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<long double> >()) {
-			if (!r->first) x = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			auto exec = r->first;
-			exec->_x = -exec->_x;
-			return true;
-		}
-		if (auto r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >()) {
-			if (!r->first) {
-				x = std::unique_ptr<fp_API>(r->second->clone());
-				r = x.get_rw<var_fp<ISK_INTERVAL<long double> > >();
-				if (!r) goto retry;
-			}
-			auto exec = r->first;
-			exec->_x = -exec->_x;
+		if (auto test = bits::parse_for_negate(x)) {
+			std::visit(bits::in_place_negate(x), *test);
 			return true;
 		}
 		return false;
