@@ -741,8 +741,7 @@ retry:
 				if (!(r = x.get_rw<API_addinv>())) goto retry;
 			}
 			r->first->self_negate();
-//			if (auto test = exec->destructive_eval()) x = test; // legacy
-//			fp_API::algebraic_reduce(x); // desired abstraction
+			while(fp_API::algebraic_reduce(x));
 			return true;
 		}
 

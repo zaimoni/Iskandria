@@ -145,6 +145,19 @@ namespace zaimoni {
 			return false;
 		}
 
+		static bool algebraic_reduce(eval_to_ptr<fp_API>::eval_type& dest) {
+			if (auto efficient = dest.get_rw<eval_to_ptr<fp_API> >()) {
+				if (!efficient->first) efficient->first = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get());
+				if (efficient->first) {
+					if (auto result = efficient->first->destructive_eval()) {
+						dest = result;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
 		// numerical support -- these have coordinate-wise definitions available
 		// we do not propagate NaN so no test here for it
 		virtual bool is_inf() const {
