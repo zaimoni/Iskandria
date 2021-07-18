@@ -767,6 +767,7 @@ retry:
 			var_fp<ISK_INTERVAL<long double> >*,
 			var_fp<intmax_t>*
 		> > parse_for_negate(eval_to_ptr<fp_API>::eval_type& src) {
+			if (auto x = ptr::writeable<API_addinv>(src)) return x;
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(src)) return x;
