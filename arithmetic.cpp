@@ -636,15 +636,53 @@ retry:
 		return std::numeric_limits<long double>::max_exponent - test.exponent();
 	}
 
+	namespace parse_for {
+		// uintmax_t intentionally omitted
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*
+		> > sum_score(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<long double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
+	namespace score {
+		struct sum
+		{
+			template<std::floating_point F> int operator()(const ISK_INTERVAL<F>& x)
+			{
+				fp_stats<F> test_l(x.lower());
+				fp_stats<F> test_r(x.upper());
+				return std::numeric_limits<long double>::max_exponent - (test_l.exponent() < test_r.exponent() ? test_l.exponent() : test_r.exponent());
+			}
+
+			template<std::floating_point F> int operator()(const F& x)
+			{
+				fp_stats<F> test(x);
+				return std::numeric_limits<long double>::max_exponent - test.exponent();
+			}
+
+			template<class T> int operator()(const var_fp<T>* x) /* requires requires() { operator()(x->_x); } */ // 2021-07-18 this requires clause stops the build on MSVC++
+			{
+				return operator()(x->_x);
+			}
+		};
+	}
+
 	int sum_score(const COW<fp_API>& lhs)
 	{
-		auto src = lhs.get_c();
-		if (auto l = dynamic_cast<const var_fp<float>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<const var_fp<double>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<const var_fp<long double>*>(src)) return sum_score(l->_x);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(l->_x);
+		if (auto test = parse_for::sum_score(lhs)) return std::visit(score::sum(), *test);
 		return std::numeric_limits<int>::min();
 	}
 
@@ -660,33 +698,12 @@ retry:
 		return std::numeric_limits<int>::min();
 	}
 
-	template<std::floating_point F> int sum_score(const COW<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
-			const int r_score = sum_score(rhs);
-			return l_score < r_score ? l_score : r_score;
-		}
-		return std::numeric_limits<int>::min();
-	}
-
-	template<std::floating_point F> int sum_score(const COW<fp_API>& lhs, const F& rhs)
-	{
-		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
-			const int r_score = sum_score(rhs);
-			return l_score < r_score ? l_score : r_score;
-		}
-		return std::numeric_limits<int>::min();
-	}
-
 	int sum_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
-		auto src = rhs.get_c();
-		if (auto r = dynamic_cast<const var_fp<float>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<long double>*>(src)) return sum_score(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(lhs, r->_x);
+		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
+			const int r_score = sum_score(rhs);
+			return l_score < r_score ? l_score : r_score;
+		}
 		return std::numeric_limits<int>::min();
 	}
 
