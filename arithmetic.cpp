@@ -755,7 +755,7 @@ retry:
 		return nullptr;
 	}
 
-	namespace bits {
+	namespace parse_for {
 		// uintmax_t intentionally omitted
 		// typed_clone destinations must be tested after anything that could clone to them
 		std::optional<std::variant<API_addinv*,
@@ -766,7 +766,7 @@ retry:
 			var_fp<long double>*,
 			var_fp<ISK_INTERVAL<long double> >*,
 			var_fp<intmax_t>*
-		> > parse_for_negate(eval_to_ptr<fp_API>::eval_type& src) {
+		> > negate(eval_to_ptr<fp_API>::eval_type& src) {
 			if (auto x = ptr::writeable<API_addinv>(src)) return x;
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
@@ -777,12 +777,14 @@ retry:
 			if (auto x = ptr::writeable<var_fp<intmax_t> >(src)) return x;
 			return std::nullopt;
 		}
+	}
 
-		struct in_place_negate
+	namespace in_place {
+		struct negate
 		{
 			eval_to_ptr<fp_API>::eval_type& src; // non-copyable isn't an issue
 
-			in_place_negate(eval_to_ptr<fp_API>::eval_type& src) : src(src) {}
+			negate(eval_to_ptr<fp_API>::eval_type& src) : src(src) {}
 
 			void operator()(API_addinv* x) {
 				x->self_negate();
@@ -798,8 +800,8 @@ retry:
 	// this must *not* dynamically allocate a symbolic_fp object
 	bool in_place_negate(eval_to_ptr<fp_API>::eval_type& x)
 	{
-		if (auto test = bits::parse_for_negate(x)) {
-			std::visit(bits::in_place_negate(x), *test);
+		if (auto test = parse_for::negate(x)) {
+			std::visit(in_place::negate(x), *test);
 			return true;
 		}
 		return false;
