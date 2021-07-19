@@ -410,16 +410,16 @@ final_exit:
 		}
 	}
 
-	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+		int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
-		return rearrange_sum(reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
+		return rearrange_sum(reinterpret_cast<ISK_INTERVAL<F2>&>(lhs), rhs);
 	}
 
-	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-	int rearrange_sum(ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, ISK_INTERVAL<F>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+		int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 	{
-		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
+		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<F>&>(rhs));
 	}
 
 	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, F& rhs)
