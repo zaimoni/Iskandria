@@ -488,28 +488,28 @@ final_exit:
 		return nullptr;
 	}
 
-	template<std::floating_point F, std::floating_point F2>
-	std::enable_if_t<(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
+	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
 		return eval_quotient(ISK_INTERVAL<F2>(n), d);
 	}
 
-	template<std::floating_point F, std::floating_point F2>
-	std::enable_if_t<(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+	template<std::floating_point F, std::floating_point F2> requires (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
+	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
 		return eval_quotient(n, ISK_INTERVAL<F>(d));
 	}
 
-	template<std::floating_point F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>, fp_API*> eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& d)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
-		return eval_quotient(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(n), d);
+		return eval_quotient(reinterpret_cast<const ISK_INTERVAL<F2>&>(n), d);
 	}
 
-	template<std::floating_point F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>, fp_API*> eval_quotient(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& n, const ISK_INTERVAL<F>& d)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
 	{
-		return eval_quotient(n, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(d));
+		return eval_quotient(n, reinterpret_cast<const ISK_INTERVAL<F>&>(d));
 	}
 
 	template<std::floating_point F> fp_API* eval_quotient(const COW<fp_API>& n, const ISK_INTERVAL<F>& d)
