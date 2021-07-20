@@ -36,169 +36,6 @@ namespace ptr
 
 namespace math {
 
-	// rearrange_sum support
-	template<std::floating_point F> int rearrange_sum(F& lhs, F& rhs)
-	{
-		int ret = 0;
-
-		int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs) };
-		assert(FP_NAN != fp_type[0]);
-		assert(FP_NAN != fp_type[1]);
-		assert(FP_INFINITE != fp_type[0]);
-		assert(FP_INFINITE != fp_type[1]);
-		if (FP_ZERO == fp_type[0]) return -1;	// should have intercepted earlier but we know what to do with these
-		if (FP_ZERO == fp_type[1]) return 1;
-
-		bool l_negative = std::signbit(lhs);
-		bool same_sign = (std::signbit(rhs) == l_negative);
-
-		if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
-			// double-denormal; requires that two types be the same
-			if (!same_sign) {
-resolve_exact_now:
-				F tmp = lhs + rhs;
-				if (0 == tmp) {
-					// mutual annihilation
-					lhs = 0;
-					rhs = 0;
-					return -2;
-				}
-				if (std::signbit(tmp) == l_negative) {
-					lhs = tmp;
-					rhs = 0;
-					return 1;
-				}
-				lhs = 0;
-				rhs = tmp;
-				return -1;
-			}
-			F anchor = l_negative ? -std::numeric_limits<F>::min() : std::numeric_limits<F>::min();
-			F reference = anchor - lhs;
-			if (l_negative ? (reference <= rhs) : (reference >= rhs)) {
-				// still denormal, proceed
-				rhs += lhs;
-				lhs = 0;
-				return -1;
-			}
-			// negate the anchor, then use it.
-			reference = -anchor;
-			reference += rhs;
-			lhs += reference;	// should not be zero as that would be "above"
-			rhs = anchor;
-			return 2;
-		}
-
-		// we don't handle infinity or NaN here
-		fp_stats<F> l_stat(lhs);
-		assert(std::numeric_limits<F>::max_exponent >= l_stat.exponent());
-		assert((std::numeric_limits<F>::min_exponent > l_stat.exponent()) == (FP_SUBNORMAL == fp_type[0]));
-		fp_stats<F> r_stat(rhs);
-		assert(std::numeric_limits<F>::max_exponent >= r_stat.exponent());
-		assert((std::numeric_limits<F>::min_exponent > r_stat.exponent()) == (FP_SUBNORMAL == fp_type[1]));
-
-		if (   (std::numeric_limits<F>::min_exponent == l_stat.exponent() || FP_SUBNORMAL == fp_type[0])
-			&& (std::numeric_limits<F>::min_exponent == r_stat.exponent() || FP_SUBNORMAL == fp_type[1])
-			&& !same_sign)
-			goto resolve_exact_now;
-
-		if (r_stat.exponent() > l_stat.exponent()) {	// doesn't work for different types
-			swap(fp_type[0], fp_type[1]);
-			swap(l_stat,r_stat);
-			swap(lhs, rhs);
-			l_negative = std::signbit(lhs);
-		}
-restart:
-		const int exponent_delta = l_stat.exponent() - (FP_SUBNORMAL == fp_type[1] ? std::numeric_limits<F>::min_exponent : r_stat.exponent());
-		if (0 == exponent_delta) {	// depends on two types being same
-			if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
-			else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
-			else {	// sum may be overprecise
-				auto l_test = mantissa_bitcount(l_stat.mantissa());
-				auto r_test = mantissa_bitcount(r_stat.mantissa());
-				if ((std::numeric_limits<F>::digits<l_test) == (std::numeric_limits<F>::digits < r_test)) {
-					// direct addition ok
-					lhs += rhs;
-					rhs = 0;
-					return 1;
-				}
-
-				F bias = l_stat.delta(0);
-				F anchor = (l_stat.mantissa() - bias) + (r_stat.mantissa() - bias);
-
-				lhs = std::scalbn(bias, l_stat.exponent() + 1);
-				rhs = std::scalbn(anchor, l_stat.exponent());
-				ret = 2;
-				l_stat = lhs;
-				r_stat = rhs;
-				goto restart;
-			}
-		}
-
-		if (std::numeric_limits<F>::digits < exponent_delta) return ret;
-
-		F delta = r_stat.delta(r_stat.exponent());
-
-		if (same_sign) {
-			const auto lhs_safe(l_stat.safe_add_exponents());
-			if (lhs_safe.second < r_stat.exponent()) delta = r_stat.delta(lhs_safe.second);
-		}
-
-		// controlled subtractive cancellation.
-		if (delta_cancel(lhs,rhs,delta)) return 1;
-		l_stat = lhs;
-		r_stat = rhs;
-		ret = 2;
-		goto restart;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
-	int rearrange_sum(F& lhs, F2& rhs)
-	{
-		FATAL("need to implement");
-		return 0;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
-	int rearrange_sum(F& lhs, F2& rhs)
-	{
-		int ret = rearrange_sum(rhs, lhs);
-		switch (ret)
-		{
-		case 1: return -1;
-		case -1: return 1;
-		default: return ret;
-		}
-	}
-
-	// CLang: sizeof(long double)==sizeof(double)
-	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-	int rearrange_sum(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
-	{
-		return rearrange_sum(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
-	}
-
-	template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-	int rearrange_sum(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
-	{
-		return rearrange_sum(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
-	}
-
-	template<std::floating_point F, std::floating_point F2> int rearrange_sum(F& lhs, ISK_INTERVAL<F2>& rhs)
-	{
-		FATAL("need to implement");
-		return 0;
-	}
-
-	template<std::floating_point F, std::floating_point F2> int rearrange_sum(ISK_INTERVAL<F>& lhs, F2& rhs)
-	{
-		switch (int ret = rearrange_sum(rhs, lhs))
-		{
-		case 1: return -1;
-		case -1: return 1;
-		default: return ret;
-		}
-	}
-
 	template<class T>
 	void self_intersect(std::pair<T, T>& lhs, const std::pair<T, T>& rhs)	// prototype
 	{
@@ -206,242 +43,411 @@ restart:
 		if (lhs.second > rhs.second) lhs.second = rhs.second;
 	}
 
-	template<std::floating_point F> int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
-	{
-		F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
+	// rearrange_sum support
+	namespace _rearrange {
+		struct sum {
+			template<std::floating_point F> int operator()(F& lhs, F& rhs)
+			{
+				int ret = 0;
 
-		// coordinate-wise rearrange_sum (failover, does not completely work)
-		// legal values: -2...2
-		const int l_code = rearrange_sum(working[0], working[2]);
-		const int u_code = rearrange_sum(working[1], working[3]);
-		assert(-2 <= l_code && 2 >= l_code);
-		assert(-2 <= u_code && 2 >= u_code);
-		if (0 == l_code && 0 == u_code) return 0;
-		const int CRM_code = 5 * l_code + u_code;
-		int ret = 0;
-		switch (CRM_code)
-		{
-		case 0: return 0;	// no change
-		case 5 * -2 - 2: FATAL("unexpected double-cancellation of upper and lower bounds");
-		case 5 * -2 - 1:
-			assert(0 < working[3]);
-			lhs = F(0);
-			rhs.assign(F(0), working[3]);
-			return -1;
-		case 5 * -2 + 1:
-			assert(0 < working[1]);
-			lhs = F(0);
-			rhs.assign(F(0), working[1]);
-			return -1;
-		case 5 * -2 + 0:
-		case 5 * -2 + 2:
-			assert(0 < working[1] || 0 < working[3]);
-			if (0 > working[1] || 0 > working[3]) {
-				ret = -3;
-				break;	// not normalizable (possibly should error out)
-			}
-			lhs.assign(F(0), working[1]);
-			rhs.assign(F(0), working[3]);
-			return 2;
+				int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs) };
+				assert(FP_NAN != fp_type[0]);
+				assert(FP_NAN != fp_type[1]);
+				assert(FP_INFINITE != fp_type[0]);
+				assert(FP_INFINITE != fp_type[1]);
+				if (FP_ZERO == fp_type[0]) return -1;	// should have intercepted earlier but we know what to do with these
+				if (FP_ZERO == fp_type[1]) return 1;
 
-		case 5 * -1 - 2:
-			assert(0 > working[2]);
-			lhs = F(0);
-			rhs.assign(working[2], F(0));
-			return -1;
-		case 5 * 1 + -2:
-			assert(0 > working[0]);
-			lhs = F(0);
-			rhs.assign(F(0), working[0]);
-			return -1;
-		case 5 * 0 - 2:
-		case 5 * 2 - 2:
-			assert(0 > working[0] || 0 > working[2]);
-			if (0 < working[0] || 0 < working[2]) {
-				ret = -3;
-				break;	// not normalizable (possibly should error out)
-			}
-			lhs.assign(working[0], F(0));
-			rhs.assign(working[2], F(0));
-			return 2;
+				bool l_negative = std::signbit(lhs);
+				bool same_sign = (std::signbit(rhs) == l_negative);
 
-		case 5 * -1 - 1:
-			assert(working[2] <= working[3]);
-			lhs = F(0);
-			rhs.assign(working[2], working[3]);
-			return -1;
-		case 5 * -1 + 1:
-			assert(working[2] <= working[1]);
-			lhs = F(0);
-			rhs.assign(working[2], working[1]);
-			return -1;
-		case 5 * 1 - 1:
-			assert(working[0] <= working[3]);
-			lhs = F(0);
-			rhs.assign(working[0], working[3]);
-			return -1;
-		case 5 * 1 + 1:
-			assert(working[0] <= working[1]);
-			lhs = F(0);
-			rhs.assign(working[0], working[1]);
-			return -1;
-
-		default:
-			if (working[0] > working[1]) {
-				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
-				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
-				else {
-					ret = -3;
-					break;	// not normalizable (possibly should error out)
+				if (FP_SUBNORMAL == fp_type[0] && FP_SUBNORMAL == fp_type[1]) {
+					// double-denormal; requires that two types be the same
+					if (!same_sign) {
+					resolve_exact_now:
+						F tmp = lhs + rhs;
+						if (0 == tmp) {
+							// mutual annihilation
+							lhs = 0;
+							rhs = 0;
+							return -2;
+						}
+						if (std::signbit(tmp) == l_negative) {
+							lhs = tmp;
+							rhs = 0;
+							return 1;
+						}
+						lhs = 0;
+						rhs = tmp;
+						return -1;
+					}
+					F anchor = l_negative ? -std::numeric_limits<F>::min() : std::numeric_limits<F>::min();
+					F reference = anchor - lhs;
+					if (l_negative ? (reference <= rhs) : (reference >= rhs)) {
+						// still denormal, proceed
+						rhs += lhs;
+						lhs = 0;
+						return -1;
+					}
+					// negate the anchor, then use it.
+					reference = -anchor;
+					reference += rhs;
+					lhs += reference;	// should not be zero as that would be "above"
+					rhs = anchor;
+					return 2;
 				}
-			}
-			else if (working[2] > working[3]) {
-				if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
-				else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
-				else {
-					ret = -3;
-					break;	// not normalizable (possibly should error out)
-				}
-			}
-			ret = 2;
-			break;
-		}
-		if (-3 == ret) {	// results of rearrange_sum were non-normalizable, re-initialize
-			working[0] = lhs.lower();
-			working[1] = lhs.upper();
-			working[2] = rhs.lower();
-			working[3] = rhs.upper();
-			ret = 0;
-		}
-		// version of fp_stats for intervals would make sense here
-restart:
-		fp_stats<F> stats[4] = { fp_stats<F>(working[0]), fp_stats<F>(working[1]),  fp_stats<F>(working[2]),  fp_stats<F>(working[3]) };
-		// \todo try to get at least one of the two pairs "very close" in endpoints
 
-		if (0 < working[0] && 0 < working[2]) {
-			const int upper_parity = (working[1] <= working[3]) ? 1 : -1;
-			auto safe_add_exponent = stats[2+upper_parity].safe_add_exponents();
-			self_intersect(safe_add_exponent, stats[1 + upper_parity].safe_add_exponents());
-			if (safe_add_exponent.first <= safe_add_exponent.second) {
-				auto safe_subtract_exponent = stats[2 - upper_parity].safe_subtract_exponents();
-				self_intersect(safe_subtract_exponent, stats[1 - upper_parity].safe_subtract_exponents());
-				if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
-					self_intersect(safe_add_exponent, safe_subtract_exponent);
-					if (safe_add_exponent.first <= safe_add_exponent.second) {
-						F delta = stats[2 + upper_parity].delta(safe_add_exponent.second);
+				// we don't handle infinity or NaN here
+				fp_stats<F> l_stat(lhs);
+				assert(std::numeric_limits<F>::max_exponent >= l_stat.exponent());
+				assert((std::numeric_limits<F>::min_exponent > l_stat.exponent()) == (FP_SUBNORMAL == fp_type[0]));
+				fp_stats<F> r_stat(rhs);
+				assert(std::numeric_limits<F>::max_exponent >= r_stat.exponent());
+				assert((std::numeric_limits<F>::min_exponent > r_stat.exponent()) == (FP_SUBNORMAL == fp_type[1]));
+
+				if ((std::numeric_limits<F>::min_exponent == l_stat.exponent() || FP_SUBNORMAL == fp_type[0])
+					&& (std::numeric_limits<F>::min_exponent == r_stat.exponent() || FP_SUBNORMAL == fp_type[1])
+					&& !same_sign)
+					goto resolve_exact_now;
+
+				if (r_stat.exponent() > l_stat.exponent()) {	// doesn't work for different types
+					swap(fp_type[0], fp_type[1]);
+					swap(l_stat, r_stat);
+					swap(lhs, rhs);
+					l_negative = std::signbit(lhs);
+				}
+			restart:
+				const int exponent_delta = l_stat.exponent() - (FP_SUBNORMAL == fp_type[1] ? std::numeric_limits<F>::min_exponent : r_stat.exponent());
+				if (0 == exponent_delta) {	// depends on two types being same
+					if (!same_sign) goto resolve_exact_now;		// proceed (subtractive cancellation ok at this point)
+					else if (std::numeric_limits<F>::max_exponent == l_stat.exponent()) return 0; // overflow imminent
+					else {	// sum may be overprecise
+						auto l_test = mantissa_bitcount(l_stat.mantissa());
+						auto r_test = mantissa_bitcount(r_stat.mantissa());
+						if ((std::numeric_limits<F>::digits < l_test) == (std::numeric_limits<F>::digits < r_test)) {
+							// direct addition ok
+							lhs += rhs;
+							rhs = 0;
+							return 1;
+						}
+
+						F bias = l_stat.delta(0);
+						F anchor = (l_stat.mantissa() - bias) + (r_stat.mantissa() - bias);
+
+						lhs = std::scalbn(bias, l_stat.exponent() + 1);
+						rhs = std::scalbn(anchor, l_stat.exponent());
 						ret = 2;
-						bool lower_cancel = delta_cancel(working[1 + upper_parity], working[1 - upper_parity], delta);
-						bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], delta);
-						if (lower_cancel || upper_cancel) goto final_exit;
+						l_stat = lhs;
+						r_stat = rhs;
 						goto restart;
 					}
-					if (stats[1 + upper_parity].exponent() == stats[2 + upper_parity].exponent()) {
-						int test = stats[2 + upper_parity].exponent() - std::numeric_limits<F>::digits;
-						if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic");
-					}
+				}
+
+				if (std::numeric_limits<F>::digits < exponent_delta) return ret;
+
+				F delta = r_stat.delta(r_stat.exponent());
+
+				if (same_sign) {
+					const auto lhs_safe(l_stat.safe_add_exponents());
+					if (lhs_safe.second < r_stat.exponent()) delta = r_stat.delta(lhs_safe.second);
+				}
+
+				// controlled subtractive cancellation.
+				if (delta_cancel(lhs, rhs, delta)) return 1;
+				l_stat = lhs;
+				r_stat = rhs;
+				ret = 2;
+				goto restart;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				int ret = operator()(rhs, lhs);
+				switch (ret)
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
 				}
 			}
-			// retry, but independently: upper bound first
-			safe_add_exponent = stats[2 + upper_parity].safe_add_exponents();
-			self_intersect(safe_add_exponent, stats[2 - upper_parity].safe_add_exponents());
+
+			// CLang: sizeof(long double)==sizeof(double)
+			template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+				int operator()(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
 			{
-				const F backup[2] = { working[2 - upper_parity], working[2 + upper_parity] };
-				while (safe_add_exponent.first <= safe_add_exponent.second) {
-					const bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], stats[2 + upper_parity].delta(safe_add_exponent.second));
-					if (working[1 - upper_parity] > working[2 - upper_parity]) {
-						// denormalized: retry
-						working[2 - upper_parity] = backup[0];
-						working[2 + upper_parity] = backup[1];
-						safe_add_exponent.second--;
-						continue;
+				return operator()(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
+			}
+
+			template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
+				int operator()(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(ISK_INTERVAL<F>& lhs, F2& rhs)
+			{
+				switch (int ret = operator()(rhs, lhs))
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
+			}
+
+			template<std::floating_point F> int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
+			{
+				F working[4] = { lhs.lower(),lhs.upper(),rhs.lower(),rhs.upper() };
+
+				// coordinate-wise rearrange_sum (failover, does not completely work)
+				// legal values: -2...2
+				const int l_code = operator()(working[0], working[2]);
+				const int u_code = operator()(working[1], working[3]);
+				assert(-2 <= l_code && 2 >= l_code);
+				assert(-2 <= u_code && 2 >= u_code);
+				if (0 == l_code && 0 == u_code) return 0;
+				const int CRM_code = 5 * l_code + u_code;
+				int ret = 0;
+				switch (CRM_code)
+				{
+				case 0: return 0;	// no change
+				case 5 * -2 - 2: FATAL("unexpected double-cancellation of upper and lower bounds");
+				case 5 * -2 - 1:
+					assert(0 < working[3]);
+					lhs = F(0);
+					rhs.assign(F(0), working[3]);
+					return -1;
+				case 5 * -2 + 1:
+					assert(0 < working[1]);
+					lhs = F(0);
+					rhs.assign(F(0), working[1]);
+					return -1;
+				case 5 * -2 + 0:
+				case 5 * -2 + 2:
+					assert(0 < working[1] || 0 < working[3]);
+					if (0 > working[1] || 0 > working[3]) {
+						ret = -3;
+						break;	// not normalizable (possibly should error out)
+					}
+					lhs.assign(F(0), working[1]);
+					rhs.assign(F(0), working[3]);
+					return 2;
+
+				case 5 * -1 - 2:
+					assert(0 > working[2]);
+					lhs = F(0);
+					rhs.assign(working[2], F(0));
+					return -1;
+				case 5 * 1 + -2:
+					assert(0 > working[0]);
+					lhs = F(0);
+					rhs.assign(F(0), working[0]);
+					return -1;
+				case 5 * 0 - 2:
+				case 5 * 2 - 2:
+					assert(0 > working[0] || 0 > working[2]);
+					if (0 < working[0] || 0 < working[2]) {
+						ret = -3;
+						break;	// not normalizable (possibly should error out)
+					}
+					lhs.assign(working[0], F(0));
+					rhs.assign(working[2], F(0));
+					return 2;
+
+				case 5 * -1 - 1:
+					assert(working[2] <= working[3]);
+					lhs = F(0);
+					rhs.assign(working[2], working[3]);
+					return -1;
+				case 5 * -1 + 1:
+					assert(working[2] <= working[1]);
+					lhs = F(0);
+					rhs.assign(working[2], working[1]);
+					return -1;
+				case 5 * 1 - 1:
+					assert(working[0] <= working[3]);
+					lhs = F(0);
+					rhs.assign(working[0], working[3]);
+					return -1;
+				case 5 * 1 + 1:
+					assert(working[0] <= working[1]);
+					lhs = F(0);
+					rhs.assign(working[0], working[1]);
+					return -1;
+
+				default:
+					if (working[0] > working[1]) {
+						if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
+						else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
+						else {
+							ret = -3;
+							break;	// not normalizable (possibly should error out)
+						}
+					}
+					else if (working[2] > working[3]) {
+						if (working[2] <= working[1] && working[0] <= working[3]) swap(working[0], working[2]);
+						else if (working[0] <= working[3] && working[2] <= working[1]) swap(working[1], working[3]);
+						else {
+							ret = -3;
+							break;	// not normalizable (possibly should error out)
+						}
 					}
 					ret = 2;
-					if (upper_cancel) break;
-					goto restart;
+					break;
 				}
-			}
+				if (-3 == ret) {	// results of rearrange_sum were non-normalizable, re-initialize
+					working[0] = lhs.lower();
+					working[1] = lhs.upper();
+					working[2] = rhs.lower();
+					working[3] = rhs.upper();
+					ret = 0;
+				}
+				// version of fp_stats for intervals would make sense here
+			restart:
+				fp_stats<F> stats[4] = { fp_stats<F>(working[0]), fp_stats<F>(working[1]),  fp_stats<F>(working[2]),  fp_stats<F>(working[3]) };
+				// \todo try to get at least one of the two pairs "very close" in endpoints
 
-			const int lower_parity = (working[0] <= working[2]) ? 1 : -1;
-			safe_add_exponent = stats[1 + lower_parity].safe_add_exponents();
-			self_intersect(safe_add_exponent, stats[1 - lower_parity].safe_add_exponents());
-			{
-				const F backup[2] = { working[1 - lower_parity], working[1 + lower_parity] };
-				while (safe_add_exponent.first <= safe_add_exponent.second) {
-					const bool upper_cancel = delta_cancel(working[1 + lower_parity], working[1 - lower_parity], stats[1 + lower_parity].delta(safe_add_exponent.second));
-					if (working[1 - lower_parity] > working[2 - lower_parity]) {
-						// denormalized: retry
-						working[1 - lower_parity] = backup[0];
-						working[1 + lower_parity] = backup[1];
-						safe_add_exponent.second--;
-						continue;
+				if (0 < working[0] && 0 < working[2]) {
+					const int upper_parity = (working[1] <= working[3]) ? 1 : -1;
+					auto safe_add_exponent = stats[2 + upper_parity].safe_add_exponents();
+					self_intersect(safe_add_exponent, stats[1 + upper_parity].safe_add_exponents());
+					if (safe_add_exponent.first <= safe_add_exponent.second) {
+						auto safe_subtract_exponent = stats[2 - upper_parity].safe_subtract_exponents();
+						self_intersect(safe_subtract_exponent, stats[1 - upper_parity].safe_subtract_exponents());
+						if (safe_subtract_exponent.first <= safe_subtract_exponent.second) {
+							self_intersect(safe_add_exponent, safe_subtract_exponent);
+							if (safe_add_exponent.first <= safe_add_exponent.second) {
+								F delta = stats[2 + upper_parity].delta(safe_add_exponent.second);
+								ret = 2;
+								bool lower_cancel = delta_cancel(working[1 + upper_parity], working[1 - upper_parity], delta);
+								bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], delta);
+								if (lower_cancel || upper_cancel) goto final_exit;
+								goto restart;
+							}
+							if (stats[1 + upper_parity].exponent() == stats[2 + upper_parity].exponent()) {
+								int test = stats[2 + upper_parity].exponent() - std::numeric_limits<F>::digits;
+								if (safe_subtract_exponent.first <= test && safe_subtract_exponent.second >= test) FATAL("need trailing-bit kill heuristic");
+							}
+						}
 					}
-					ret = 2;
-					if (upper_cancel) break;
-					goto restart;
+					// retry, but independently: upper bound first
+					safe_add_exponent = stats[2 + upper_parity].safe_add_exponents();
+					self_intersect(safe_add_exponent, stats[2 - upper_parity].safe_add_exponents());
+					{
+						const F backup[2] = { working[2 - upper_parity], working[2 + upper_parity] };
+						while (safe_add_exponent.first <= safe_add_exponent.second) {
+							const bool upper_cancel = delta_cancel(working[2 + upper_parity], working[2 - upper_parity], stats[2 + upper_parity].delta(safe_add_exponent.second));
+							if (working[1 - upper_parity] > working[2 - upper_parity]) {
+								// denormalized: retry
+								working[2 - upper_parity] = backup[0];
+								working[2 + upper_parity] = backup[1];
+								safe_add_exponent.second--;
+								continue;
+							}
+							ret = 2;
+							if (upper_cancel) break;
+							goto restart;
+						}
+					}
+
+					const int lower_parity = (working[0] <= working[2]) ? 1 : -1;
+					safe_add_exponent = stats[1 + lower_parity].safe_add_exponents();
+					self_intersect(safe_add_exponent, stats[1 - lower_parity].safe_add_exponents());
+					{
+						const F backup[2] = { working[1 - lower_parity], working[1 + lower_parity] };
+						while (safe_add_exponent.first <= safe_add_exponent.second) {
+							const bool upper_cancel = delta_cancel(working[1 + lower_parity], working[1 - lower_parity], stats[1 + lower_parity].delta(safe_add_exponent.second));
+							if (working[1 - lower_parity] > working[2 - lower_parity]) {
+								// denormalized: retry
+								working[1 - lower_parity] = backup[0];
+								working[1 + lower_parity] = backup[1];
+								safe_add_exponent.second--;
+								continue;
+							}
+							ret = 2;
+							if (upper_cancel) break;
+							goto restart;
+						}
+					}
+					goto final_exit;
+				}
+				if (0 > working[1] && 0 > working[2]) FATAL("need to mirror interval-arithmetic double-positive block for double-negative");
+
+			final_exit:
+				if (2 == ret) {
+					lhs.assign(working[0], working[1]);
+					rhs.assign(working[2], working[3]);
+				}
+				return ret;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				switch (int ret = operator()(rhs, lhs))
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
 				}
 			}
-			goto final_exit;
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(reinterpret_cast<ISK_INTERVAL<F2>&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<ISK_INTERVAL<F>&>(rhs));
+			}
+
+			template<class F, class F2> int operator()(var_fp<F>* lhs, var_fp<F2>* rhs) {
+				return operator()(lhs->_x, rhs->_x);
+			}
+		};
+	}
+
+	namespace parse_for {
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<var_fp<float>*,
+			var_fp<ISK_INTERVAL<float> >*,
+			var_fp<double>*,
+			var_fp<ISK_INTERVAL<double> >*,
+			var_fp<long double>*,
+			var_fp<ISK_INTERVAL<long double> >*
+		> > rearrange_sum(eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<double> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<long double> >(src)) return x;
+			return std::nullopt;
 		}
-		if (0 > working[1] && 0 > working[2]) FATAL("need to mirror interval-arithmetic double-positive block for double-negative");
-
-final_exit:
-		if (2 == ret) {
-			lhs.assign(working[0], working[1]);
-			rhs.assign(working[2], working[3]);
-		}
-		return ret;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
-	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
-	{
-		FATAL("need to implement");
-		return 0;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
-	int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
-	{
-		switch (int ret = rearrange_sum(rhs, lhs))
-		{
-		case 1: return -1;
-		case -1: return 1;
-		default: return ret;
-		}
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
-		int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
-	{
-		return rearrange_sum(reinterpret_cast<ISK_INTERVAL<F2>&>(lhs), rhs);
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
-		int rearrange_sum(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
-	{
-		return rearrange_sum(lhs, reinterpret_cast<ISK_INTERVAL<F>&>(rhs));
-	}
-
-	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, F& rhs)
-	{
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<float> >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<double> >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<long double> >(lhs)) return rearrange_sum(l->_x, rhs);
-		return 0;
-	}
-
-	template<std::floating_point F> int rearrange_sum(COW<fp_API>& lhs, ISK_INTERVAL<F>& rhs)
-	{
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<float> >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<double> >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(lhs)) return rearrange_sum(l->_x, rhs);
-		if (auto l = ptr::writeable<var_fp<long double> >(lhs)) return rearrange_sum(l->_x, rhs);
-		return 0;
 	}
 
 	int rearrange_sum(COW<fp_API>& lhs, COW<fp_API>& rhs)
@@ -460,14 +466,9 @@ final_exit:
 			}
 		}
 
-		// 2021-07-19: big-bang to std::visit did not work out
-		// these RHS do not implement the opt-in interface
-		if (auto r = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(rhs)) return rearrange_sum(lhs, r->_x);
-		if (auto r = ptr::writeable<var_fp<float> >(rhs)) return rearrange_sum(lhs, r->_x);
-		if (auto r = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(rhs)) return rearrange_sum(lhs, r->_x);
-		if (auto r = ptr::writeable<var_fp<double> >(rhs)) return rearrange_sum(lhs, r->_x);
-		if (auto r = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(rhs)) return rearrange_sum(lhs, r->_x);
-		if (auto r = ptr::writeable<var_fp<long double> >(rhs)) return rearrange_sum(lhs, r->_x);
+		auto l = parse_for::rearrange_sum(lhs);
+		if (!l) return 0;
+		if (auto r = parse_for::rearrange_sum(rhs)) return std::visit(_rearrange::sum(), *l, *r);
 
 		return 0;
 	}
