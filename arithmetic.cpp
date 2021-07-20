@@ -180,16 +180,16 @@ namespace math {
 			}
 
 			// CLang: sizeof(long double)==sizeof(double)
-			template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-				int operator()(F& lhs, typename zaimoni::precise_demote<F>::type& rhs)
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				int operator()(F& lhs, F2& rhs)
 			{
-				return operator()(reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(lhs), rhs);
+				return operator()(reinterpret_cast<F2&>(lhs), rhs);
 			}
 
-			template<std::floating_point F> requires(zaimoni::precise_demote_v<F>)
-				int operator()(typename zaimoni::precise_demote<F>::type& lhs, F& rhs)
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				int operator()(F& lhs, F2& rhs)
 			{
-				return operator()(lhs, reinterpret_cast<typename zaimoni::precise_demote<F>::type&>(rhs));
+				return operator()(lhs, reinterpret_cast<F&>(rhs));
 			}
 
 			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
@@ -686,28 +686,28 @@ namespace math {
 		return nullptr;
 	}
 
-	template<std::floating_point F, std::floating_point F2>
-	std::enable_if_t<(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent), fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
+	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
 		return eval_sum(ISK_INTERVAL<F2>(lhs), rhs);
 	}
 
-	template<std::floating_point F, std::floating_point F2>
-	std::enable_if_t<(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent), fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
+	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
 		return eval_sum(lhs, ISK_INTERVAL<F>(rhs));
 	}
 
-	template<std::floating_point F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
-		return eval_sum(reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(lhs), rhs);
+		return eval_sum(reinterpret_cast<const ISK_INTERVAL<F2>&>(lhs), rhs);
 	}
 
-	template<std::floating_point F>
-	std::enable_if_t<zaimoni::precise_demote_v<F>, fp_API*> eval_sum(const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>& lhs, const ISK_INTERVAL<F>& rhs)
+	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
 	{
-		return eval_sum(lhs, reinterpret_cast<const ISK_INTERVAL<typename zaimoni::precise_demote<F>::type>&>(rhs));
+		return eval_sum(lhs, reinterpret_cast<const ISK_INTERVAL<F>&>(rhs));
 	}
 
 	template<std::floating_point F> fp_API* eval_sum(const COW<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
