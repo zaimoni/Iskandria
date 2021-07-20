@@ -672,54 +672,91 @@ namespace math {
 		return std::numeric_limits<int>::min();
 	}
 
-	template<std::floating_point F> fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		try {
-			auto ret = lhs + rhs;
-			if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
-			return new var_fp<decltype(ret)>(ret);
+	namespace _eval {
+		struct sum {
+
+			template<std::floating_point F> fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs)
+			{
+				try {
+					auto ret = lhs + rhs;
+					if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+					return new var_fp<decltype(ret)>(ret);
+				}
+				catch (zaimoni::math::numeric_error& e) {
+					// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
+					return nullptr;
+				}
+				return nullptr;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(ISK_INTERVAL<F2>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, ISK_INTERVAL<F>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(reinterpret_cast<const ISK_INTERVAL<F2>&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<const ISK_INTERVAL<F>&>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const F& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(ISK_INTERVAL<F>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const F& lhs, const F2& rhs)
+			{
+				return operator()(ISK_INTERVAL<F>(lhs), ISK_INTERVAL<F2>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const ISK_INTERVAL<F>& lhs, const F2& rhs)
+			{
+				return operator()(lhs, ISK_INTERVAL<F2>(rhs));
+			}
+
+			template<class F, class F2>
+			fp_API* operator()(const var_fp<F>* lhs, const var_fp<F2>* rhs)
+			{
+				return operator()(lhs->_x, rhs->_x);
+			}
+
+		};
+	}
+
+	namespace parse_for {
+		std::optional<std::variant<const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*
+		> > eval_sum(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<long double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(test)) return x;
+			return std::nullopt;
 		}
-		catch (zaimoni::math::numeric_error& e) {
-			// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
-			return nullptr;
-		}
-		return nullptr;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
-	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
-	{
-		return eval_sum(ISK_INTERVAL<F2>(lhs), rhs);
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
-	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
-	{
-		return eval_sum(lhs, ISK_INTERVAL<F>(rhs));
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
-	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
-	{
-		return eval_sum(reinterpret_cast<const ISK_INTERVAL<F2>&>(lhs), rhs);
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
-	fp_API* eval_sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
-	{
-		return eval_sum(lhs, reinterpret_cast<const ISK_INTERVAL<F>&>(rhs));
-	}
-
-	template<std::floating_point F> fp_API* eval_sum(const COW<fp_API>& lhs, const ISK_INTERVAL<F>& rhs)
-	{
-		auto src = lhs.get_c();
-		if (auto l = dynamic_cast<const var_fp<float>*>(src)) return eval_sum(ISK_INTERVAL<float>(l->_x), rhs);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(l->_x, rhs);
-		else if (auto l = dynamic_cast<const var_fp<double>*>(src)) return eval_sum(ISK_INTERVAL<double>(l->_x), rhs);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(l->_x, rhs);
-		else if (auto l = dynamic_cast<const var_fp<long double>*>(src)) return eval_sum(ISK_INTERVAL<long double>(l->_x), rhs);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return eval_sum(l->_x, rhs);
-		return nullptr;
 	}
 
 	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
@@ -728,12 +765,12 @@ namespace math {
 
 		auto src = rhs.get_c();
 		if (auto r = dynamic_cast<const API_sum<fp_API>*>(src)) return r->eval_sum(lhs);
-		else if (auto r = dynamic_cast<const var_fp<float>*>(src)) return eval_sum(lhs, ISK_INTERVAL<float>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return eval_sum(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return eval_sum(lhs, ISK_INTERVAL<double>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return eval_sum(lhs, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<long double>*>(src)) return eval_sum(lhs, ISK_INTERVAL<long double>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return eval_sum(lhs, r->_x);
+
+		if (auto l = parse_for::eval_sum(lhs)) {
+			if (auto r = parse_for::eval_sum(rhs)) {
+				return std::visit(_eval::sum(), *l, *r);
+			}
+		}
 		return nullptr;
 	}
 
