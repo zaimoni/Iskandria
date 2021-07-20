@@ -476,67 +476,110 @@ final_exit:
 	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) { return 0; }
 
 	// eval_quotient support
-	template<std::floating_point F> fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d)
-	{
-		try {
-			auto ret = n / d;
-			if (ret.lower() == ret.upper()) return new var_fp<decltype(ret.upper())>(ret.upper());
-			return new var_fp<decltype(ret)>(ret);
-		} catch (zaimoni::math::numeric_error& e) {
-			return nullptr;
+	namespace _eval {
+		struct quotient {
+			template<std::floating_point F> fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d) {
+				try {
+					auto ret = n / d;
+					if (ret.lower() == ret.upper()) return new var_fp<decltype(ret.upper())>(ret.upper());
+					return new var_fp<decltype(ret)>(ret);
+				} catch (zaimoni::math::numeric_error& e) {
+					return nullptr;
+				}
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+			{
+				return operator()(ISK_INTERVAL<F2>(n), d);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+			{
+				return operator()(n, ISK_INTERVAL<F>(d));
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+			{
+				return operator()(reinterpret_cast<const ISK_INTERVAL<F2>&>(n), d);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
+			{
+				return operator()(n, reinterpret_cast<const ISK_INTERVAL<F>&>(d));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+				fp_API* operator()(const var_fp<ISK_INTERVAL<F> >* n, const var_fp<ISK_INTERVAL<F2> >* d)
+			{
+				return operator()(n->_x, d->_x);
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+				fp_API* operator()(const var_fp<ISK_INTERVAL<F> >* n, const var_fp<F2 >* d)
+			{
+				return operator()(n->_x, ISK_INTERVAL<F2>(d->_x));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+				fp_API* operator()(const var_fp<F>* n, const var_fp<ISK_INTERVAL<F2> >* d)
+			{
+				return operator()(ISK_INTERVAL<F>(n->_x), d->_x);
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+				fp_API* operator()(const var_fp<F>* n, const var_fp<F2 >* d)
+			{
+				return operator()(ISK_INTERVAL<F>(n->_x), ISK_INTERVAL<F2>(d->_x));
+			}
+		};
+	} // namespace _eval
+
+	namespace reject {
+		struct divsion_by_zero {
+			template<std::floating_point F> void operator()(const ISK_INTERVAL<F>& x) {
+				if (x == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
+				if (F(0) > x.lower() && F(0) < x.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
+			}
+			template<std::floating_point F> void operator()(const F& x) {
+				if (x == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
+			}
+
+			template<class F> void operator()(const var_fp<F>* x) {
+				operator()(x->_x);
+			}
+		};
+	}
+
+	namespace parse_for {
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*
+		> > eval_quotient(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<long double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(test)) return x;
+			return std::nullopt;
 		}
-		return nullptr;
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
-	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
-	{
-		return eval_quotient(ISK_INTERVAL<F2>(n), d);
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires (std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
-	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
-	{
-		return eval_quotient(n, ISK_INTERVAL<F>(d));
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
-	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
-	{
-		return eval_quotient(reinterpret_cast<const ISK_INTERVAL<F2>&>(n), d);
-	}
-
-	template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
-	fp_API* eval_quotient(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F2>& d)
-	{
-		return eval_quotient(n, reinterpret_cast<const ISK_INTERVAL<F>&>(d));
-	}
-
-	template<std::floating_point F> fp_API* eval_quotient(const COW<fp_API>& n, const ISK_INTERVAL<F>& d)
-	{
-		if (d == F(0)) throw zaimoni::math::numeric_error("division by zero");	// expected to be caught earlier when called from the quotient class
-		if (F(0) > d.lower() && F(0) < d.upper()) throw zaimoni::math::numeric_error("division should result in two disjoint intervals");	// not always, but requires exact zero numerator which should be caught by the quotient class
-
-		auto n_src = n.get_c();
-		if (auto l = dynamic_cast<const var_fp<float>*>(n_src)) return eval_quotient(ISK_INTERVAL<float>(l->_x), d);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(n_src)) return eval_quotient(l->_x, d);
-		else if (auto l = dynamic_cast<const var_fp<double>*>(n_src)) return eval_quotient(ISK_INTERVAL<double>(l->_x), d);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(n_src)) return eval_quotient(l->_x, d);
-		else if (auto l = dynamic_cast<const var_fp<long double>*>(n_src)) return eval_quotient(ISK_INTERVAL<long double>(l->_x), d);
-		else if (auto l = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(n_src)) return eval_quotient(l->_x, d);
-
-		return nullptr;
 	}
 
 	fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
-		auto d_src = d.get_c();
-		if (auto r = dynamic_cast<const var_fp<float>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<float>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(d_src)) return eval_quotient(n, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<double>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(d_src)) return eval_quotient(n, r->_x);
-		else if (auto r = dynamic_cast<const var_fp<long double>*>(d_src)) return eval_quotient(n, ISK_INTERVAL<long double>(r->_x));
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(d_src)) return eval_quotient(n, r->_x);
+		if (auto d2 = parse_for::eval_quotient(d)) {
+			std::visit(reject::divsion_by_zero(), *d2);
+			if (auto n2 = parse_for::eval_quotient(n)) return std::visit(_eval::quotient(), *n2, *d2);
+		}
 		return nullptr;
 	}
 
