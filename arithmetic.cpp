@@ -439,13 +439,23 @@ namespace math {
 			var_fp<long double>*,
 			var_fp<ISK_INTERVAL<long double> >*
 		> > rearrange_sum(eval_to_ptr<fp_API>::eval_type& src) {
-			auto test = src.get_c();
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<double> >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(src)) return x;
 			if (auto x = ptr::writeable<var_fp<long double> >(src)) return x;
+			return std::nullopt;
+		}
+	}
+
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > rearrange_sum(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
 			return std::nullopt;
 		}
 	}
@@ -467,8 +477,15 @@ namespace math {
 		}
 
 		auto l = parse_for::rearrange_sum(lhs);
-		if (!l) return 0;
+		if (!l) {
+			if (unhandled::rearrange_sum(lhs)) {
+				if (unhandled::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
+				if (parse_for::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
+			}
+			return 0;
+		}
 		if (auto r = parse_for::rearrange_sum(rhs)) return std::visit(_rearrange::sum(), *l, *r);
+		if (unhandled::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
 
 		return 0;
 	}
@@ -575,11 +592,27 @@ namespace math {
 		}
 	}
 
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > eval_quotient(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
 	fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
 		if (auto d2 = parse_for::eval_quotient(d)) {
 			std::visit(reject::divsion_by_zero(), *d2);
 			if (auto n2 = parse_for::eval_quotient(n)) return std::visit(_eval::quotient(), *n2, *d2);
+			if (unhandled::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
+		}
+		if (unhandled::eval_quotient(n)) {
+			if (unhandled::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
+			if (parse_for::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
 		}
 		return nullptr;
 	}
@@ -759,17 +792,31 @@ namespace math {
 		}
 	}
 
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > eval_sum(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
 	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
 		if (auto l = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c())) return l->eval_sum(rhs);
-
-		auto src = rhs.get_c();
-		if (auto r = dynamic_cast<const API_sum<fp_API>*>(src)) return r->eval_sum(lhs);
+		if (auto r = dynamic_cast<const API_sum<fp_API>*>(rhs.get_c())) return r->eval_sum(lhs);
 
 		if (auto l = parse_for::eval_sum(lhs)) {
 			if (auto r = parse_for::eval_sum(rhs)) {
 				return std::visit(_eval::sum(), *l, *r);
+				if (unhandled::eval_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_sum");
 			}
+		}
+		if (unhandled::eval_sum(lhs)) {
+			if (parse_for::eval_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_sum");
+			if (unhandled::eval_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_sum");
 		}
 		return nullptr;
 	}
