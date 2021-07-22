@@ -490,8 +490,35 @@ namespace math {
 		return 0;
 	}
 
+
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*,
+			const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*
+		> > rearrange_product(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<long double>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
 	// no-op implementation to enable building
-	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) { return 0; }
+	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) {
+		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) throw new std::logic_error("need to build out zaimoni::math::rearrange_product");
+		return 0;
+	}
 
 	// eval_quotient support
 	namespace _eval {
