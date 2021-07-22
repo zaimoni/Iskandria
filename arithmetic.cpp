@@ -707,19 +707,8 @@ namespace math {
 
 	int sum_score(const COW<fp_API>& lhs)
 	{
+		if (auto l = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c())) return std::numeric_limits<int>::min()+1;
 		if (auto test = parse_for::sum_score(lhs)) return std::visit(score::sum(), *test);
-		return std::numeric_limits<int>::min();
-	}
-
-	int sum_implemented(const COW<fp_API>& x)
-	{
-		auto src = x.get_c();
-		if (auto r = dynamic_cast<const var_fp<float>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<const var_fp<double>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<const var_fp<long double>*>(src)) return sum_score(r->_x);
-		else if (auto r = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src)) return sum_score(r->_x);
 		return std::numeric_limits<int>::min();
 	}
 
