@@ -471,6 +471,11 @@ public:
 	auto exponent() const { return _exponent; }
 	auto mantissa() const { return _mantissa; }
 
+	template<std::floating_point F2> int predict_product_exponent(edit_fp<F2>& rhs) const { return _exponent + rhs._exponent - 1; }
+	bool product_is_exact() const { return F(0.5) == _mantissa || F(-0.5) == _mantissa; }
+	uintmax_t mantissa_as_int() const { return _mantissa_as_int(copysign(_mantissa, 1.0));  }
+	static bool exponent_is_normal(int exp) { return std::numeric_limits<F>::max_exponent >= exp && std::numeric_limits<F>::min_exponent <= exp; }
+
 	template<std::floating_point F2> bool rebalance(edit_fp<F2>& rhs) {
 		if (1 == _exponent) return false;
 		const int delta_lhs_exp = _exponent - 1;

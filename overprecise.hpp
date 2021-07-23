@@ -855,63 +855,54 @@ ZAIMONI_NEGATIVE_INFINITY(rhs,lhs,-1)
 }
 
 // the rearrange_product family returns true if the rhs has been annihilated (usually value 1)
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(T& lhs, T& rhs)
+template<std::floating_point F> bool rearrange_product(F& lhs, F& rhs)
 {
 	assert(!trivial_product(lhs,rhs));
 #ifdef ZAIMONI_USING_STACKTRACE
 	zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
 
-	// 0: lhs
-	// 1: rhs
-	const int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs)};
-	const bool is_negative[2] = {std::signbit(lhs) , std::signbit(rhs)};
-
-	int exponent[2];
-	const T mantissa[2] = {frexp(lhs,exponent) , frexp(rhs,exponent+1)};
+	auto l_stat = edit_fp(lhs);
+	auto r_stat = edit_fp(rhs);
+	int predicted_exponent = l_stat.predict_product_exponent(r_stat);
 
 	// 1.0*1.0 is 1.0
-	int predicted_exponent = exponent[0]+exponent[1]-1;
-	if (0.5==mantissa[0] || -0.5==mantissa[0])
-		{	// should be exact
-		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent)
+	if (l_stat.product_is_exact()) {
+		if (l_stat.exponent_is_normal(predicted_exponent))
 			{
 exact_product:
 			lhs *= rhs;
 			rhs = 1.0;
 			return true;
 			}
-		_rebalance_exponents(lhs,rhs,exponent[0],exponent[1]);
+		l_stat.rebalance(r_stat);
 		return false;
-		}
-	if (0.5==mantissa[1] || -0.5==mantissa[1])
-		{	// should be exact.
-		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent) goto exact_product;
-		_rebalance_exponents(rhs,lhs,exponent[1],exponent[0]);
+	}
+	if (r_stat.product_is_exact()) {
+		if (l_stat.exponent_is_normal(predicted_exponent)) goto exact_product;
+		r_stat.rebalance(l_stat);
 		return false;
-		}
+	}
 
-	ISK_INTERVAL<double> predicted_mantissa(mantissa[0]);
-	predicted_mantissa *= mantissa[1];
+	ISK_INTERVAL<double> predicted_mantissa(l_stat.mantissa()); // XXX \todo fix where long double better than double
+	predicted_mantissa *= r_stat.mantissa();
 	if (predicted_mantissa.lower()==predicted_mantissa.upper())
 		{
 		if (0.5<=predicted_mantissa.lower() || -0.5>=predicted_mantissa.upper()) predicted_exponent++;
-		if (std::numeric_limits<T>::max_exponent >= predicted_exponent && std::numeric_limits<T>::min_exponent <= predicted_exponent) goto exact_product;
+		if (l_stat.exponent_is_normal(predicted_exponent)) goto exact_product;
+		// \todo adjusting the mantissas is still justifiable
 		}
 
 	// XXX want to see the mantissas as integers to decide which one to optimize
-	const unsigned long long mantissa_as_int[2] = {_mantissa_as_int(copysign(mantissa[0],1.0)), _mantissa_as_int(copysign(mantissa[1],1.0))};
-	if (mantissa_as_int[0]<mantissa_as_int[1]) {
-		_rebalance_exponents(lhs,rhs,exponent[0],exponent[1]);
+	if (l_stat.mantissa_as_int() < r_stat.mantissa_as_int()) {
+		l_stat.rebalance(r_stat);
 	} else {
-		_rebalance_exponents(rhs,lhs,exponent[1],exponent[0]);
+		r_stat.rebalance(l_stat);
 	}
 	return false;
 }
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value , bool>::type rearrange_product(ISK_INTERVAL<T>& lhs, ISK_INTERVAL<T>& rhs)
+template<std::floating_point F> bool rearrange_product(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
 {
 	return false;	// no-op to allow compiling
 }
