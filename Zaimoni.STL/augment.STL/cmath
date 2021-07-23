@@ -452,13 +452,48 @@ private:
 
 namespace math {
 
+// alternate approach
+template<std::floating_point F>
+class edit_fp {
+	F& _x;	// non-copyable
+	int _exponent;
+	F _mantissa;
+
+public:
+	edit_fp() = delete;
+	explicit edit_fp(F& src) noexcept : _x(src),_mantissa(frexp(_x, &_exponent)) {}
+	edit_fp(const edit_fp& src) = delete;
+	edit_fp(edit_fp&& src) = delete;
+	~edit_fp() = default;
+	edit_fp& operator=(const edit_fp& src) = delete;
+	edit_fp& operator=(edit_fp&& src) = delete;
+
+	auto exponent() const { return _exponent; }
+	auto mantissa() const { return _mantissa; }
+
+	template<std::floating_point F2> bool rebalance(edit_fp<F2>& rhs) {
+		if (1 == _exponent) return false;
+		const int delta_lhs_exp = _exponent - 1;
+		const int abs_delta_lhs_exp = (0 < delta_lhs_exp ? delta_lhs_exp : -delta_lhs_exp);
+		const int clearance = (0 < delta_lhs_exp ? std::numeric_limits<F2>::max_exponent - rhs.exponent() : rhs.exponent() - std::numeric_limits<F2>::min_exponent);
+		if (0 == clearance) return false;
+		const int abs_delta = (abs_delta_lhs_exp < clearance ? abs_delta_lhs_exp : clearance);
+		const int delta_exp = (0 < delta_lhs_exp ? abs_delta : -abs_delta);
+		_x = scalbn(_x, -delta_exp);
+		_exponent -= delta_exp;
+		rhs._x = scalbn(rhs._x, delta_exp);
+		rhs._exponent += delta_exp;
+		return true;
+	}
+};
+
 template<class T>
 class fp_stats	// optimized for Iskandria's overprecise.hpp
 {
-	static_assert(std::is_floating_point<T>::value, "need floating point numeral type");
-private:
+	static_assert(std::is_floating_point_v<T>); // cannot use concept here -- need to specialize this
 	int _exponent;
 	T _mantissa;
+
 public:
 	fp_stats() = delete;
 	explicit fp_stats(T src) { assert(0.0 != src); assert(isFinite(src)); _mantissa = frexp(src, &_exponent); }
