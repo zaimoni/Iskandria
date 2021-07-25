@@ -578,10 +578,12 @@ namespace bits {
 		if (std::isinf(lhs)) return false;
 		if (std::isinf(rhs)) return false;
 
-		int exponent[2] = { 0,0 };
-		long double mantissa[2] = { frexp(lhs, exponent + 0) , frexp(rhs, exponent + 1) };
-		int new_exponent = exponent[0] + exponent[1] - 1;
-		if (0.5l > mantissa[0] * mantissa[1]) --new_exponent;
+		const auto l_stat = fp_stats(lhs);
+		const auto r_stat = fp_stats(rhs);
+
+		int new_exponent = l_stat.exponent() + r_stat.exponent() - 1;
+		if (0.5l > l_stat.mantissa() * r_stat.mantissa()) --new_exponent;
+
 		if (std::numeric_limits<T>::max_exponent <= new_exponent) return new_exponent - std::numeric_limits<T>::max_exponent + 1;
 		if (std::numeric_limits<T>::min_exponent >= new_exponent) return new_exponent - std::numeric_limits<T>::min_exponent - 1;
 
