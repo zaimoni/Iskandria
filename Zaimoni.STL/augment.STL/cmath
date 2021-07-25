@@ -501,7 +501,7 @@ class fp_stats	// optimized for Iskandria's overprecise.hpp
 
 public:
 	fp_stats() = delete;
-	explicit fp_stats(T src) { assert(0.0 != src); assert(isFinite(src)); _mantissa = frexp(src, &_exponent); }
+	explicit fp_stats(T src) : _mantissa(frexp((assert(0.0 != src), assert(isFinite(src)),src), &_exponent)) {}
 	fp_stats(const fp_stats& src) = delete;
 	fp_stats(fp_stats&& src) = default;
 	~fp_stats() = default;
@@ -513,8 +513,8 @@ public:
 	void swap(fp_stats& rhs) { std::swap(_exponent, rhs._exponent); std::swap(_mantissa, rhs._mantissa); }
 
 	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-	int exponent() const { return _exponent; };
-	double mantissa() const { return _mantissa; };
+	auto exponent() const { return _exponent; };
+	auto mantissa() const { return _mantissa; };
 	uintmax_t int_mantissa() const { return _mantissa_as_int(_mantissa); }
 	uintmax_t divisibilty_test() const { return _mantissa_as_int(_mantissa); }
 	int safe_2_n_multiply() const { return std::numeric_limits<T>::max_exponent - _exponent; };
@@ -559,14 +559,16 @@ namespace bits {
 		if (std::isinf(lhs)) return false;
 		if (std::isinf(rhs)) return false;
 
-		int exponent[2] = { 0,0 };
-		long double mantissa[2] = { frexp(lhs, exponent + 0) , frexp(rhs, exponent + 1) };
-		if (std::numeric_limits<long double>::max_exponent - 2 <  exponent[0] && std::numeric_limits<long double>::max_exponent - 2 <  exponent[1]) return true;
-		if (std::numeric_limits<long double>::max_exponent - 2 >= exponent[0] && std::numeric_limits<long double>::max_exponent - 2 >= exponent[1]) return false;
-		// corner case
-		const int gt_index = (exponent[0] < exponent[1]);
-		const int lt_index = 1 - gt_index;
-		return 2 - mantissa[gt_index] <= scalbn(mantissa[lt_index], exponent[lt_index] - exponent[gt_index]);	// XXX \todo verify this
+		const auto l_stat = fp_stats(lhs);
+		const auto r_stat = fp_stats(rhs);
+		const bool r_at_risk = std::numeric_limits<T>::max_exponent - 2 < r_stat.exponent();
+		if (std::numeric_limits<T>::max_exponent - 2 < l_stat.exponent()) {
+			if (r_at_risk) return true;
+			return 2 - l_stat.mantissa() <= std::scalbn(r_stat.mantissa(), r_stat.exponent() - l_stat.exponent()); // XXX \todo verify this
+		} else {
+			if (!r_at_risk) return false;
+			return 2 - r_stat.mantissa() <= std::scalbn(l_stat.mantissa(), l_stat.exponent() - r_stat.exponent()); // XXX \todo verify this
+		}
 	}
 
 	template<std::floating_point T> int product_denormalizes(T lhs, T rhs)
