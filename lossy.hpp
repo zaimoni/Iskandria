@@ -7,6 +7,7 @@
 
 #include "Zaimoni.STL/augment.STL/cmath"
 #include "Zaimoni.STL/Logging.h"
+#include "Zaimoni.STL/flat_alg2.hpp"
 
 // currently redundant, but we might want to build against a 3rd-party interval type again
 #ifdef ZAIMONI_USING_STACKTRACE
@@ -64,11 +65,8 @@ struct fp_compare
 #ifdef ZAIMONI_USING_STACKTRACE
 		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
-		int exponent[2];
 		// only has to work reasonably after preprocessing by rearrange sum
-		frexp(lhs, exponent+0);
-		frexp(rhs, exponent+1);
-		return exponent[0]<exponent[1];
+		return fp_stats(lhs).exponent() < fp_stats(rhs).exponent;
 	}
 };
 
@@ -80,15 +78,8 @@ struct fp_compare<ISK_INTERVAL<T> >
 #ifdef ZAIMONI_USING_STACKTRACE
 		zaimoni::ref_stack<zaimoni::stacktrace, const char*> log(zaimoni::stacktrace::get(), __PRETTY_FUNCTION__);
 #endif
-		int exponent[6];
 		// only has to work reasonably after preprocessing by rearrange sum
-		frexp(lhs.lower(),exponent+0);
-		frexp(lhs.upper(),exponent+1);
-		frexp(rhs.lower(),exponent+2);
-		frexp(rhs.upper(),exponent+3);
-		exponent[4] = (exponent[0]<exponent[1] ? exponent[1] : exponent[0]);
-		exponent[5] = (exponent[2]<exponent[3] ? exponent[3] : exponent[2]);
-		return exponent[4]<exponent[5];
+		return max(fp_stats(lhs.lower()).exponent(), fp_stats(lhs.upper()).exponent()) < max(fp_stats(rhs.lower()).exponent(), fp_stats(rhs.upper()).exponent());
 	}
 };
 
