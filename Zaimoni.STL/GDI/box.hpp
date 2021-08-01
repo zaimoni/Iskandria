@@ -30,41 +30,75 @@ public:
 	constexpr const T& tl_c() const { return _top_left; }
 	constexpr const T& br_c() const { return _bottom_right; }
 
+	friend constexpr bool operator==(const zaimoni::gdi::box<T>& lhs, const zaimoni::gdi::box<T>& rhs) {
+		return lhs._top_left == rhs._top_left && lhs._bottom_right == rhs._bottom_right;
+	}
+
 	bool contains(const T& src) const {
 		static std::less_equal<typename T::coord_type> lte;
 		return pointwise_test(_top_left, src, lte) && pointwise_test(src, _bottom_right, lte);
 	}
 
-	box& operator+=(const T& rhs) {
+	template<class U>
+	box& operator+=(const U& rhs) requires requires() { _top_left += rhs; }
+	{
 		_top_left += rhs;
 		_bottom_right += rhs;
 		return *this;
 	}
 
-	box& operator-=(const T& rhs) {
+	template<class U>
+	box& operator-=(const U& rhs) requires requires() { _top_left -= rhs; }
+	{
 		_top_left -= rhs;
 		_bottom_right -= rhs;
 		return *this;
 	}
 
-	box& operator*=(const typename T::coord_type& rhs) {
+	template<class U>
+	box& operator*=(const U& rhs) requires requires() { _top_left *= rhs; }
+	{
 		_top_left *= rhs;
 		_bottom_right *= rhs;
 		return *this;
 	}
 
-	box& operator/=(const typename T::coord_type& rhs) {
+	template<class U>
+	box& operator/=(const U& rhs) requires requires() { _top_left /= rhs; }
+	{
 		_top_left /= rhs;
 		_bottom_right /= rhs;
 		return *this;
 	}
 };
 
-template<class T>
-inline constexpr bool operator==(const zaimoni::gdi::box<T>& lhs, const zaimoni::gdi::box<T>& rhs) { return lhs._top_left == rhs._top_left && lhs._bottom_right == rhs._bottom_right; }
+template<class T, class U>
+auto operator+(box<T> lhs, const U& rhs) requires requires() { lhs += rhs; }
+{
+	lhs += rhs;
+	return lhs;
+}
 
-template<class T>
-inline constexpr bool operator!=(const zaimoni::gdi::box<T>& lhs, const zaimoni::gdi::box<T>& rhs) { return lhs._top_left != rhs._top_left || lhs._bottom_right != rhs._bottom_right; }
+template<class T, class U>
+auto operator+(const T& lhs, box<U> rhs) requires requires() { rhs += lhs; }
+{
+	rhs += lhs;
+	return rhs;
+}
+
+template<class T, class U>
+auto operator*(box<T> lhs, const U& rhs) requires requires() { lhs *= rhs; }
+{
+	lhs *= rhs;
+	return lhs;
+}
+
+template<class T, class U>
+auto operator/(box<T> lhs, const U& rhs) requires requires() { lhs /= rhs; }
+{
+	lhs /= rhs;
+	return lhs;
+}
 
 // enumerate coordinates "on edge of box" is practical for integer coordinates, but viable canonical schemas are dimension-dependent
 // prototyped in Rogue Survivor Revived, relicensed for here
