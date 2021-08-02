@@ -490,7 +490,6 @@ namespace math {
 		return 0;
 	}
 
-
 	namespace unhandled {
 		std::optional<std::variant<const var_fp<intmax_t>*,
 			const var_fp<uintmax_t>*,
@@ -518,6 +517,113 @@ namespace math {
 	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) {
 		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) throw new std::logic_error("need to build out zaimoni::math::rearrange_product");
 		return 0;
+	}
+
+	namespace _eval {
+		struct product {
+			template<std::floating_point F> fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs) {
+				try {
+					auto ret = lhs * rhs;
+					if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
+					return new var_fp<decltype(ret)>(ret);
+				} catch (zaimoni::math::numeric_error& e) {
+					return nullptr;
+				}
+				return nullptr;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent < std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(ISK_INTERVAL<F2>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::max_exponent > std::numeric_limits<F2>::max_exponent)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, ISK_INTERVAL<F>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(reinterpret_cast<const ISK_INTERVAL<F2>&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				fp_API* operator()(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<const ISK_INTERVAL<F>&>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const F& lhs, const ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(ISK_INTERVAL<F>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const F& lhs, const F2& rhs)
+			{
+				return operator()(ISK_INTERVAL<F>(lhs), ISK_INTERVAL<F2>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2>
+			fp_API* operator()(const ISK_INTERVAL<F>& lhs, const F2& rhs)
+			{
+				return operator()(lhs, ISK_INTERVAL<F2>(rhs));
+			}
+
+			template<class F, class F2>
+			fp_API* operator()(const var_fp<F>* lhs, const var_fp<F2>* rhs)
+			{
+				return operator()(lhs->_x, rhs->_x);
+			}
+		};
+	}
+
+	namespace parse_for {
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*
+		> > eval_product(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<long double>*>(test)) return x;
+			else if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > eval_product(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
+	COW<fp_API> eval_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
+	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
+		if (auto d2 = parse_for::eval_product(d)) {
+			if (auto n2 = parse_for::eval_product(n)) return std::visit(_eval::product(), *n2, *d2);
+			if (unhandled::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+		}
+		if (unhandled::eval_product(n)) {
+			if (unhandled::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+			if (parse_for::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+		}
+		return nullptr;
 	}
 
 	// eval_quotient support
@@ -730,9 +836,7 @@ namespace math {
 					auto ret = lhs + rhs;
 					if (ret.lower() == ret.upper()) return new var_fp<typename ISK_INTERVAL<F>::base_type>(ret.upper());
 					return new var_fp<decltype(ret)>(ret);
-				}
-				catch (zaimoni::math::numeric_error& e) {
-					// doesn't help w/Boost, but our internal interval type should like to throw on overflow, etc.
+				} catch (zaimoni::math::numeric_error& e) {
 					return nullptr;
 				}
 				return nullptr;
@@ -836,6 +940,7 @@ namespace math {
 		}
 		return nullptr;
 	}
+
 
 	namespace parse_for {
 		// uintmax_t intentionally omitted

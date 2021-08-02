@@ -27,7 +27,7 @@ product::eval_type product::destructive_eval() {
 // fp_API
 bool product::self_eval() {
 	if (!this->_pre_self_eval()) return false;
-	if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, _n_ary_op::null_eval)) return true;
+	if (this->_self_eval(_n_ary_op::is_multiplicative_identity, zaimoni::math::rearrange_product, _n_ary_op::null_fold_ok, _n_ary_op::null_fold_score, zaimoni::math::eval_product)) return true;
 	//		auto& checking = this->_heuristic.back();
 	// \todo process our specific rules
 	this->_heuristic.clear();
