@@ -46,6 +46,7 @@ namespace math {
 	// rearrange_sum support
 	namespace _rearrange {
 		struct sum {
+			// base cases
 			template<std::floating_point F> int operator()(F& lhs, F& rhs)
 			{
 				int ret = 0;
@@ -158,54 +159,6 @@ namespace math {
 				r_stat = rhs;
 				ret = 2;
 				goto restart;
-			}
-
-			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
-				int operator()(F& lhs, F2& rhs)
-			{
-				FATAL("need to implement");
-				return 0;
-			}
-
-			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
-				int operator()(F& lhs, F2& rhs)
-			{
-				int ret = operator()(rhs, lhs);
-				switch (ret)
-				{
-				case 1: return -1;
-				case -1: return 1;
-				default: return ret;
-				}
-			}
-
-			// CLang: sizeof(long double)==sizeof(double)
-			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
-				int operator()(F& lhs, F2& rhs)
-			{
-				return operator()(reinterpret_cast<F2&>(lhs), rhs);
-			}
-
-			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
-				int operator()(F& lhs, F2& rhs)
-			{
-				return operator()(lhs, reinterpret_cast<F&>(rhs));
-			}
-
-			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
-			{
-				FATAL("need to implement");
-				return 0;
-			}
-
-			template<std::floating_point F, std::floating_point F2> int operator()(ISK_INTERVAL<F>& lhs, F2& rhs)
-			{
-				switch (int ret = operator()(rhs, lhs))
-				{
-				case 1: return -1;
-				case -1: return 1;
-				default: return ret;
-				}
 			}
 
 			template<std::floating_point F> int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
@@ -394,11 +347,60 @@ namespace math {
 				return ret;
 			}
 
+			// derived cases
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 			{
 				FATAL("need to implement");
 				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				int ret = operator()(rhs, lhs);
+				switch (ret)
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
+			}
+
+			// CLang: sizeof(long double)==sizeof(double)
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				int operator()(F& lhs, F2& rhs)
+			{
+				return operator()(reinterpret_cast<F2&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				int operator()(F& lhs, F2& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<F&>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(ISK_INTERVAL<F>& lhs, F2& rhs)
+			{
+				switch (int ret = operator()(rhs, lhs))
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
 			}
 
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
@@ -488,6 +490,104 @@ namespace math {
 		if (unhandled::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
 
 		return 0;
+	}
+
+	namespace _rearrange {
+		struct product {
+			// base cases
+			template<std::floating_point F> int operator()(F& lhs, F& rhs)
+			{
+				return 0;	// stub
+			}
+
+			template<std::floating_point F> int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
+			{
+				return 0;	// stub
+			}
+
+			// derived cases
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				FATAL("need to implement");
+				return 0;
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+				int operator()(F& lhs, F2& rhs)
+			{
+				int ret = operator()(rhs, lhs);
+				switch (ret)
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
+			}
+
+			// CLang: sizeof(long double)==sizeof(double)
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				int operator()(F& lhs, F2& rhs)
+			{
+				return operator()(reinterpret_cast<F2&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				int operator()(F& lhs, F2& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<F&>(rhs));
+			}
+
+			template<std::floating_point F, std::floating_point F2> int operator()(ISK_INTERVAL<F>& lhs, F2& rhs)
+			{
+				switch (int ret = operator()(rhs, lhs))
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits > std::numeric_limits<F2>::digits)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				switch (int ret = operator()(rhs, lhs))
+				{
+				case 1: return -1;
+				case -1: return 1;
+				default: return ret;
+				}
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F2, typename zaimoni::precise_demote<F>::type>)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(reinterpret_cast<ISK_INTERVAL<F2>&>(lhs), rhs);
+			}
+
+			template<std::floating_point F, std::floating_point F2> requires(std::is_same_v<F, typename zaimoni::precise_demote<F2>::type>)
+				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
+			{
+				return operator()(lhs, reinterpret_cast<ISK_INTERVAL<F>&>(rhs));
+			}
+
+			template<class F, class F2> int operator()(var_fp<F>* lhs, var_fp<F2>* rhs) {
+				return operator()(lhs->_x, rhs->_x);
+			}
+		};
 	}
 
 	namespace unhandled {
