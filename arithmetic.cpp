@@ -615,13 +615,13 @@ namespace math {
 
 	COW<fp_API> eval_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
-		if (auto d2 = parse_for::eval_product(d)) {
-			if (auto n2 = parse_for::eval_product(n)) return std::visit(_eval::product(), *n2, *d2);
-			if (unhandled::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+		if (auto d2 = parse_for::eval_product(rhs)) {
+			if (auto n2 = parse_for::eval_product(lhs)) return std::visit(_eval::product(), *n2, *d2);
+			if (unhandled::eval_product(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_product");
 		}
-		if (unhandled::eval_product(n)) {
-			if (unhandled::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
-			if (parse_for::eval_product(d)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+		if (unhandled::eval_product(lhs)) {
+			if (unhandled::eval_product(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_product");
+			if (parse_for::eval_product(rhs)) throw std::logic_error("need to build out zaimoni::math::eval_product");
 		}
 		return nullptr;
 	}
