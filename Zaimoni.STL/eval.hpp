@@ -134,7 +134,7 @@ namespace zaimoni {
 		static bool eval(eval_to_ptr<fp_API>::eval_type& dest) {
 			if (auto efficient = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
 				if (auto result = efficient->destructive_eval()) {
-					dest = result;
+					dest = std::move(result);
 					return true;
 				}
 			}
@@ -150,7 +150,7 @@ namespace zaimoni {
 				if (!efficient->first) efficient->first = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get());
 				if (efficient->first) {
 					if (auto result = efficient->first->destructive_eval()) {
-						dest = result;
+						dest = std::move(result);
 						return true;
 					}
 				}

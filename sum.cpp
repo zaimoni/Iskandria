@@ -44,7 +44,7 @@ void sum::append_term(smart_ptr&& src) {
 bool sum::would_fpAPI_eval() const { return 1 >= this->_x.size(); }
 
 sum::eval_type sum::destructive_eval() {
-	if (1 == this->_x.size()) return this->_x.front();
+	if (1 == this->_x.size()) return std::move(this->_x.front());
 	return nullptr;
 }
 

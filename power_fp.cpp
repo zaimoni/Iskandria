@@ -96,11 +96,11 @@ void power_fp::_scal_bn(intmax_t scale) {
 
 power_fp::eval_type power_fp::destructive_eval()
 {
-	if (base->is_one()) return base;
-	if (exponent->is_one()) return base;
+	if (base->is_one()) return std::move(base);
+	if (exponent->is_one()) return std::move(base);
 	if (base->is_zero()) {
 		if (exponent->is_zero()) throw zaimoni::math::numeric_error("tried to evaluate 0^0");
-		return base;
+		return std::move(base);
 	}
 	if (exponent->is_zero()) return nullptr; // forwarding to raw evaluation
 	return nullptr;

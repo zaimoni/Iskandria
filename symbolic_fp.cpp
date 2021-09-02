@@ -179,7 +179,7 @@ void symbolic_fp::_scal_bn(intmax_t scale)
 
 symbolic_fp::eval_type symbolic_fp::destructive_eval()
 {
-	if (!scale_by && !bitmap) return dest;
+	if (!scale_by && !bitmap) return std::move(dest);
 	return nullptr;
 }
 

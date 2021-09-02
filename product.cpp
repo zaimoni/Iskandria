@@ -40,7 +40,7 @@ bool product::would_fpAPI_eval() const { return 1 >= this->_x.size(); }
 
 // eval_to_ptr
 product::eval_type product::destructive_eval() {
-	if (1 == this->_x.size()) return this->_x.front();
+	if (1 == this->_x.size()) return std::move(this->_x.front());
 	return 0;
 }
 
