@@ -497,7 +497,36 @@ namespace math {
 			// base cases
 			template<std::floating_point F> int operator()(F& lhs, F& rhs)
 			{
-				return 0;	// stub
+				auto l_stat = edit_fp(lhs);
+				auto r_stat = edit_fp(rhs);
+				int predicted_exponent = l_stat.predict_product_exponent(r_stat);
+
+				// 1.0*1.0 is 1.0
+				if (l_stat.product_is_exact()) {
+					if (l_stat.exponent_is_normal(predicted_exponent)) {
+exact_product:
+						lhs *= rhs;
+						rhs = 1.0;
+						return 1;
+					}
+					return l_stat.rebalance(r_stat) ? 2 : 0;
+				}
+				if (r_stat.product_is_exact()) {
+					if (l_stat.exponent_is_normal(predicted_exponent)) goto exact_product;
+					return r_stat.rebalance(l_stat) ? 2 : 0;
+				}
+
+				ISK_INTERVAL<F> predicted_mantissa(l_stat.mantissa()); // XXX \todo fix where long double better than double
+				predicted_mantissa *= r_stat.mantissa();
+				if (predicted_mantissa.lower() == predicted_mantissa.upper()) {
+					if (0.5 <= predicted_mantissa.lower() || -0.5 >= predicted_mantissa.upper()) predicted_exponent++;
+					if (l_stat.exponent_is_normal(predicted_exponent)) goto exact_product;
+					// \todo adjusting the mantissas is still justifiable
+				}
+
+				// XXX want to see the mantissas as integers to decide which one to optimize
+				if (l_stat.mantissa_as_int() < r_stat.mantissa_as_int()) return l_stat.rebalance(r_stat) ? 2 : 0;
+				return r_stat.rebalance(l_stat) ? 2 : 0;
 			}
 
 			template<std::floating_point F> int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F>& rhs)
