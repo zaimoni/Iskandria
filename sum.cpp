@@ -5,6 +5,7 @@
 
 namespace zaimoni {
 
+// \todo allow domain upgrade
 bool sum::_append_infinity(const smart_ptr& src) {
 	auto i = this->_x.size();
 	const auto sign = src->sgn();
@@ -13,8 +14,7 @@ bool sum::_append_infinity(const smart_ptr& src) {
 		if (x->is_finite()) {
 			this->_x.erase(this->_x.begin() + i);
 			continue;
-		}
-		else if (x->is_inf()) {
+		} else if (x->is_inf()) {
 			const auto x_sign = x->sgn();
 			if (sign == x_sign) return false;
 			throw zaimoni::math::numeric_error("infinity-infinity");
@@ -23,18 +23,22 @@ bool sum::_append_infinity(const smart_ptr& src) {
 	return true;
 }
 
+void sum::_append(smart_ptr&& src)
+{
+	if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
+	this->_append_term(src);
+}
+
 void sum::append_term(const smart_ptr& src) {
 	if (!src || src->is_zero()) return;
 	assert(src->domain());
-	if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
-	this->_append_term(src);
+	_append(smart_ptr(src));
 }
 
 void sum::append_term(smart_ptr&& src) {
 	if (!src || src->is_zero()) return;
 	assert(src->domain());
-	if (src->is_inf() && !_append_infinity(src)) return;	// mostly an annihilator
-	this->_append_term(std::move(src));
+	_append(std::move(src));
 }
 
 bool sum::would_fpAPI_eval() const { return 1 >= this->_x.size(); }

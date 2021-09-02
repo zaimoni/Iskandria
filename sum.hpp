@@ -22,6 +22,7 @@ public:
 
 private:
 	bool _append_infinity(const smart_ptr& src);
+	void _append(smart_ptr&& src);
 
 public:
 	void append_term(const smart_ptr& src);

@@ -21,6 +21,11 @@ public:
 	product& operator=(const product& src) = default;
 	product& operator=(product&& src) = default;
 
+private:
+	void _append_zero(const smart_ptr& src);
+	void _append(smart_ptr&& src);
+
+public:
 	void append_term(const smart_ptr& src);
 	void append_term(smart_ptr&& src);
 	void append_term(fp_API* src) { append_term(smart_ptr(src)); }

@@ -4,16 +4,36 @@
 
 namespace zaimoni {
 
+// \todo allow domain upgrade
+void product::_append_zero(const smart_ptr& src) {
+	auto i = this->_x.size();
+	while (0 < i) {
+		const auto& x = this->_x[--i];
+		if (x->is_finite()) {
+			this->_x.erase(this->_x.begin() + i);
+			continue;
+		} else if (x->is_inf()) {
+			throw zaimoni::math::numeric_error("0*infinity");
+		}
+	}
+}
+
+void product::_append(smart_ptr&& src)
+{
+	if (src->is_zero()) _append_zero(src);	// mostly an annihilator
+	this->_append_term(src);
+}
+
 void product::append_term(const smart_ptr& src) {
 	if (!src || src->is_one()) return;
 	assert(src->domain());
-	this->_append_term(src);
+	_append(smart_ptr(src));
 }
 
 void product::append_term(smart_ptr&& src) {
 	if (!src || src->is_one()) return;
 	assert(src->domain());
-	this->_append_term(std::move(src));
+	_append(std::move(src));
 }
 
 bool product::would_fpAPI_eval() const { return 1 >= this->_x.size(); }
