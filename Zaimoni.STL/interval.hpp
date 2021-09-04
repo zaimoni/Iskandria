@@ -273,73 +273,30 @@ constexpr bool operator==(const interval<T>& i, typename const_param<T>::type s)
 	return i.lower() == s && i.upper() == s;
 }
 
-template<class T>
-constexpr bool operator==(typename const_param<T>::type s, const interval<T>& i)
-{
-	return i.lower() == s && i.upper() == s;
-}
-
-template<class T>
-constexpr bool operator!=(const interval<T>& i, typename const_param<T>::type s)
-{
-	return i.lower() != s || i.upper() != s;
-}
-
-template<class T>
-constexpr bool operator!=(typename const_param<T>::type s, const interval<T>& i)
-{
-	return i.lower() != s || i.upper() != s;
-}
+static_assert(interval(1.0) == 1.0); // direct
+static_assert(1.0 == interval(1.0)); // automatic
+static_assert(interval(1.0) != 2.0);
+static_assert(2.0 != interval(1.0));
 
 // Boost library assumes policy involved for scalar inequality with respect to intervals.  It's easier here to just go with "false is maybe" 
 // and reserve any sophisticated logic for another function set
 template<class T>
-constexpr bool operator<(typename const_param<T>::type s, const interval<T>& i)
+constexpr std::partial_ordering operator<=>(const interval<T>& i, typename const_param<T>::type s)
 {
-	return s < i.lower();
+	if (s < i.lower()) return std::partial_ordering::greater;
+	if (i.upper() < s) return std::partial_ordering::less;
+	if (i == s) return std::partial_ordering::equivalent;
+	return std::partial_ordering::unordered;
 }
 
-template<class T>
-constexpr bool operator<=(typename const_param<T>::type s, const interval<T>& i)
-{
-	return s <= i.lower();
-}
-
-template<class T>
-constexpr bool operator>(typename const_param<T>::type s, const interval<T>& i)
-{
-	return i.upper() < s;
-}
-
-template<class T>
-constexpr bool operator>=(typename const_param<T>::type s, const interval<T>& i)
-{
-	return i.upper() <= s;
-}
-
-template<class T>
-constexpr bool operator>(const interval<T>& i, typename const_param<T>::type s)
-{
-	return s < i.lower();
-}
-
-template<class T>
-constexpr bool operator>=(const interval<T>& i, typename const_param<T>::type s)
-{
-	return s <= i.lower();
-}
-
-template<class T>
-constexpr bool operator<(const interval<T>& i, typename const_param<T>::type s)
-{
-	return i.upper() < s;
-}
-
-template<class T>
-constexpr bool operator<=(const interval<T>& i, typename const_param<T>::type s)
-{
-	return i.upper() <= s;
-}
+static_assert(interval(1.0) < 2.0);
+static_assert(1.0 < interval(2.0));
+static_assert(interval(2.0) > 1.0);
+static_assert(2.0 > interval(1.0));
+static_assert(interval(1.0) <= 1.0);
+static_assert(1.0 <= interval(1.0));
+static_assert(interval(1.0) >= 1.0);
+static_assert(1.0 >= interval(1.0));
 
 template<class T> interval<T>  const interval<T>::_empty(std::numeric_limits<T>::has_quiet_NaN ? -std::numeric_limits<T>::quiet_NaN() : T(1), std::numeric_limits<T>::has_quiet_NaN ? std::numeric_limits<T>::quiet_NaN() : T(0));
 template<class T> interval<T>  const interval<T>::_whole(std::numeric_limits<T>::has_infinity ? -std::numeric_limits<T>::infinity() : std::numeric_limits<T>::min(), std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max());
