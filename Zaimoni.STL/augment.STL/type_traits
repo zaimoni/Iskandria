@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <limits>
 #include <type_traits>
+#include <concepts>
 #include "../zero.hpp"
 
 namespace zaimoni {
@@ -280,47 +281,16 @@ typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value, v
 
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isINF(T x)
-{
-	return false;
-}
+template<std::integral I> constexpr bool isINF(I x) { return false; }
+template<std::integral I> constexpr bool isFinite(I x) { return true; }
+template<std::integral I> constexpr bool isNaN(I x) { return false; }
+template<std::signed_integral S> constexpr bool signBit(S x) { return 0>x; }
+template<std::unsigned_integral U> constexpr bool signBit(U x) { return false; }
 
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isFinite(T x)
-{
-	return true;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value, bool>::type isNaN(T x)
-{
-	return false;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type signBit(T x)
-{
-	return 0>x;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type signBit(T x)
-{
-	return false;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
+template<std::integral I> constexpr I scalBn(I x, int scale)
 {
 	if (0 <= scale) return x << scale;
 	return x >> (-scale);
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, typename std::remove_const<T>::type>::type scalBn(T x, int scale)
-{
-	return x << scale;
 }
 
 namespace math {
