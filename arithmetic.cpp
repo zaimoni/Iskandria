@@ -755,6 +755,22 @@ exact_product:
 		return nullptr;
 	}
 
+	// unlike sum scores, working product scores are nonlinear
+	int product_score(const COW<fp_API>& lhs)
+	{
+		if (parse_for::eval_product(lhs)) return std::numeric_limits<int>::min() + 1;
+		return std::numeric_limits<int>::min();
+	}
+
+	int product_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
+	{
+		if (std::numeric_limits<int>::min() < product_score(lhs)) {
+			// \todo: try to check whether rearrange or eval actually would happen
+			return product_score(rhs);
+		}
+		return std::numeric_limits<int>::min();
+	}
+
 	// eval_quotient support
 	namespace _eval {
 		struct quotient {
