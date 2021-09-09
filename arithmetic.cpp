@@ -879,23 +879,6 @@ exact_product:
 		return nullptr;
 	}
 
-	// generally speaking, for floating point numerals we want to destructively add the smallest two exponents first.
-	// * minimizes the numerical error which is controlled by the size of the larger absolute-value numeral
-	// * may enable further rearrangement
-	// so the score should be largest for denormals and smallest near infinity
-	template<std::floating_point F> int sum_score(const ISK_INTERVAL<F>& x)
-	{
-		fp_stats<F> test_l(x.lower());
-		fp_stats<F> test_r(x.upper());
-		return std::numeric_limits<long double>::max_exponent - (test_l.exponent() < test_r.exponent() ? test_l.exponent() : test_r.exponent());
-	}
-
-	template<std::floating_point F> int sum_score(const F& x)
-	{
-		fp_stats<F> test(x);
-		return std::numeric_limits<long double>::max_exponent - test.exponent();
-	}
-
 	namespace parse_for {
 		// uintmax_t intentionally omitted
 		// typed_clone destinations must be tested after anything that could clone to them
@@ -917,6 +900,10 @@ exact_product:
 		}
 	}
 
+	// generally speaking, for floating point numerals we want to destructively add the smallest two exponents first.
+	// * minimizes the numerical error which is controlled by the size of the larger absolute-value numeral
+	// * may enable further rearrangement
+	// so the score should be largest for denormals and smallest near infinity
 	namespace score {
 		struct sum
 		{
