@@ -189,9 +189,9 @@ retry:
 	return 0;
 }
 
+// caller will handle checking for asymmetric handling for these two
 fp_API* complex::eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const
 {
-retry:
 	auto src = rhs.get_c();
 	if (auto r = dynamic_cast<const complex*>(src)) return new complex(a + r->a, b + r->b);
 
@@ -202,6 +202,25 @@ retry:
 	}
 
 	return nullptr;
+}
+
+int complex::score_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const
+{
+	auto src = rhs.get_c();
+	if (auto r = dynamic_cast<const complex*>(src)) {
+		if (auto re_test = sum_score(a, r->a); std::numeric_limits<int>::min() + 1 < re_test) return re_test;
+		if (auto im_test = sum_score(b, r->b); std::numeric_limits<int>::min() + 1 < im_test) return im_test;
+		return std::numeric_limits<int>::min() + 1;
+	}
+
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return std::numeric_limits<int>::min();	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		if (auto re_test = sum_score(a, rhs); std::numeric_limits<int>::min() + 1 < re_test) return re_test;
+		return std::numeric_limits<int>::min() + 1;
+	}
+
+	return std::numeric_limits<int>::min();
 }
 
 void complex::self_negate()

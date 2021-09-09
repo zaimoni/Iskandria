@@ -112,6 +112,7 @@ namespace zaimoni {
 	{
 		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
 		virtual T* eval_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
+		virtual int score_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 	};
 
 	struct API_addinv

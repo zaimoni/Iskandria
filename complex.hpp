@@ -53,6 +53,7 @@ public:
 
 	int rearrange_sum(eval_type& rhs) override;
 	fp_API* eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
+	int score_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	void self_negate() override;
 
 private:

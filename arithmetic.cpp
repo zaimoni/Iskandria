@@ -952,6 +952,16 @@ exact_product:
 
 	int sum_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
+		const auto l_sum = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c());
+		if (l_sum) {
+			if (auto score = l_sum->score_sum(rhs); std::numeric_limits<int>::min() < score) return score;
+		}
+		const auto r_sum = dynamic_cast<const API_sum<fp_API>*>(rhs.get_c());
+		if (r_sum) {
+			if (auto score = r_sum->score_sum(lhs); std::numeric_limits<int>::min() < score) return score;
+		}
+		if (l_sum || r_sum) return std::numeric_limits<int>::min();	// do not need to directly handle base cases
+
 		if (const int l_score = sum_score(lhs); std::numeric_limits<int>::min() < l_score) {
 			const int r_score = sum_score(rhs);
 			return l_score < r_score ? l_score : r_score;
@@ -1057,8 +1067,15 @@ exact_product:
 
 	COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
-		if (auto l = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c())) return l->eval_sum(rhs);
-		if (auto r = dynamic_cast<const API_sum<fp_API>*>(rhs.get_c())) return r->eval_sum(lhs);
+		const auto l_sum = dynamic_cast<const API_sum<fp_API>*>(lhs.get_c());
+		if (l_sum) {
+			if (auto result = l_sum->eval_sum(rhs)) return result;
+		}
+		const auto r_sum = dynamic_cast<const API_sum<fp_API>*>(rhs.get_c());
+		if (r_sum) {
+			if (auto result = r_sum->eval_sum(lhs)) return result;
+		}
+		if (l_sum || r_sum) return nullptr;	// do not need to directly handle base cases
 
 		if (auto l = parse_for::eval_sum(lhs)) {
 			if (auto r = parse_for::eval_sum(rhs)) {
