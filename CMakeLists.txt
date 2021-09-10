@@ -38,6 +38,7 @@ add_dependencies(Iskandria AutoDetect)
 
 # EXCLUDE_FROM_ALL means "can't test"
 add_executable(angle.test angle.cpp taylor.cpp)
+add_executable(arithmetic.test arithmetic.test.cpp symbolic_fp.cpp power_fp.cpp quotient.cpp product.cpp sum.cpp arithmetic.cpp)
 add_executable(cssbox.test cssbox.cpp)
 add_executable(cssSFML.test css_SFML.cpp cssbox.cpp display_manager.cpp voxelspace.cpp)
 add_executable(conic.test conic.cpp)
@@ -59,6 +60,9 @@ add_executable(taylor.test taylor.cpp)
 target_compile_definitions(angle.test PRIVATE TEST_APP2)
 target_link_libraries(angle.test z_log_adapter)
 add_dependencies(angle.test AutoDetect)
+
+target_link_libraries(arithmetic.test z_log_adapter)
+add_dependencies(arithmetic.test AutoDetect)
 
 target_compile_definitions(cssbox.test PRIVATE TEST_APP2)
 target_link_libraries(cssbox.test z_log_adapter)
