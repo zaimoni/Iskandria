@@ -281,6 +281,37 @@ template<std::integral I> constexpr I scalBn(I x, int scale)
 
 namespace math {
 
+template<std::signed_integral T> int rearrange_diff(T& lhs, T& rhs)
+{
+	if (0 == lhs) return 0;
+
+	const bool lhs_positive = (0 < lhs);
+	if (0 < lhs) {
+		if (0 >= rhs) return 0;
+		if (lhs <= rhs) {
+			rhs -= lhs;
+			lhs = 0;
+			return 0 == rhs ? -2 : -1;
+		} else {
+			lhs -= rhs;
+			rhs = 0;
+			return 0 == lhs ? -2 : 1;
+		}
+	} else {
+		if (0 <= rhs) return 0;
+		if (lhs >= rhs) {
+			rhs -= lhs;
+			lhs = 0;
+			return 0 == rhs ? -2 : -1;
+		} else {
+			lhs -= rhs;
+			rhs = 0;
+			return 0 == lhs ? -2 : 1;
+		}
+	}
+}
+
+
 template<class T> struct would_overflow;
 
 template<>

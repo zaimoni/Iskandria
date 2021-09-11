@@ -6,6 +6,66 @@
 
 namespace isk {
 
+static std::optional<std::partial_ordering> _guard_render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)
+{
+	if (lhs == rhs) return std::partial_ordering::equivalent;
+	//	auto abs_delta = zaimoni::pos_diff(lhs, rhs); // don't have this built out
+	zaimoni::math::vector<size_t, 3> abs_delta;
+	abs_delta[0] = zaimoni::pos_diff(lhs[0], rhs[0]);
+	abs_delta[1] = zaimoni::pos_diff(lhs[1], rhs[1]);
+	abs_delta[2] = zaimoni::pos_diff(lhs[2], rhs[2]);
+	if (abs_delta[0] > abs_delta[2] && 2 <= abs_delta[0] - abs_delta[2]) return std::partial_ordering::unordered;
+	if (abs_delta[1] > abs_delta[2] && 2 <= abs_delta[1] - abs_delta[2]) return std::partial_ordering::unordered;
+	if (0 == abs_delta[2]) {
+		// same z-coordinate
+		auto delta = lhs - rhs;
+		if (0 <= delta[0] && 0 <= delta[1]) return std::partial_ordering::greater;
+		if (0 >= delta[0] && 0 >= delta[1]) return std::partial_ordering::less;
+		return std::partial_ordering::unordered;
+	}
+	return std::nullopt;
+}
+
+
+static std::partial_ordering _render_before(telephoto_grid::coord_type lhs, telephoto_grid::coord_type rhs)
+{
+	static const constexpr telephoto_grid::coord_type z_adjust({ -1, -1, 1 });
+
+	assert(lhs[2] < rhs[2]);
+//	zaimoni::math::rearrange_diff(lhs, rhs); // not built out
+restart:
+	zaimoni::math::rearrange_diff(lhs[0], rhs[0]);
+	zaimoni::math::rearrange_diff(lhs[1], rhs[1]);
+	zaimoni::math::rearrange_diff(lhs[2], rhs[2]);
+
+	auto delta_z = zaimoni::pos_diff(lhs[2], rhs[2]);
+	if (std::numeric_limits<ptrdiff_t>::max() < delta_z) delta_z = std::numeric_limits<ptrdiff_t>::max();
+	if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[0]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[0];
+	if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[1]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[1];
+	if (0 == delta_z) return std::partial_ordering::unordered;
+//	rhs -= (ptrdiff_t)delta_z * z_adjust; // not built out
+	rhs[0] += delta_z;
+	rhs[1] += delta_z;
+	rhs[2] -= delta_z;
+	if (const auto test = _guard_render_before(lhs, rhs)) {
+		if (std::partial_ordering::equivalent == *test) return std::partial_ordering::less;
+		return *test;
+	}
+	goto restart;
+}
+
+static std::partial_ordering render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)
+{
+	if (const auto test = _guard_render_before(lhs, rhs)) return *test;
+	if (lhs[2] < rhs[2]) return _render_before(lhs, rhs);
+	// function extraction target
+	const auto ret = _render_before(rhs, lhs);
+	if (std::partial_ordering::less == ret) return std::partial_ordering::greater;
+	if (std::partial_ordering::greater == ret) return std::partial_ordering::less;
+	return ret;
+	// end function extraction target
+}
+
 void telephoto_grid::facing(iskandria::compass::XCOMlike f) {
 	auto delta = iskandria::compass::inv_rotate(f, (iskandria::compass::XCOMlike)_facing);
 	if (iskandria::compass::NW > delta && iskandria::compass::NE < delta)

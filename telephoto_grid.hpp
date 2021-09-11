@@ -15,8 +15,10 @@ class telephoto_grid : public WorldView
 	iskandria::grid::cartesian<3>::orientation _facing;
 
 public:
+	using coord_type = iskandria::grid::cartesian<3>::coord_type;
+
 	telephoto_grid() noexcept : _facing(iskandria::compass::NW) {}
-	telephoto_grid(const std::shared_ptr< isk::Wrap<iskandria::grid::cartesian<3> > >& view, const iskandria::grid::cartesian<3>::coord_type& o, iskandria::grid::cartesian<3>::orientation f) noexcept
+	telephoto_grid(const decltype(_map)& view, const decltype(_origin)& o, decltype(_facing) f) noexcept
 		: _map(view), _origin(o), _facing(f) {}
 	telephoto_grid(const telephoto_grid& src) = default;
 	telephoto_grid(telephoto_grid&& src) = default;
