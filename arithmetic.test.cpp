@@ -86,6 +86,100 @@ int main(int argc, char* argv[])
 		++i;
 	}
 
+	STRING_LITERAL_TO_STDOUT("\ndomain-check 0*1\n");
+	i = 0;
+	for (decltype(auto) lhs : zero) {
+		j = 0;
+		for (decltype(auto) rhs : one) {
+			stage_product = analytic_one;
+			stage_product.append_term(lhs);
+			stage_product.append_term(rhs);
+			C_STRING_TO_STDOUT(primitive_numeric[i]);
+			STRING_LITERAL_TO_STDOUT("*");
+			C_STRING_TO_STDOUT(primitive_numeric[j]);
+			STRING_LITERAL_TO_STDOUT(": ");
+			INFORM(stage_product.to_s().c_str());
+			++j;
+		}
+		++i;
+	}
+
+	STRING_LITERAL_TO_STDOUT("\ndomain-check 1*0\n");
+	i = 0;
+	for (decltype(auto) lhs : one) {
+		j = 0;
+		for (decltype(auto) rhs : zero) {
+			stage_product = analytic_one;
+			stage_product.append_term(lhs);
+			stage_product.append_term(rhs);
+			C_STRING_TO_STDOUT(primitive_numeric[i]);
+			STRING_LITERAL_TO_STDOUT("*");
+			C_STRING_TO_STDOUT(primitive_numeric[j]);
+			STRING_LITERAL_TO_STDOUT(": ");
+			INFORM(stage_product.to_s().c_str());
+			++j;
+		}
+		++i;
+	}
+
+	STRING_LITERAL_TO_STDOUT("\ndomain-check 0+1\n");
+	i = 0;
+	for (decltype(auto) lhs : zero) {
+		j = 0;
+		for (decltype(auto) rhs : one) {
+			stage_sum = analytic_zero;
+			stage_sum.append_term(lhs);
+			stage_sum.append_term(rhs);
+			C_STRING_TO_STDOUT(primitive_numeric[i]);
+			STRING_LITERAL_TO_STDOUT("+");
+			C_STRING_TO_STDOUT(primitive_numeric[j]);
+			STRING_LITERAL_TO_STDOUT(": ");
+			INFORM(stage_sum.to_s().c_str());
+			++j;
+		}
+		++i;
+	}
+
+	STRING_LITERAL_TO_STDOUT("\ndomain-check 1+0\n");
+	i = 0;
+	for (decltype(auto) lhs : one) {
+		j = 0;
+		for (decltype(auto) rhs : zero) {
+			stage_sum = analytic_zero;
+			stage_sum.append_term(lhs);
+			stage_sum.append_term(rhs);
+			C_STRING_TO_STDOUT(primitive_numeric[i]);
+			STRING_LITERAL_TO_STDOUT("+");
+			C_STRING_TO_STDOUT(primitive_numeric[j]);
+			STRING_LITERAL_TO_STDOUT(": ");
+			INFORM(stage_sum.to_s().c_str());
+			++j;
+		}
+		++i;
+	}
+
+#if PROTOTYPE
+	STRING_LITERAL_TO_STDOUT("\ndomain-check 1+1\n");
+	i = 0;
+	for (decltype(auto) lhs : one) {
+		j = 0;
+		for (decltype(auto) rhs : one) {
+			stage_sum = analytic_zero;
+			stage_sum.append_term(lhs);
+			stage_sum.append_term(rhs);
+			C_STRING_TO_STDOUT(primitive_numeric[i]);
+			STRING_LITERAL_TO_STDOUT("+");
+			C_STRING_TO_STDOUT(primitive_numeric[j]);
+			STRING_LITERAL_TO_STDOUT(": ");
+			INFORM(stage_sum.to_s().c_str());
+			while (stage_sum.self_eval());
+			INFORM(stage_sum.to_s().c_str());
+			++j;
+		}
+		++i;
+	}
+#endif
+
 	return 0;
 }
 

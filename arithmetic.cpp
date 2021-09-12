@@ -351,20 +351,20 @@ namespace math {
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(F& lhs, F2& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
@@ -538,20 +538,20 @@ exact_product:
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(F& lhs, F2& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(ISK_INTERVAL<F>& lhs, ISK_INTERVAL<F2>& rhs)
 			{
-				FATAL("need to implement");
+				throw std::logic_error("need to implement");
 				return 0;
 			}
 
