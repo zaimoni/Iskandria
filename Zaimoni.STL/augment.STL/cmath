@@ -452,6 +452,7 @@ public:
 	auto exponent() const { return _exponent; }
 	auto mantissa() const { return _mantissa; }
 
+	// for multiplication
 	template<std::floating_point F2> int predict_product_exponent(edit_fp<F2>& rhs) const { return _exponent + rhs._exponent - 1; }
 	bool product_is_exact() const { return F(0.5) == _mantissa || F(-0.5) == _mantissa; }
 	uintmax_t mantissa_as_int() const { return _mantissa_as_int(copysign(_mantissa, 1.0));  }
@@ -470,6 +471,35 @@ public:
 		rhs._x = scalbn(rhs._x, delta_exp);
 		rhs._exponent += delta_exp;
 		return true;
+	}
+
+	// for addition/subtraction
+	F delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); };	// usually prepared for subtractive cancellation
+
+	// these are in terms of absolute value
+	std::pair<int, int> safe_subtract_exponents()
+	{
+		std::pair<int, int> ret(_exponent - std::numeric_limits<F>::digits, _exponent);
+		if (0.5 == _mantissa || -0.5 == _mantissa) ret.first--;
+		if (std::numeric_limits<F>::min_exponent > ret.second) ret.second = std::numeric_limits<F>::min_exponent;
+		if (std::numeric_limits<F>::min_exponent > ret.first) ret.first = std::numeric_limits<F>::min_exponent;
+		return ret;
+	}
+
+	std::pair<int, int> safe_add_exponents()	// not for denormals
+	{
+		std::pair<int, int> ret(_exponent - std::numeric_limits<F>::digits, _exponent);
+		const double abs_mantissa = (signBit(_mantissa) ? -_mantissa : _mantissa);
+		if (std::numeric_limits<F>::digits < mantissa_bitcount(abs_mantissa)) {
+			double mantissa_delta = 0.5;
+			while (1.0 - mantissa_delta < abs_mantissa)
+			{
+				assert(ret.first < ret.second);
+				ret.second--;
+				mantissa_delta = scalbn(mantissa_delta, -1);
+			}
+		}
+		return ret;
 	}
 };
 
@@ -506,7 +536,7 @@ public:
 	// these are in terms of absolute value
 	std::pair<int, int> safe_subtract_exponents()
 	{
-		std::pair<int, int> ret(_exponent - std::numeric_limits<double>::digits, _exponent);
+		std::pair<int, int> ret(_exponent - std::numeric_limits<T>::digits, _exponent);
 		if (0.5 == _mantissa || -0.5 == _mantissa) ret.first--;
 		if (std::numeric_limits<T>::min_exponent > ret.second) ret.second = std::numeric_limits<T>::min_exponent;
 		if (std::numeric_limits<T>::min_exponent > ret.first) ret.first = std::numeric_limits<T>::min_exponent;

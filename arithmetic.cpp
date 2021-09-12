@@ -43,6 +43,14 @@ namespace math {
 		if (lhs.second > rhs.second) lhs.second = rhs.second;
 	}
 
+	template<class T>
+	std::optional<std::pair<T,T> > intersect(const std::pair<T, T>& lhs, const std::pair<T, T>& rhs)	// prototype
+	{
+		if (lhs.second < rhs.first) return std::nullopt;
+		if (rhs.second < lhs.first) return std::nullopt;
+		return std::pair(lhs.first <= rhs.first ? rhs.first : lhs.first, lhs.second <= rhs.second ? lhs.second : rhs.second);
+	}
+
 	// rearrange_sum support
 	namespace _rearrange {
 		struct sum {
@@ -351,8 +359,60 @@ namespace math {
 			template<std::floating_point F, std::floating_point F2> requires(std::numeric_limits<F>::digits < std::numeric_limits<F2>::digits)
 				int operator()(F& lhs, F2& rhs)
 			{
-				throw std::logic_error("need to implement");
-				return 0;
+				bool changed = false;
+
+restart:
+				int fp_type[2] = { fpclassify(lhs) , fpclassify(rhs) };
+				assert(FP_NAN != fp_type[0]);
+				assert(FP_NAN != fp_type[1]);
+				assert(FP_INFINITE != fp_type[0]);
+				assert(FP_INFINITE != fp_type[1]);
+				if (FP_ZERO == fp_type[0]) return -1;	// should have intercepted earlier but we know what to do with these
+				if (FP_ZERO == fp_type[1]) return 1;
+				if (FP_SUBNORMAL == fp_type[0]) return 0;	// bail on mis-matched denormals
+				if (FP_SUBNORMAL == fp_type[1]) return 0;
+
+				bool l_negative = std::signbit(lhs);
+				bool same_sign = (std::signbit(rhs) == l_negative);
+
+				auto l_edit = edit_fp(lhs);
+				auto r_edit = edit_fp(rhs);
+				auto l_range = l_edit.safe_subtract_exponents();
+				auto r_range = r_edit.safe_subtract_exponents();
+				if (!same_sign) {
+					if (auto consider = intersect(l_range, r_range)) {
+						lhs -= l_edit.delta(consider->second);
+						rhs -= r_edit.delta(consider->second);
+						changed = true;
+						if (0 == lhs) return -1;
+						if (0 == rhs) return 1;
+						goto restart;
+					}
+				} else {
+					auto l_consider = intersect(l_edit.safe_add_exponents(), r_range);
+					auto r_consider = intersect(l_range, r_edit.safe_add_exponents());
+					if (l_consider && r_consider) {
+						if (l_edit.exponent() < r_edit.exponent()) l_consider = std::nullopt;
+						else if (l_edit.exponent() > r_edit.exponent()) r_consider = std::nullopt;
+					}
+					if (l_consider) {
+						lhs += l_edit.delta(l_consider->second);
+						rhs -= r_edit.delta(l_consider->second);
+						changed = true;
+						if (0 == lhs) return -1;
+						if (0 == rhs) return 1;
+						goto restart;
+					}
+					if (r_consider) {
+						lhs -= l_edit.delta(r_consider->second);
+						rhs += r_edit.delta(r_consider->second);
+						changed = true;
+						if (0 == lhs) return -1;
+						if (0 == rhs) return 1;
+						goto restart;
+					}
+				}
+				return changed ? -2 : 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
