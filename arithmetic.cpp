@@ -384,7 +384,7 @@ restart:
 						lhs -= l_edit.delta(consider->second);
 						rhs -= r_edit.delta(consider->second);
 						changed = true;
-						if (0 == lhs) return -1;
+						if (0 == lhs) return 0 == rhs ? -2 : -1;
 						if (0 == rhs) return 1;
 						goto restart;
 					}
@@ -399,7 +399,7 @@ restart:
 						lhs += l_edit.delta(l_consider->second);
 						rhs -= r_edit.delta(l_consider->second);
 						changed = true;
-						if (0 == lhs) return -1;
+						if (0 == lhs) return 0 == rhs ? -2 : -1;
 						if (0 == rhs) return 1;
 						goto restart;
 					}
@@ -407,12 +407,12 @@ restart:
 						lhs -= l_edit.delta(r_consider->second);
 						rhs += r_edit.delta(r_consider->second);
 						changed = true;
-						if (0 == lhs) return -1;
+						if (0 == lhs) return 0 == rhs ? -2 : -1;
 						if (0 == rhs) return 1;
 						goto restart;
 					}
 				}
-				return changed ? -2 : 0;
+				return changed ? 2 : 0;
 			}
 
 			template<std::floating_point F, std::floating_point F2> int operator()(F& lhs, ISK_INTERVAL<F2>& rhs)
