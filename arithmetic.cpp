@@ -819,16 +819,49 @@ exact_product:
 	int product_score(const COW<fp_API>& lhs)
 	{
 		if (parse_for::eval_product(lhs)) return std::numeric_limits<int>::min() + 1;
+		if (dynamic_cast<const API_product<fp_API>*>(lhs.get_c())) return std::numeric_limits<int>::min() + 1;
 		return std::numeric_limits<int>::min();
+	}
+
+	static std::optional<std::pair<int, int> > op_count_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
+	{
+		auto elementary_lhs = parse_for::eval_product(lhs);
+		auto elementary_rhs = parse_for::eval_product(rhs);
+		if (elementary_lhs && elementary_rhs) return std::pair(0, 1);
+		auto API_lhs = elementary_lhs ? nullptr : dynamic_cast<const API_product<fp_API>*>(lhs.get_c());
+		auto API_rhs = elementary_rhs ? nullptr : dynamic_cast<const API_product<fp_API>*>(rhs.get_c());
+		if (API_lhs) {
+			auto count = API_lhs->product_op_count(rhs);
+			if (count) return count;
+		}
+		if (API_rhs) {
+			auto count = API_rhs->product_op_count(lhs); // should be fine even if multiplication isn't commutative
+			if (count) return count;
+		}
+
+		return std::nullopt;
 	}
 
 	int product_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs)
 	{
+		if (auto score = op_count_product(lhs, rhs)) {
+			// we know how to multiply these, and have some idea how expensive it is
+			return std::numeric_limits<int>::max() - score->second - score->first;
+		}
+
 		if (std::numeric_limits<int>::min() < product_score(lhs)) {
 			// \todo: try to check whether rearrange or eval actually would happen
 			return product_score(rhs);
 		}
 		return std::numeric_limits<int>::min();
+	}
+
+	void update_op_count_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs, std::pair<int, int>& accumulator)
+	{
+		if (auto stage = op_count_product(lhs, rhs)) {
+			clamped_sum_assign(accumulator.first, stage->first);
+			clamped_sum_assign(accumulator.second, stage->second);
+		} else clamped_sum_assign(accumulator.second, 1);
 	}
 
 	// eval_quotient support

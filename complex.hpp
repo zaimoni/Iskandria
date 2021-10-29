@@ -7,7 +7,7 @@ namespace zaimoni {
 namespace math {
 
 // Cartesian coordinate representation.
-class complex final : public fp_API, public eval_to_ptr<fp_API>, API_sum<fp_API>, API_addinv {
+class complex final : public fp_API, public eval_to_ptr<fp_API>, API_sum<fp_API>, API_addinv, API_product<fp_API> {
 	eval_type a;
 	eval_type b;
 	mutable unsigned char heuristics;
@@ -55,6 +55,9 @@ public:
 	fp_API* eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	int score_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	void self_negate() override;
+	int rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs) override;
+	fp_API* eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
+	std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 
 private:
 	void _scal_bn(intmax_t scale) override;

@@ -229,5 +229,48 @@ void complex::self_negate()
 	negate_in_place(b);
 }
 
+int complex::rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs)
+{
+	return 0;	// \todo implement (but might be tricky)
 }
+
+fp_API* complex::eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const
+{
+	auto src = rhs.get_c();
+	if (auto r = dynamic_cast<const complex*>(src)) {
+		return new complex(a * r->a + -(b * r->b), a * r->b + b * r->a);
+	}
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return nullptr;	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		return new complex(a * rhs, b * rhs);
+	}
+
+	return nullptr;
 }
+
+std::optional<std::pair<int, int> > complex::product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const
+{
+	auto src = rhs.get_c();
+	if (auto r = dynamic_cast<const complex*>(src)) {
+		std::pair ret(2, 0);
+		update_op_count_product(a, r->a, ret);
+		update_op_count_product(b, r->b, ret);
+		update_op_count_product(a, r->b, ret);
+		update_op_count_product(b, r->a, ret);
+		return ret;
+	}
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return std::nullopt;	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		std::pair ret(0, 0);
+		update_op_count_product(a, rhs, ret);
+		update_op_count_product(b, rhs, ret);
+		return ret;
+	}
+
+	return std::nullopt;
+}
+
+} // namespace math
+} // namespace zaimoni

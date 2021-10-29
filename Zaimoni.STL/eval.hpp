@@ -120,6 +120,14 @@ namespace zaimoni {
 		virtual void self_negate() = 0;
 	};
 
+	template<class T>
+	struct API_product
+	{
+		virtual int rearrange_product(eval_to_ptr<T>::eval_type& rhs) = 0;
+		virtual T* eval_product(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
+		virtual std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
+	};
+
 	struct fp_API {	// virtual base
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 

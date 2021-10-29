@@ -14,6 +14,8 @@ int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs);
 
 int product_score(const COW<fp_API>& lhs);
 int product_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
+// (+, *) elementary operation counts
+void update_op_count_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs, std::pair<int, int>& accumulator);
 COW<fp_API> eval_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
 
 fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d);
