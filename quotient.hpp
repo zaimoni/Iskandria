@@ -11,7 +11,9 @@ namespace zaimoni {
 		eval_type _denominator;
 		std::pair<unsigned int, unsigned int> _heuristic;
 		enum {
-			componentwise_evaluation = 1,
+			componentwise_algebraic_evaluation = 1,
+			rearrange,
+			componentwise_evaluation,
 			strict_max_heuristic
 		};
 	public:

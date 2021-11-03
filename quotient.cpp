@@ -61,34 +61,90 @@ bool quotient::self_eval() {
 	// \todo: mutual cancellation of negative signs
 	// \todo: scalBn of denominator towards 1 (arguably normal-form)
 	// \todo: general rearrangement
+restart:
 	switch (_heuristic.first) {
-	case componentwise_evaluation:
+	case componentwise_algebraic_evaluation:
 	{
-		unsigned int n_state = _heuristic.second % 3;	// chinese remainder theorem encoding
-		unsigned int d_state = _heuristic.second / 3;
+		unsigned int n_state = _heuristic.second % 2;	// chinese remainder theorem encoding
+		unsigned int d_state = _heuristic.second / 2;
 		switch (n_state) {
 		case 0:
-			if (_numerator->self_eval()) break;
-			n_state = 1;
-			// intentional fall-through
-		case 1:
-			n_state = fp_API::eval(_numerator) ? 0 : 2;
+			if (!fp_API::algebraic_reduce(_numerator)) ++n_state;
 		};
 		switch (d_state) {
 		case 0:
-			if (_denominator->self_eval()) break;
-			d_state = 1;
-			// intentional fall-through
-		case 1:
-			d_state = fp_API::eval(_denominator) ? 0 : 2;
+			if (!fp_API::algebraic_reduce(_denominator)) ++d_state;
 		};
-		if (8 > (_heuristic.second = 3 * d_state + n_state)) {
+		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
+			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
+			if (would_destructive_eval()) _heuristic.first = 0;
+			return true;
+		}
+		_heuristic = std::pair(_heuristic.first + 1, 0);
+		goto restart;
+	}
+	case rearrange:
+	{
+		if (auto d = _denominator.get_rw<API_productinv<fp_API>>()) {
+			if (!d->first) {
+				_denominator = std::unique_ptr<fp_API>(_denominator->clone());
+				d = _denominator.get_rw<API_productinv<fp_API>>();
+			}
+			if (d) {
+				switch (d->first->rearrange_divides(_numerator)) {
+				case 2:
+					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					return true;
+				case -1:
+				case 1:
+					if (would_destructive_eval()) _heuristic.first = 0;
+					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					return true;
+				}
+			}
+		}
+		if (auto n = _numerator.get_rw<API_productinv<fp_API>>()) {
+			if (!n->first) {
+				_numerator = std::unique_ptr<fp_API>(_numerator->clone());
+				n = _numerator.get_rw<API_productinv<fp_API>>();
+			}
+			if (n) {
+				switch (n->first->rearrange_dividedby(_denominator)) {
+				case 2:
+					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					return true;
+				case -1:
+				case 1:
+					if (would_destructive_eval()) _heuristic.first = 0;
+					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					return true;
+				}
+			}
+		}
+		// \todo other adjustments that make sense
+
+		_heuristic = std::pair(_heuristic.first + 1, 0);
+		goto restart;
+	}
+	case componentwise_evaluation:
+	{
+		unsigned int n_state = _heuristic.second % 2;	// chinese remainder theorem encoding
+		unsigned int d_state = _heuristic.second / 2;
+		switch (n_state) {
+		case 0:
+			if (!fp_API::eval(_numerator)) ++n_state;
+		};
+		switch (d_state) {
+		case 0:
+			if (!fp_API::eval(_denominator)) ++d_state;
+		};
+		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
 			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
 			if (would_destructive_eval()) _heuristic.first = 0;
 			return true;
 		}
 	}
-	// intentional fall-through
+	[[fallthrough]];
 	default:
 		_heuristic.first = 0;
 		return false;
