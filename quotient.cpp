@@ -150,11 +150,15 @@ std::string quotient::to_s() const {
 	return n + '/' + d;
 }
 
-bool quotient::_is_finite() const {
-	if (_numerator->is_finite()) return true;
-	else if (_numerator->is_inf()) return false;
-	else if (_denominator->is_inf()) return true;	// presumed not-undefined
-	return false;
+std::optional<bool> quotient::_is_finite() const {
+	if (const auto test = _numerator->is_finite_kripke()) {
+		return *test; // assume defined i.e. not infinity/infinity
+	}
+	if (const auto test = _denominator->is_finite_kripke()) {
+		if (!*test) return true; // presumed not-undefined
+		// fallthrough
+	}
+	return std::nullopt;
 }
 
 const char* quotient::_transform_fatal(const decltype(_numerator)& n, const decltype(_denominator)& d)

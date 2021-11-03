@@ -181,9 +181,15 @@ namespace zaimoni {
 		// we do not propagate NaN so no test here for it
 		virtual bool is_inf() const {
 			if (0 == domain()->allow_infinity()) return false;
-			return _is_inf();
+			if (const auto test = _is_finite()) return !*test;
+			return false;
 		}
 		virtual bool is_finite() const {
+			if (0 == domain()->allow_infinity()) return true;
+			if (const auto test = _is_finite()) return *test;
+			return false;
+		}
+		virtual std::optional<bool> is_finite_kripke() const {
 			if (0 == domain()->allow_infinity()) return true;
 			return _is_finite();
 		}
@@ -218,8 +224,7 @@ namespace zaimoni {
 	private:
 		virtual void _scal_bn(intmax_t scale) = 0;	// power-of-two
 		virtual fp_API* _eval() const = 0;	// memory-allocating evaluation
-		virtual bool _is_inf() const { throw std::logic_error("must define _is_inf"); }
-		virtual bool _is_finite() const { throw std::logic_error("must define _is_finite"); }
+		virtual std::optional<bool> _is_finite() const { throw std::logic_error("must define _is_finite"); }
 		virtual std::partial_ordering _value_compare(const fp_API* rhs) const { return std::partial_ordering::unordered; } // stub \todo make abstract
 	};
 

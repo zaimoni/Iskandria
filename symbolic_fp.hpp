@@ -63,8 +63,8 @@ namespace zaimoni {
 
 		fp_API* _eval() const override { return nullptr; }
 
-		bool _is_inf() const override;
-		bool _is_finite() const override;
+	private:
+		std::optional<bool> _is_finite() const override;
 	};
 
 }	// namespace zaimoni

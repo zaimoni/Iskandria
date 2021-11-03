@@ -183,14 +183,9 @@ symbolic_fp::eval_type symbolic_fp::destructive_eval()
 	return nullptr;
 }
 
-bool symbolic_fp::_is_inf() const {
-	if (mult_inverted()) return dest->is_zero();
-	return dest->is_inf();
-}
-
-bool symbolic_fp::_is_finite() const {
-	if (mult_inverted()) return !dest->is_zero();
-	return dest->is_finite();
+std::optional<bool> symbolic_fp::_is_finite() const {
+	if (mult_inverted() && dest->is_zero()) return false;
+	return dest->is_finite_kripke();
 }
 
 }

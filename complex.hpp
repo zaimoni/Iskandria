@@ -28,7 +28,7 @@ public:
 	friend eval_type norm2(const complex& z);
 
 	const math::type* domain() const override {
-		if (_is_finite()) return &get<_type<_type_spec::_C_> >();
+		if (is_finite()) return &get<_type<_type_spec::_C_> >();
 		return &get<_type<_type_spec::_C_SHARP_> >();
 	}
 
@@ -66,8 +66,7 @@ public:
 private:
 	void _scal_bn(intmax_t scale) override;
 	fp_API* _eval() const override { return nullptr; }
-	bool _is_inf() const override { return a->is_inf() || b->is_inf(); }
-	bool _is_finite() const override { return a->is_finite() && b->is_finite(); }
+	std::optional<bool> _is_finite() const override;
 };
 
 } // namespace math

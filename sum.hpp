@@ -49,13 +49,12 @@ public:
 	sum* typed_clone() const { return new sum(*this); }
 	std::string to_s() const override;
 	int precedence() const override { return _precedence; }
-	bool _is_inf() const override;
-	bool _is_finite() const override;
 
 private:
 	static constexpr const auto _precedence = _type_spec::Addition;
 	void _scal_bn(intmax_t scale) override;
 	fp_API* _eval() const override { return nullptr; }	// placeholder
+	std::optional<bool> _is_finite() const override;
 };
 
 } // namespace zaimoni

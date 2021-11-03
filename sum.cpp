@@ -158,13 +158,12 @@ std::string sum::to_s() const {
 	return ret;
 }
 
-bool sum::_is_inf() const {
-	for (auto& x : this->_x) if (x->is_inf()) return true;
-	return false;
-}
-
-bool sum::_is_finite() const {
-	for (auto& x : this->_x) if (!x->is_finite()) return false;
+std::optional<bool> sum::_is_finite() const {
+	for (decltype(auto) x : this->_x) {
+		if (const auto test = x->is_finite_kripke()) {
+			if (!*test) return false;
+		} else return std::nullopt;
+	}
 	return true;
 }
 

@@ -114,6 +114,16 @@ void complex::_scal_bn(intmax_t scale) {
 	heuristics = 0x0F;
 }
 
+std::optional<bool> complex::_is_finite() const
+{
+	const auto re_test = a->is_finite_kripke();
+	if (re_test && !*re_test) return false;
+	const auto im_test = b->is_finite_kripke();
+	if (im_test && !*im_test) return false;
+	if (re_test && im_test) return true;
+	return std::nullopt;
+}
+
 int complex::rearrange_sum(eval_type& rhs)
 {
 retry:
