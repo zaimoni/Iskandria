@@ -46,6 +46,7 @@ public:
 	intmax_t ideal_scal_bn() const override;
 	const math::type* domain() const override;
 	fp_API* clone() const override { return new product(*this); }
+	product* typed_clone() const { return new product(*this); }
 	std::string to_s() const override;
 	int precedence() const override { return _precedence; }
 

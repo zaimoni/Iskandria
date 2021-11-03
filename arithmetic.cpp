@@ -815,6 +815,19 @@ exact_product:
 		return nullptr;
 	}
 
+	COW<fp_API> add_identity(const type& src)
+	{
+		COW<fp_API> ret;
+		if (0 >= src.subclass(math::get<_type<_type_spec::_O_SHARP_>>())) { // Octonions.
+			// should use additive identity for integers Z
+			ret = new var_fp<intmax_t>(0);	// ideally would use a static cache to defer thrashing RAM
+		};
+		// if we were to support the surreal/hyperreal chain we would test for that here as well
+		// and use additive identity for integers Z
+		// otherwise, ask the type
+		return ret;	// trigger NRVO
+	}
+
 	COW<fp_API> mult_identity(const type& src)
 	{
 		COW<fp_API> ret;
@@ -824,6 +837,7 @@ exact_product:
 		};
 		// if we were to support the surreal/hyperreal chain we would test for that here as well
 		// and use multiplicative identity for integers Z
+		// otherwise, ask the type
 		return ret;	// trigger NRVO
 	}
 
@@ -1392,6 +1406,18 @@ eval_to_ptr<fp_API>::eval_type operator*(const eval_to_ptr<fp_API>::eval_type& l
 	ret->append_term(lhs);
 	ret->append_term(rhs);
 	return eval_to_ptr<fp_API>::eval_type(ret.release());
+}
+
+eval_to_ptr<fp_API>::eval_type& operator*=(eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
+{
+	if (auto r = lhs.get_rw<product>()) {
+		if (!r->first) lhs = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+		r->first->append_term(rhs);
+	} else {
+		lhs = lhs * rhs;
+	}
+
+	return lhs;
 }
 
 eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)

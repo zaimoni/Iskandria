@@ -24,6 +24,7 @@ fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d);
 int sum_score(const COW<fp_API>& x); // i.e., do we have a backend for this
 int sum_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
 COW<fp_API> eval_sum(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
+COW<fp_API> add_identity(const type& src);
 
 bool in_place_negate(eval_to_ptr<fp_API>::eval_type& lhs);
 bool in_place_square(COW<fp_API>& x);
@@ -35,6 +36,7 @@ eval_to_ptr<fp_API>::eval_type operator+(const eval_to_ptr<fp_API>::eval_type& l
 eval_to_ptr<fp_API>::eval_type& operator+=(eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs);
 
 eval_to_ptr<fp_API>::eval_type operator*(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs);
+eval_to_ptr<fp_API>::eval_type& operator*=(eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs);
 eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs);
 
 void negate_in_place(eval_to_ptr<fp_API>::eval_type& lhs);

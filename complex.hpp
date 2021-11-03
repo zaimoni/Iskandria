@@ -58,8 +58,8 @@ public:
 	int rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs) override;
 	fp_API* eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
-	int rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs) override { return 0; } // stub no-op
-	int rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs) override; // stub no-op
+	int rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs) override;
+	int rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs) override;
 	virtual fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const { return nullptr; } // stub no-op
 	virtual fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const { return nullptr; } // stub no-op
 

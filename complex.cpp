@@ -283,6 +283,23 @@ std::optional<std::pair<int, int> > complex::product_op_count(const typename eva
 	return std::nullopt;
 }
 
+int complex::rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs)
+{
+	// multiply by 1 == Conj(*this)/Conj(*this)
+	complex stage(norm2(*this), zaimoni::math::add_identity(math::get<_type<_type_spec::_R_SHARP_>>())); // to make us ACID
+
+	auto new_numerator = std::unique_ptr<fp_API>(eval_product(lhs));
+	if (new_numerator) {
+		lhs = new_numerator.release();
+		*this = stage;
+		return 2;
+	}
+
+	lhs *= Conj(*this);
+	*this = stage;
+	return 2;
+}
+
 int complex::rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs)
 {
 	auto rhs_domain = rhs->domain();
@@ -297,7 +314,6 @@ int complex::rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs)
 
 	return 0;
 }
-
 
 } // namespace math
 } // namespace zaimoni
