@@ -17,6 +17,7 @@ int product_score(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
 // (+, *) elementary operation counts
 void update_op_count_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs, std::pair<int, int>& accumulator);
 COW<fp_API> eval_product(const COW<fp_API>& lhs, const COW<fp_API>& rhs);
+COW<fp_API> mult_identity(const type& src);
 
 fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d);
 

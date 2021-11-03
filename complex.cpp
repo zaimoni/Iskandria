@@ -1,6 +1,7 @@
 #include "complex.hpp"
 #include "arithmetic.hpp"
 #include "Zaimoni.STL/var.hpp"
+#include <memory>
 
 namespace zaimoni {
 namespace math {
@@ -271,6 +272,22 @@ std::optional<std::pair<int, int> > complex::product_op_count(const typename eva
 
 	return std::nullopt;
 }
+
+int complex::rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs)
+{
+	auto rhs_domain = rhs->domain();
+	if (!rhs_domain) return 0;	// arguably hard error
+	if (0 >= rhs_domain->subclass(math::get<_type<_type_spec::_R_SHARP_>>())) {
+		auto stage_re = std::unique_ptr<fp_API>(zaimoni::math::eval_quotient(a, rhs));
+		auto stage_im = std::unique_ptr<fp_API>(zaimoni::math::eval_quotient(b, rhs));
+		*this = complex(stage_re ? stage_re.release() : a / rhs, stage_im ? stage_im.release() : b / rhs);
+		rhs = zaimoni::math::mult_identity(*rhs_domain);
+		return 1;
+	};
+
+	return 0;
+}
+
 
 } // namespace math
 } // namespace zaimoni

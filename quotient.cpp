@@ -60,6 +60,7 @@ bool quotient::self_eval() {
 	// \todo: greatest common integer factor exceeds one
 	// \todo: mutual cancellation of negative signs
 	// \todo: scalBn of denominator towards 1 (arguably normal-form)
+	// \todo: general rearrangement
 	switch (_heuristic.first) {
 	case componentwise_evaluation:
 	{

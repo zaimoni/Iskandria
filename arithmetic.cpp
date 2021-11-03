@@ -815,6 +815,18 @@ exact_product:
 		return nullptr;
 	}
 
+	COW<fp_API> mult_identity(const type& src)
+	{
+		COW<fp_API> ret;
+		if (0 >= src.subclass(math::get<_type<_type_spec::_O_SHARP_>>())) { // Octonions.
+			// should use multiplicative identity for integers Z
+			ret = new var_fp<intmax_t>(1);	// ideally would use a static cache to defer thrashing RAM
+		};
+		// if we were to support the surreal/hyperreal chain we would test for that here as well
+		// and use multiplicative identity for integers Z
+		return ret;	// trigger NRVO
+	}
+
 	// unlike sum scores, working product scores are nonlinear
 	int product_score(const COW<fp_API>& lhs)
 	{

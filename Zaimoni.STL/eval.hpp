@@ -128,6 +128,16 @@ namespace zaimoni {
 		virtual std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 	};
 
+	// this is right-division, if there is a distinction; it supports a/b := a b^-1 notation
+	template<class T>
+	struct API_productinv
+	{
+		virtual int rearrange_divides(eval_to_ptr<T>::eval_type& lhs) = 0;
+		virtual int rearrange_dividedby(eval_to_ptr<T>::eval_type& rhs) = 0;
+		virtual T* eval_divides(const typename eval_to_ptr<T>::eval_type& lhs) const = 0;
+		virtual T* eval_dividedby(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
+	};
+
 	struct fp_API {	// virtual base
 		static constexpr std::pair<intmax_t, intmax_t> max_scal_bn_safe_range() { return std::pair<intmax_t, intmax_t>(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max()); }	// simple static member variable crashes at link-time even if initialized here
 

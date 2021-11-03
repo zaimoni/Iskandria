@@ -7,7 +7,7 @@ namespace zaimoni {
 namespace math {
 
 // Cartesian coordinate representation.
-class complex final : public fp_API, public eval_to_ptr<fp_API>, API_sum<fp_API>, API_addinv, API_product<fp_API> {
+class complex final : public fp_API, public eval_to_ptr<fp_API>, API_sum<fp_API>, API_addinv, API_product<fp_API>, API_productinv<fp_API> {
 	eval_type a;
 	eval_type b;
 	mutable unsigned char heuristics;
@@ -58,6 +58,10 @@ public:
 	int rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs) override;
 	fp_API* eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
+	int rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs) override { return 0; } // stub no-op
+	int rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs) override; // stub no-op
+	virtual fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const { return nullptr; } // stub no-op
+	virtual fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const { return nullptr; } // stub no-op
 
 private:
 	void _scal_bn(intmax_t scale) override;
