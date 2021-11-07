@@ -6,7 +6,7 @@
 
 namespace zaimoni {
 
-static enum {
+enum {
 	componentwise_algebraic_evaluation = 1,
 	rearrange,
 	componentwise_evaluation,
@@ -50,12 +50,12 @@ quotient::quotient(fp_API* numerator, fp_API* denominator) : _numerator(numerato
 }
 
 // std::function would be most general solution, but we're not doing anything that intricate
-static enum {
+enum {
 	is_numerator = 1
 };
 
 bool quotient::would_destructive_eval() const {
-	if (0 < _heuristic.first || 0 < _heuristic.second) return true;
+	if (0 == _heuristic.first) return 0 < _heuristic.second;
 	if (   _denominator->is_one()
 		|| _numerator->is_zero()) {
 		_heuristic = std::pair(0, is_numerator);
