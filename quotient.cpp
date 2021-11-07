@@ -6,6 +6,13 @@
 
 namespace zaimoni {
 
+static enum {
+	componentwise_algebraic_evaluation = 1,
+	rearrange,
+	componentwise_evaluation,
+	strict_max_heuristic
+};
+
 quotient::quotient(const decltype(_numerator)& numerator, const decltype(_denominator)& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
@@ -42,16 +49,29 @@ quotient::quotient(fp_API* numerator, fp_API* denominator) : _numerator(numerato
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
+// std::function would be most general solution, but we're not doing anything that intricate
+static enum {
+	is_numerator = 1
+};
+
 bool quotient::would_destructive_eval() const {
-	if (_denominator->is_one()) return true;
-	if (_numerator->is_zero()) return true;
+	if (0 < _heuristic.first || 0 < _heuristic.second) return true;
+	if (   _denominator->is_one()
+		|| _numerator->is_zero()) {
+		_heuristic = std::pair(0, is_numerator);
+		return true;
+	}
 	return false;
 }
 
 // eval_to_ptr
 quotient::eval_type quotient::destructive_eval() {
-	if (_denominator->is_one()) return std::move(_numerator);
-	if (_numerator->is_zero()) return std::move(_numerator);
+	if (would_destructive_eval()) {
+		switch (_heuristic.second)
+		{
+		case is_numerator: return std::move(_numerator);
+		};
+	}
 	return nullptr;
 }
 
@@ -77,7 +97,7 @@ restart:
 		};
 		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
 			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
-			if (would_destructive_eval()) _heuristic.first = 0;
+			would_destructive_eval();
 			return true;
 		}
 		_heuristic = std::pair(_heuristic.first + 1, 0);
@@ -97,8 +117,7 @@ restart:
 					return true;
 				case -1:
 				case 1:
-					if (would_destructive_eval()) _heuristic.first = 0;
-					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					if (!would_destructive_eval()) _heuristic = std::pair(componentwise_algebraic_evaluation, 0);
 					return true;
 				}
 			}
@@ -115,8 +134,7 @@ restart:
 					return true;
 				case -1:
 				case 1:
-					if (would_destructive_eval()) _heuristic.first = 0;
-					_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
+					if (!would_destructive_eval()) _heuristic = std::pair(componentwise_algebraic_evaluation, 0);
 					return true;
 				}
 			}
@@ -140,13 +158,13 @@ restart:
 		};
 		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
 			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
-			if (would_destructive_eval()) _heuristic.first = 0;
+			would_destructive_eval();
 			return true;
 		}
 	}
 	[[fallthrough]];
 	default:
-		_heuristic.first = 0;
+		_heuristic = std::pair(0, 0);
 		return false;
 	}
 }

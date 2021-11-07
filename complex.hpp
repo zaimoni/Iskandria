@@ -60,8 +60,8 @@ public:
 	std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	int rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs) override;
 	int rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs) override;
-	virtual fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const { return nullptr; } // stub no-op
-	virtual fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const { return nullptr; } // stub no-op
+	fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const override { return nullptr; } // stub no-op
+	fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override { return nullptr; } // stub no-op
 
 private:
 	void _scal_bn(intmax_t scale) override;

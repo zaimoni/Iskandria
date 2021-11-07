@@ -9,13 +9,8 @@ namespace zaimoni {
 	{
 		eval_type _numerator;
 		eval_type _denominator;
-		std::pair<unsigned int, unsigned int> _heuristic;
-		enum {
-			componentwise_algebraic_evaluation = 1,
-			rearrange,
-			componentwise_evaluation,
-			strict_max_heuristic
-		};
+		mutable std::pair<unsigned int, unsigned int> _heuristic;
+
 	public:
 		quotient() = default;
 		quotient(const decltype(_numerator)& numerator, const decltype(_denominator)& denominator);
