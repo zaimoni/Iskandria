@@ -58,12 +58,13 @@ namespace zaimoni {
 		fp_API* clone() const override;
 		std::string to_s() const override;
 		int precedence() const override;
-		void _scal_bn(intmax_t scale) override;
-		eval_type destructive_eval() override;
 
-		fp_API* _eval() const override { return nullptr; }
+		eval_type destructive_eval() override;
+		bool algebraic_self_eval();
 
 	private:
+		void _scal_bn(intmax_t scale) override;
+		fp_API* _eval() const override { return nullptr; }
 		std::optional<bool> _is_finite() const override;
 	};
 

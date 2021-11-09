@@ -106,6 +106,17 @@ power_fp::eval_type power_fp::destructive_eval()
 	return nullptr;
 }
 
+bool power_fp::algebraic_self_eval()
+{
+	bool base_eval = fp_API::algebraic_reduce(base);
+	bool exp_eval = fp_API::algebraic_reduce(exponent);
+	if (base_eval || exp_eval) return true;
+
+	if (auto code = rearrange_pow(base, exponent)) return 1 == code;
+
+	return false;
+}
+
 fp_API* power_fp::_eval() const {
 	if (exponent->is_zero()) {
 		// \todo lift to a function against the type

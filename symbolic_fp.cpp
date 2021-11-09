@@ -31,11 +31,9 @@ const math::type* symbolic_fp::domain() const {
 }
 
 bool symbolic_fp::self_eval() {
-	if (scale_by && dest->is_scal_bn_identity()) {
-		scale_by = 0;
-		return true;
-	}
-	if (!scale_by && !bitmap) {
+	if (algebraic_self_eval()) return true;
+
+	if (!scale_by && !bitmap) { // \todo unclear whether this is dead code
 		auto working(dest);
 		if (auto r = dynamic_cast<symbolic_fp*>(working.get())) {
 			*this = *r;
@@ -43,23 +41,6 @@ bool symbolic_fp::self_eval() {
 		}
 		return false;
 	}
-	if (add_inverted() && zaimoni::math::in_place_negate(dest)) {
-		bitmap &= ~(1ULL << (int)op::inverse_add);
-		return true;
-	}
-	if (scale_by) {
-		if (!mult_inverted()) {
-			if (zaimoni::math::scal_bn(dest, scale_by)) return true;
-		} else {
-			intmax_t ref_scale = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
-			intmax_t dest_scale = ref_scale;
-			if (zaimoni::math::scal_bn(dest, dest_scale)) {
-				scale_by -= (ref_scale - dest_scale); // \todo test this
-				return true;
-			}
-		}
-	}
-	// \todo multiplicative inverse
 
 	// final failover
 	if (dest->self_eval()) return true;
@@ -164,6 +145,42 @@ int symbolic_fp::precedence() const {
 	return _type_spec::Addition;
 }
 
+symbolic_fp::eval_type symbolic_fp::destructive_eval()
+{
+	if (!scale_by && !bitmap) return std::move(dest);
+	return nullptr;
+}
+
+bool symbolic_fp::algebraic_self_eval()
+{
+	if (fp_API::algebraic_reduce(dest)) return true;
+
+	if (scale_by && dest->is_scal_bn_identity()) {
+		scale_by = 0;
+		return true;
+	}
+
+	if (add_inverted() && zaimoni::math::in_place_negate(dest)) {
+		bitmap &= ~(1ULL << (int)op::inverse_add);
+		return true;
+	}
+	if (scale_by) {
+		if (!mult_inverted()) {
+			if (zaimoni::math::scal_bn(dest, scale_by)) return true;
+		} else {
+			intmax_t ref_scale = (-INTMAX_MAX <= scale_by) ? -scale_by : INTMAX_MAX;
+			intmax_t dest_scale = ref_scale;
+			if (zaimoni::math::scal_bn(dest, dest_scale)) {
+				scale_by -= (ref_scale - dest_scale); // \todo test this
+				return true;
+			}
+		}
+	}
+	// \todo multiplicative inverse
+
+	return false;
+}
+
 void symbolic_fp::_scal_bn(intmax_t scale)
 {
 	if (0 < scale) {
@@ -175,12 +192,6 @@ void symbolic_fp::_scal_bn(intmax_t scale)
 		else throw zaimoni::math::numeric_error("overflowed power-of-two scaling");
 	}
 	self_eval();
-}
-
-symbolic_fp::eval_type symbolic_fp::destructive_eval()
-{
-	if (!scale_by && !bitmap) return std::move(dest);
-	return nullptr;
 }
 
 std::optional<bool> symbolic_fp::_is_finite() const {

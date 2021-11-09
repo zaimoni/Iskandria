@@ -124,6 +124,17 @@ std::optional<bool> complex::_is_finite() const
 	return std::nullopt;
 }
 
+complex::eval_type complex::destructive_eval() {
+	if (b->is_zero()) return a;
+	return nullptr;
+}
+
+bool complex::algebraic_self_eval() {
+	bool a_changed = fp_API::algebraic_reduce(a);
+	bool b_changed = fp_API::algebraic_reduce(b);
+	return a_changed || b_changed;
+}
+
 int complex::rearrange_sum(eval_type& rhs)
 {
 retry:
@@ -238,11 +249,6 @@ void complex::self_negate()
 {
 	negate_in_place(a);
 	negate_in_place(b);
-}
-
-int complex::rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs)
-{
-	return 0;	// \todo implement (but might be tricky)
 }
 
 fp_API* complex::eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const

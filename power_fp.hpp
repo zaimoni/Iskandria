@@ -34,13 +34,8 @@ namespace zaimoni {
 
 		bool is_scal_bn_identity() const override { return is_scal_bn_identity_default(); }
 
-		intmax_t scal_bn_is_safe(intmax_t scale) const override {
-			return 0;	 // \todo replace null implementation
-		}
-
-		intmax_t ideal_scal_bn() const override {
-			return 0;	 // \todo replace null implementation
-		}
+		intmax_t scal_bn_is_safe(intmax_t scale) const override { return 0; } // stub
+		intmax_t ideal_scal_bn() const override { return 0; } // stub
 
 		fp_API* clone() const override {
 			return new power_fp(*this);
@@ -51,8 +46,11 @@ namespace zaimoni {
 		// coordinate with the sum/product types
 		int precedence() const override { return _type_spec::Multiplication + 1; }
 
-		void _scal_bn(intmax_t scale) override;
 		eval_type destructive_eval() override;
+		bool algebraic_self_eval() override;
+
+private:
+		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override;
 	};
 

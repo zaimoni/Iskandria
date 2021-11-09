@@ -75,12 +75,9 @@ quotient::eval_type quotient::destructive_eval() {
 	return nullptr;
 }
 
-bool quotient::self_eval() {
-	if (0 >= _heuristic.first) return false;
-	// \todo: greatest common integer factor exceeds one
-	// \todo: mutual cancellation of negative signs
-	// \todo: scalBn of denominator towards 1 (arguably normal-form)
-	// \todo: general rearrangement
+bool quotient::algebraic_self_eval() {
+	if (0 == _heuristic.first) return false;
+
 restart:
 	switch (_heuristic.first) {
 	case componentwise_algebraic_evaluation:
@@ -142,8 +139,20 @@ restart:
 		// \todo other adjustments that make sense
 
 		_heuristic = std::pair(_heuristic.first + 1, 0);
-		goto restart;
 	}
+	}
+
+	return false;
+}
+
+bool quotient::self_eval() {
+	if (0 >= _heuristic.first) return false;
+	if (algebraic_self_eval()) return true;
+	// \todo: greatest common integer factor exceeds one
+	// \todo: mutual cancellation of negative signs
+	// \todo: scalBn of denominator towards 1 (arguably normal-form)
+restart:
+	switch (_heuristic.first) {
 	case componentwise_evaluation:
 	{
 		unsigned int n_state = _heuristic.second % 2;	// chinese remainder theorem encoding

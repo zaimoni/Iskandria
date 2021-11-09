@@ -46,22 +46,20 @@ public:
 	int precedence() const override { return std::numeric_limits<int>::max(); }	// numerals outrank all operators
 	int precedence_to_s() const override { return _type_spec::Addition; }
 
-	eval_type destructive_eval() override {
-		if (b->is_zero()) return a;
-		return nullptr;
-	}
+	eval_type destructive_eval() override;
+	bool algebraic_self_eval() override;
 
 	int rearrange_sum(eval_type& rhs) override;
 	fp_API* eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	int score_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	void self_negate() override;
-	int rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs) override;
+	int rearrange_product(eval_to_ptr<fp_API>::eval_type& rhs) override { return 0; } // stub
 	fp_API* eval_product(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
 	int rearrange_divides(eval_to_ptr<fp_API>::eval_type& lhs) override;
 	int rearrange_dividedby(eval_to_ptr<fp_API>::eval_type& rhs) override;
-	fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const override { return nullptr; } // stub no-op
-	fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override { return nullptr; } // stub no-op
+	fp_API* eval_divides(const typename eval_to_ptr<fp_API>::eval_type& lhs) const override { return nullptr; } // stub
+	fp_API* eval_dividedby(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override { return nullptr; } // stub
 
 private:
 	void _scal_bn(intmax_t scale) override;

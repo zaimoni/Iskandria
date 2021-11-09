@@ -33,6 +33,7 @@ namespace zaimoni {
 
 	public:
 		eval_type destructive_eval() override; // eval_to_ptr
+		bool algebraic_self_eval() override;
 
 		// fp_API
 		bool self_eval() override;

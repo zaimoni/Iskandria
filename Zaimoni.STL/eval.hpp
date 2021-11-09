@@ -105,6 +105,7 @@ namespace zaimoni {
 		using eval_type = COW<T>;
 
 		virtual eval_type destructive_eval() = 0;
+		virtual bool algebraic_self_eval() = 0;
 	};
 
 	template<class T>
@@ -172,6 +173,7 @@ namespace zaimoni {
 						dest = std::move(result);
 						return true;
 					}
+					if (efficient->first->algebraic_self_eval()) return true;
 				}
 			}
 			return false;
