@@ -10,7 +10,6 @@ namespace math {
 class complex final : public fp_API, public eval_to_ptr<fp_API>, API_sum<fp_API>, API_addinv, API_product<fp_API>, API_productinv<fp_API> {
 	eval_type a;
 	eval_type b;
-	mutable unsigned char heuristics;
 
 public:
 	complex(const decltype(a)& re, const decltype(b)& im);
@@ -20,12 +19,18 @@ public:
 	complex& operator=(const complex& src) = default;
 	complex& operator=(complex&& src) = default;
 
-	bool self_eval() override;
-
 	friend auto Re(const complex& z) { return z.a; }
 	friend auto Im(const complex& z) { return z.b; }
 	friend eval_type Conj(const complex& z);
 	friend eval_type norm2(const complex& z);
+
+	// eval_to_ptr<fp_API>
+	eval_type destructive_eval() override;
+	bool algebraic_self_eval() override;
+	bool inexact_self_eval() override;
+
+	// fp_API
+	bool self_eval() override;
 
 	const math::type* domain() const override {
 		if (is_finite()) return &get<_type<_type_spec::_C_> >();
@@ -45,9 +50,6 @@ public:
 	std::string to_s() const override;
 	int precedence() const override { return std::numeric_limits<int>::max(); }	// numerals outrank all operators
 	int precedence_to_s() const override { return _type_spec::Addition; }
-
-	eval_type destructive_eval() override;
-	bool algebraic_self_eval() override;
 
 	int rearrange_sum(eval_type& rhs) override;
 	fp_API* eval_sum(const eval_to_ptr<fp_API>::eval_type& rhs) const override;

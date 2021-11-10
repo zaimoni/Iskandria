@@ -145,13 +145,8 @@ restart:
 	return false;
 }
 
-bool quotient::self_eval() {
-	if (0 >= _heuristic.first) return false;
-	if (algebraic_self_eval()) return true;
-	// \todo: greatest common integer factor exceeds one
-	// \todo: mutual cancellation of negative signs
-	// \todo: scalBn of denominator towards 1 (arguably normal-form)
-restart:
+bool quotient::inexact_self_eval() {
+	if (0 == _heuristic.first) return false;
 	switch (_heuristic.first) {
 	case componentwise_evaluation:
 	{
@@ -159,23 +154,34 @@ restart:
 		unsigned int d_state = _heuristic.second / 2;
 		switch (n_state) {
 		case 0:
-			if (!fp_API::eval(_numerator)) ++n_state;
+			if (!fp_API::inexact_reduce(_numerator)) ++n_state;
 		};
 		switch (d_state) {
 		case 0:
-			if (!fp_API::eval(_denominator)) ++d_state;
+			if (!fp_API::inexact_reduce(_denominator)) ++d_state;
 		};
 		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
 			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
 			would_destructive_eval();
 			return true;
 		}
-	}
-	[[fallthrough]];
-	default:
 		_heuristic = std::pair(0, 0);
 		return false;
 	}
+	}
+
+	return false;
+}
+
+
+bool quotient::self_eval() {
+	if (0 >= _heuristic.first) return false;
+	if (algebraic_self_eval()) return true;
+	if (inexact_self_eval()) return true;
+	// \todo: greatest common integer factor exceeds one
+	// \todo: mutual cancellation of negative signs
+	// \todo: scalBn of denominator towards 1 (arguably normal-form)
+	return false;
 }
 
 bool quotient::is_zero() const {

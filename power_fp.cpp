@@ -4,14 +4,49 @@
 
 namespace zaimoni {
 
+enum {
+	inexact_eval = 1,
+	algebraic_eval,
+	eval_strict_ub,
+};
+static_assert(SCHAR_MAX >= eval_strict_ub * eval_strict_ub);
+
+enum {
+	reset_eval = algebraic_eval * eval_strict_ub + algebraic_eval
+};
+
+power_fp::power_fp(const decltype(base)& x, const decltype(exponent)& y) noexcept
+	: base(x), exponent(y), heuristic(reset_eval) {
+	would_destructive_eval();
+}
+
+power_fp::power_fp(const decltype(base)& x, decltype(exponent) && y) noexcept
+	: base(x), exponent(std::move(y)), heuristic(reset_eval) {
+	would_destructive_eval();
+}
+
+power_fp::power_fp(decltype(base) && x, const decltype(exponent)& y) noexcept
+	: base(std::move(x)), exponent(y), heuristic(reset_eval) {
+	would_destructive_eval();
+}
+
+power_fp::power_fp(decltype(base) && x, decltype(exponent) && y) noexcept
+	: base(std::move(x)), exponent(std::move(y)), heuristic(reset_eval) {
+	would_destructive_eval();
+}
+
 bool power_fp::self_square() {
 	if (is_zero() || is_one()) return true; // fixed points
 	if (exponent->is_scal_bn_identity()) return true;
 	if (1 == exponent->scal_bn_is_safe(1)) {
 		exponent->scal_bn(1);
+		would_destructive_eval();
 		return true;
 	}
-	if (zaimoni::math::in_place_square(base)) return true;
+	if (zaimoni::math::in_place_square(base)) {
+		would_destructive_eval();
+		return true;
+	}
 	return false;
 }
 
@@ -44,26 +79,6 @@ static int rearrange_pow(COW<fp_API>& base, COW<fp_API>& exponent)
 	return 0;
 }
 
-bool power_fp::self_eval() {
-	// don't try to self_eval if we would be destructively evaluating
-	if (base->is_one()) return false;
-	if (exponent->is_one()) return false;
-	if (base->is_zero()) return false;
-	if (exponent->is_zero()) return false;
-
-	bool base_eval = base->self_eval();
-	bool exp_eval = exponent->self_eval();
-	if (base_eval || exp_eval) return true;
-
-	if (auto code = rearrange_pow(base, exponent)) return 1 == code;
-
-	// final failover
-	base_eval = fp_API::eval(base);
-	exp_eval = fp_API::eval(exponent);
-
-	return base_eval || exp_eval;
-}
-
 bool power_fp::is_zero() const {
 	// multiplication, for now
 	if (base->is_zero()) return !exponent->is_zero();	// 0^0 is technically undefined
@@ -94,35 +109,119 @@ void power_fp::_scal_bn(intmax_t scale) {
 	throw zaimoni::math::numeric_error("power_fp: unhandled power-of-two scaling");
 }
 
+enum {
+	zero_to_zero = -3,
+	eval_to_zero = -2,
+	is_base = -1
+};
+
+bool power_fp::would_destructive_eval() const
+{
+	if (0 > heuristic) return is_base == heuristic;
+	if (base->is_one()) {
+		heuristic = is_base;
+		return true;
+	}
+	if (exponent->is_one()) {
+		heuristic = is_base;
+		return true;
+	}
+	if (base->is_zero()) {
+		if (exponent->is_zero()) {
+			heuristic = zero_to_zero;
+			return false;
+		}
+		heuristic = is_base;
+		return true;
+	}
+	if (exponent->is_zero()) {
+		heuristic = eval_to_zero;
+		return false;
+	}
+	return false;
+}
+
 power_fp::eval_type power_fp::destructive_eval()
 {
-	if (base->is_one()) return std::move(base);
-	if (exponent->is_one()) return std::move(base);
-	if (base->is_zero()) {
-		if (exponent->is_zero()) throw zaimoni::math::numeric_error("tried to evaluate 0^0");
-		return std::move(base);
+	would_destructive_eval();
+	switch (heuristic) {
+	case is_base: return std::move(base);
+	case zero_to_zero: throw zaimoni::math::numeric_error("tried to evaluate 0^0");
 	}
-	if (exponent->is_zero()) return nullptr; // forwarding to raw evaluation
 	return nullptr;
 }
 
 bool power_fp::algebraic_self_eval()
 {
-	bool base_eval = fp_API::algebraic_reduce(base);
-	bool exp_eval = fp_API::algebraic_reduce(exponent);
-	if (base_eval || exp_eval) return true;
+	if (0 >= heuristic) return false;
+	const auto base_code = heuristic / eval_strict_ub;
+	const auto exp_code = heuristic % eval_strict_ub;
+	bool ret = false;
+	if (algebraic_eval == base_code) {
+		if (fp_API::algebraic_reduce(base)) ret = true;
+		else heuristic = (algebraic_eval - 1) * eval_strict_ub + exp_code;
+	}
+	if (algebraic_eval == exp_code) {
+		if (fp_API::algebraic_reduce(exponent)) ret = true;
+		else heuristic = base_code * eval_strict_ub + (algebraic_eval - 1);
+	}
+	if (ret) {
+		would_destructive_eval();
+		return true;
+	}
 
-	if (auto code = rearrange_pow(base, exponent)) return 1 == code;
+	if (auto code = rearrange_pow(base, exponent)) {
+		if (1 == code) {
+			heuristic = algebraic_eval * eval_strict_ub + algebraic_eval;
+			would_destructive_eval();
+			return true;
+		}
+	}
 
 	return false;
 }
 
+bool power_fp::inexact_self_eval()
+{
+	if (0 >= heuristic) return false;
+	const auto base_code = heuristic / eval_strict_ub;
+	const auto exp_code = heuristic % eval_strict_ub;
+
+	bool ret = false;
+	if (inexact_eval == base_code) {
+		if (fp_API::inexact_reduce(base)) ret = true;
+		else heuristic = (inexact_eval - 1) * eval_strict_ub + exp_code;
+	}
+	if (inexact_eval == exp_code) {
+		if (fp_API::inexact_reduce(exponent)) ret = true;
+		else heuristic = base_code * eval_strict_ub + (inexact_eval - 1);
+	}
+	if (ret) {
+		heuristic = algebraic_eval * eval_strict_ub + algebraic_eval;
+		would_destructive_eval();
+		return true;
+	}
+	return false;
+}
+
+bool power_fp::self_eval() {
+	// don't try to self_eval if we would be destructively evaluating
+	if (would_destructive_eval()) return false;
+	if (0 >= heuristic) return false;
+	if (algebraic_self_eval()) return true;
+	if (inexact_self_eval()) return true;
+	return false;
+}
+
 fp_API* power_fp::_eval() const {
-	if (exponent->is_zero()) {
-		// \todo lift to a function against the type
+	switch (heuristic) {
+	case eval_to_zero: {
 		if (0 >= base->domain()->subclass(zaimoni::math::get<_type<_type_spec::_O_SHARP_>>())) {
 			return new var_fp<double>(1); // some options here
 		}
+		break;
+	}
+	case zero_to_zero: throw zaimoni::math::numeric_error("tried to evaluate 0^0");
 	}
 	return nullptr;
 }

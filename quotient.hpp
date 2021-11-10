@@ -28,12 +28,10 @@ namespace zaimoni {
 		quotient& operator=(const quotient& src) = default;
 		quotient& operator=(quotient&& src) = default;
 
-	private:
-		bool would_destructive_eval() const;
-
-	public:
-		eval_type destructive_eval() override; // eval_to_ptr
+		// eval_to_ptr<fp_API>
+		eval_type destructive_eval() override;
 		bool algebraic_self_eval() override;
+		bool inexact_self_eval() override;
 
 		// fp_API
 		bool self_eval() override;
@@ -54,6 +52,8 @@ namespace zaimoni {
 		static constexpr const auto _precedence = _type_spec::Multiplication;
 		static const char* _transform_fatal(const decltype(_numerator)& n, const decltype(_denominator)& d);
 		const char* _constructor_fatal() const;
+		bool would_destructive_eval() const;
+
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override;
 		std::optional<bool> _is_finite() const override;

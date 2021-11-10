@@ -30,24 +30,6 @@ const math::type* symbolic_fp::domain() const {
 	return dest->domain();
 }
 
-bool symbolic_fp::self_eval() {
-	if (algebraic_self_eval()) return true;
-
-	if (!scale_by && !bitmap) { // \todo unclear whether this is dead code
-		auto working(dest);
-		if (auto r = dynamic_cast<symbolic_fp*>(working.get())) {
-			*this = *r;
-			return true;
-		}
-		return false;
-	}
-
-	// final failover
-	if (dest->self_eval()) return true;
-	if (fp_API::eval(dest)) return true;
-	return false;
-}
-
 bool symbolic_fp::is_zero() const {
 	if (mult_inverted()) return false;
 	return dest->is_zero();
@@ -178,6 +160,28 @@ bool symbolic_fp::algebraic_self_eval()
 	}
 	// \todo multiplicative inverse
 
+	return false;
+}
+
+bool symbolic_fp::inexact_self_eval()
+{
+	if (fp_API::eval(dest)) return true;
+	return false;
+}
+
+bool symbolic_fp::self_eval() {
+	if (algebraic_self_eval()) return true;
+
+	if (!scale_by && !bitmap) { // \todo unclear whether this is dead code
+		auto working(dest);
+		if (auto r = dynamic_cast<symbolic_fp*>(working.get())) {
+			*this = *r;
+			return true;
+		}
+		return false;
+	}
+
+	if (inexact_self_eval()) return true;
 	return false;
 }
 

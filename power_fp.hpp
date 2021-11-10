@@ -9,14 +9,15 @@ namespace zaimoni {
 	class power_fp final : public fp_API, public eval_to_ptr<fp_API> {
 		eval_type base;
 		eval_type exponent;
+		mutable signed char heuristic;
 		//	_type_spec::canonical_functions op;
 
 	public:
 		//	template<_type_spec::canonical_functions _op> // doesn't work -- uncallable?
-		power_fp(const decltype(base)& x, const decltype(exponent)& y) noexcept : base(x), exponent(y) {}
-		power_fp(const decltype(base)& x, decltype(exponent)&& y) noexcept : base(x), exponent(std::move(y)) {}
-		power_fp(decltype(base)&& x, const decltype(exponent)& y) noexcept : base(std::move(x)), exponent(y) {}
-		power_fp(decltype(base)&& x, decltype(exponent) && y) noexcept : base(std::move(x)), exponent(std::move(y)) {}
+		power_fp(const decltype(base)& x, const decltype(exponent)& y) noexcept;
+		power_fp(const decltype(base)& x, decltype(exponent)&& y) noexcept;
+		power_fp(decltype(base)&& x, const decltype(exponent)& y) noexcept;
+		power_fp(decltype(base)&& x, decltype(exponent) && y) noexcept;
 
 		power_fp(const power_fp& src) = default;
 		power_fp(power_fp&& src) = default;
@@ -26,6 +27,12 @@ namespace zaimoni {
 
 		bool self_square();
 
+		// eval_to_ptr<fp_API>
+		eval_type destructive_eval() override;
+		bool algebraic_self_eval() override;
+		bool inexact_self_eval() override;
+
+		// fp_API
 		const math::type* domain() const override;
 		bool self_eval() override;
 		bool is_zero() const override;
@@ -46,10 +53,9 @@ namespace zaimoni {
 		// coordinate with the sum/product types
 		int precedence() const override { return _type_spec::Multiplication + 1; }
 
-		eval_type destructive_eval() override;
-		bool algebraic_self_eval() override;
-
 private:
+		bool would_destructive_eval() const;
+
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override;
 	};

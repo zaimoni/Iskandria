@@ -40,6 +40,13 @@ namespace zaimoni {
 
 		void self_negate() override;
 		bool self_square();
+
+		// eval_to_ptr<fp_API>
+		eval_type destructive_eval() override;
+		bool algebraic_self_eval();
+		bool inexact_self_eval() override;
+
+		// fp_API
 		const math::type* domain() const override;
 		bool self_eval() override;
 		bool is_zero() const override;
@@ -58,9 +65,6 @@ namespace zaimoni {
 		fp_API* clone() const override;
 		std::string to_s() const override;
 		int precedence() const override;
-
-		eval_type destructive_eval() override;
-		bool algebraic_self_eval();
 
 	private:
 		void _scal_bn(intmax_t scale) override;

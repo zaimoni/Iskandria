@@ -6,16 +6,7 @@
 namespace zaimoni {
 namespace math {
 
-// heuristic constants
-enum complex_state : uintmax_t 
-{
-	Re_self_eval = 1ULL << 0,
-	Im_self_eval = 1ULL << 1,
-	Re_eval = 1ULL << 2,
-	Im_eval = 1ULL << 3
-};
-
-complex::complex(const decltype(a)& re, const decltype(b)& im) : a(re), b(im), heuristics(Re_self_eval | Im_self_eval | Re_eval | Im_eval) {
+complex::complex(const decltype(a)& re, const decltype(b)& im) : a(re), b(im) {
 	decltype(auto) R = get<_type<_type_spec::_R_SHARP_> >();
 	const zaimoni::math::type* domain;
 	if (!(domain = re->domain()) || 0 < domain->subclass(R)) throw new std::logic_error("non-real coordinate for real part");
@@ -30,40 +21,30 @@ complex::eval_type norm2(const complex& z) {
 	return pow(z.a, two) + pow(z.b, two);
 }
 
+complex::eval_type complex::destructive_eval() {
+	if (b->is_zero()) return a;
+	return nullptr;
+}
+
+bool complex::algebraic_self_eval() {
+	bool a_changed = fp_API::algebraic_reduce(a);
+	bool b_changed = fp_API::algebraic_reduce(b);
+	return a_changed || b_changed;
+}
+
+bool complex::inexact_self_eval() {
+	bool a_changed = fp_API::inexact_reduce(a);
+	bool b_changed = fp_API::inexact_reduce(b);
+	return a_changed || b_changed;
+}
+
 bool complex::self_eval() {
-	if (!heuristics) return false;
 	bool ret = false;
-	if ((heuristics & Re_self_eval)) {
-		if (a->self_eval()) {
-			ret = true;
-		} else {
-			heuristics &= ~Re_self_eval;
-		}
-	}
-	if ((heuristics & Im_self_eval)) {
-		if (b->self_eval()) {
-			ret = true;
-		} else {
-			heuristics &= ~Im_self_eval;
-		}
-	}
+	if (a->self_eval()) ret = true;
+	if (b->self_eval()) ret = true;
 	if (ret) return true;
-	if ((heuristics & Re_eval)) {
-		if (fp_API::eval(a)) {
-			ret = true;
-			heuristics |= Re_self_eval;
-		} else {
-			heuristics &= ~Re_eval;
-		}
-	}
-	if ((heuristics & Im_eval)) {
-		if (fp_API::eval(b)) {
-			ret = true;
-			heuristics |= Im_self_eval;
-		} else {
-			heuristics &= ~Im_eval;
-		}
-	}
+	if (fp_API::eval(a)) ret = true;
+	if (fp_API::eval(b)) ret = true;
 	return ret;
 }
 
@@ -111,7 +92,6 @@ std::string complex::to_s() const {
 void complex::_scal_bn(intmax_t scale) {
 	a->scal_bn(scale);
 	b->scal_bn(scale);
-	heuristics = 0x0F;
 }
 
 std::optional<bool> complex::_is_finite() const
@@ -122,17 +102,6 @@ std::optional<bool> complex::_is_finite() const
 	if (im_test && !*im_test) return false;
 	if (re_test && im_test) return true;
 	return std::nullopt;
-}
-
-complex::eval_type complex::destructive_eval() {
-	if (b->is_zero()) return a;
-	return nullptr;
-}
-
-bool complex::algebraic_self_eval() {
-	bool a_changed = fp_API::algebraic_reduce(a);
-	bool b_changed = fp_API::algebraic_reduce(b);
-	return a_changed || b_changed;
 }
 
 int complex::rearrange_sum(eval_type& rhs)

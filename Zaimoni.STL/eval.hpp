@@ -104,8 +104,9 @@ namespace zaimoni {
 	{
 		using eval_type = COW<T>;
 
-		virtual eval_type destructive_eval() = 0;
-		virtual bool algebraic_self_eval() = 0;
+		virtual eval_type destructive_eval() = 0; // exact
+		virtual bool algebraic_self_eval() = 0; // also exact
+		virtual bool inexact_self_eval() = 0;
 	};
 
 	template<class T>
@@ -151,19 +152,6 @@ namespace zaimoni {
 		virtual const math::type* domain() const = 0; // for Kuroda grammar approach
 
 		virtual bool self_eval() = 0;
-		static bool eval(eval_to_ptr<fp_API>::eval_type& dest) {
-			if (auto efficient = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get())) {	// should be NULL rather than throwing bad_cast
-				if (auto result = efficient->destructive_eval()) {
-					dest = std::move(result);
-					return true;
-				}
-			}
-			if (auto result = dest->_eval()) {
-				dest = std::unique_ptr<fp_API>(result);
-				return true;
-			}
-			return false;
-		}
 
 		static bool algebraic_reduce(eval_to_ptr<fp_API>::eval_type& dest) {
 			if (auto efficient = dest.get_rw<eval_to_ptr<fp_API> >()) {
@@ -176,6 +164,32 @@ namespace zaimoni {
 					if (efficient->first->algebraic_self_eval()) return true;
 				}
 			}
+			return false;
+		}
+
+		static bool inexact_reduce(eval_to_ptr<fp_API>::eval_type& dest) {
+			if (auto efficient = dest.get_rw<eval_to_ptr<fp_API> >()) {
+				if (!efficient->first) efficient->first = dynamic_cast<eval_to_ptr<fp_API>*>(dest.get());
+				if (efficient->first) {
+					if (efficient->first->inexact_self_eval()) return true;
+				}
+			} else if (auto efficient = dest.get_rw<fp_API>()) {
+				if (!efficient->first) efficient->first = dynamic_cast<fp_API*>(dest.get());
+				if (efficient->first) {
+					if (efficient->first->self_eval()) return true;
+				}
+			}
+			if (auto result = dest->_eval()) {
+				dest = std::unique_ptr<fp_API>(result);
+				return true;
+			}
+			return false;
+		}
+
+		static bool eval(eval_to_ptr<fp_API>::eval_type& dest) {
+			// \todo? micro-optimize by inlining
+			if (algebraic_reduce(dest)) return true;
+			if (inexact_reduce(dest)) return true;
 			return false;
 		}
 

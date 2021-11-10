@@ -33,8 +33,10 @@ private:
 	bool would_fpAPI_eval() const override;
 
 public:
+	// eval_to_ptr<fp_API>
 	eval_type destructive_eval() override; // eval_to_ptr
 	bool algebraic_self_eval() override { return false; } // stub
+	bool inexact_self_eval() override { return self_eval(); } // stub
 
 	// fp_API
 	bool self_eval() override;
