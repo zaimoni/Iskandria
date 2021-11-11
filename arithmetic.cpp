@@ -10,30 +10,6 @@
 #include "complex.hpp"
 
 namespace zaimoni {
-
-// static converter
-namespace ptr
-{
-	template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) requires requires(const T* x) { x->typed_clone(); } {
-		if (auto r = src.get_rw<T>()) {
-			if (!r->first) src = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
-			return r->first;
-		}
-		return nullptr;
-	}
-
-	template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) {
-		if (auto r = src.get_rw<T>()) {
-			if (!r->first) {
-				src = std::unique_ptr<fp_API>(src.get_c()->clone());
-				if (!(r = src.get_rw<T>())) return nullptr;
-			}
-			return r->first;
-		}
-		return nullptr;
-	}
-};
-
 namespace math {
 
 	template<class T>

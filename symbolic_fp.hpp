@@ -12,7 +12,7 @@ namespace zaimoni {
 	// multiplicative inverse
 	// scal_bn (power of 2 manipulation)
 
-	class symbolic_fp final : public fp_API, public eval_to_ptr<fp_API>, public API_addinv {
+	class symbolic_fp final : public fp_API, public eval_to_ptr<fp_API>, public API_sum<fp_API>, public API_addinv {
 		eval_type dest;
 		intmax_t scale_by;
 		uintmax_t bitmap;	// anything smaller incurs padding bytes anyway
@@ -38,13 +38,20 @@ namespace zaimoni {
 		bool add_inverted() const { return bitmap & (1ULL << (int)op::inverse_add); }
 		bool mult_inverted() const { return bitmap & (1ULL << (int)op::inverse_mult); }
 
-		void self_negate() override;
 		bool self_square();
 
 		// eval_to_ptr<fp_API>
 		eval_type destructive_eval() override;
 		bool algebraic_self_eval();
 		bool inexact_self_eval() override;
+
+		// API_sum<fp_API>
+		int rearrange_sum(eval_to_ptr<fp_API>::eval_type& rhs) override;
+		fp_API* eval_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override { return nullptr; } // stub?
+		int score_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const override;
+
+		// API_addinv
+		void self_negate() override;
 
 		// fp_API
 		const math::type* domain() const override;
@@ -67,6 +74,8 @@ namespace zaimoni {
 		int precedence() const override;
 
 	private:
+		int would_rearrange_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const;
+
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override { return nullptr; }
 		std::optional<bool> _is_finite() const override;

@@ -244,6 +244,29 @@ namespace zaimoni {
 		virtual std::partial_ordering _value_compare(const fp_API* rhs) const { return std::partial_ordering::unordered; } // stub \todo make abstract
 	};
 
+	// static converter
+	namespace ptr
+	{
+		template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) requires requires(const T* x) { x->typed_clone(); } {
+			if (auto r = src.get_rw<T>()) {
+				if (!r->first) src = std::unique_ptr<fp_API>(r->first = r->second->typed_clone());
+				return r->first;
+			}
+			return nullptr;
+		}
+
+		template<class T> T* writeable(eval_to_ptr<fp_API>::eval_type& src) {
+			if (auto r = src.get_rw<T>()) {
+				if (!r->first) {
+					src = std::unique_ptr<fp_API>(src.get_c()->clone());
+					if (!(r = src.get_rw<T>())) return nullptr;
+				}
+				return r->first;
+			}
+			return nullptr;
+		}
+	}	// namespace ptr
+
 	// top-levels: _C_SHARP_, _R_SHARP_, _S1_, _H_SHARP_, _O_SHARP_
 	template<>
 	struct _type<_type_spec::_O_SHARP_> : public virtual math::type {

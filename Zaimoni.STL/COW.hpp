@@ -145,6 +145,6 @@ private:
 	}
 };
 
-}
+}	// namespace zaimoni
 
 #endif

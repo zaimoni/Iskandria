@@ -4,6 +4,48 @@
 
 namespace zaimoni {
 
+int symbolic_fp::would_rearrange_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const
+{
+	const auto r_symbolic = dynamic_cast<const symbolic_fp*>(rhs.get_c());
+	if (!r_symbolic) return 0;
+	bool l_mult_inverted = mult_inverted();
+	bool r_mult_inverted = r_symbolic->mult_inverted();
+	if (l_mult_inverted || r_mult_inverted) {
+		if (l_mult_inverted && r_mult_inverted) return -1;	// harmonic mean
+	}
+	if (add_inverted() != add_inverted()) return 0;
+	return 1; // ok to rearrange-sum
+}
+
+int symbolic_fp::rearrange_sum(eval_to_ptr<fp_API>::eval_type& rhs) {
+	switch (would_rearrange_sum(rhs)) {
+	case 1: {
+		if (const auto r_symbolic = ptr::writeable<symbolic_fp>(rhs)) {
+			return zaimoni::math::rearrange_sum(dest, r_symbolic -> dest);
+		}
+	}
+//		break;
+	};
+	return 0;
+}
+
+// we want to trigger evaluation to harmonic mean, but don't really have the context for it
+// we *do* want to register with the sum type so it doesn't have to know about us
+/*
+fp_API* symbolic_fp::eval_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const {
+	switch (would_rearrange_sum(rhs)) {
+	case -1: {
+	}
+		  //		break;
+	};
+	return nullptr;
+}
+*/
+
+int symbolic_fp::score_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const {
+	return std::numeric_limits<int>::min() + ((0 != would_rearrange_sum(rhs)) ? 1 : 0);
+}
+
 void symbolic_fp::self_negate() {
 	if (add_inverted()) bitmap &= ~(1ULL << (int)op::inverse_add);
 	else bitmap |= 1ULL << (int)op::inverse_add;
