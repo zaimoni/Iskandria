@@ -706,16 +706,6 @@ exact_product:
 			}
 		}
 
-		auto l = parse_for::rearrange_sum(lhs);
-		if (!l) {
-			if (unhandled::rearrange_sum(lhs)) {
-				if (unhandled::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
-				if (parse_for::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
-			}
-			return 0;
-		}
-		if (auto r = parse_for::rearrange_sum(rhs)) return std::visit(_rearrange::product(), *l, *r);
-
 		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) {
 			auto err = std::string("need to build out zaimoni::math::rearrange_product: ") + std::visit(type_to_str(), *unhandled::rearrange_product(lhs)) + ", " + std::visit(type_to_str(), *unhandled::rearrange_product(rhs));
 			throw new std::logic_error(err);
@@ -1024,7 +1014,10 @@ exact_product:
 		}
 		if (unhandled::eval_quotient(n)) {
 			if (unhandled::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
-			if (parse_for::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
+			if (parse_for::eval_quotient(d)) {
+				auto err = std::string("need to build out zaimoni::math::eval_quotient: ") + std::visit(type_to_str(), *unhandled::eval_quotient(n)) + ", " + std::visit(type_to_str(), *parse_for::eval_quotient(d));
+				throw new std::logic_error(err);
+			}
 		}
 		return nullptr;
 	}
