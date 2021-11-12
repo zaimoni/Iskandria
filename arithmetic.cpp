@@ -661,10 +661,8 @@ exact_product:
 		std::string operator()(const T&) { return typeid(T).name(); };
 	};
 
-	namespace unhandled {
-		std::optional<std::variant<const var_fp<intmax_t>*,
-			const var_fp<uintmax_t>*,
-			const var_fp<float>*,
+	namespace parse_for {
+		std::optional<std::variant<const var_fp<float>*,
 			const var_fp<ISK_INTERVAL<float> >*,
 			const var_fp<double>*,
 			const var_fp<ISK_INTERVAL<double> >*,
@@ -672,8 +670,6 @@ exact_product:
 			const var_fp<ISK_INTERVAL<long double> >*
 		> > rearrange_product(const eval_to_ptr<fp_API>::eval_type& src) {
 			auto test = src.get_c();
-			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
-			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
 			if (auto x = dynamic_cast<const var_fp<float>*>(test)) return x;
 			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(test)) return x;
 			if (auto x = dynamic_cast<const var_fp<double>*>(test)) return x;
@@ -684,8 +680,41 @@ exact_product:
 		}
 	}
 
+	namespace unhandled {
+		std::optional<std::variant<const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > rearrange_product(const eval_to_ptr<fp_API>::eval_type& src) {
+			auto test = src.get_c();
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(test)) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>*>(test)) return x;
+			return std::nullopt;
+		}
+	}
+
 	// no-op implementation to enable building
 	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) {
+		if (auto l = ptr::writeable<API_product<fp_API> >(lhs)) {
+			if (const int code = l->rearrange_product(rhs)) return code;
+		}
+
+		if (auto r = ptr::writeable<API_product<fp_API> >(rhs)) {
+			switch (const int code = r->rearrange_product(lhs)) { // \todo not if product is non-commutative
+			case -1: return 1; // left and right arguments are transposed here
+			case 1: return -1;
+			default: return code; // otherwise, pass through the code unchanged
+			}
+		}
+
+		auto l = parse_for::rearrange_sum(lhs);
+		if (!l) {
+			if (unhandled::rearrange_sum(lhs)) {
+				if (unhandled::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
+				if (parse_for::rearrange_sum(rhs)) throw std::logic_error("need to build out zaimoni::math::rearrange_sum");
+			}
+			return 0;
+		}
+		if (auto r = parse_for::rearrange_sum(rhs)) return std::visit(_rearrange::product(), *l, *r);
+
 		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) {
 			auto err = std::string("need to build out zaimoni::math::rearrange_product: ") + std::visit(type_to_str(), *unhandled::rearrange_product(lhs)) + ", " + std::visit(type_to_str(), *unhandled::rearrange_product(rhs));
 			throw new std::logic_error(err);
