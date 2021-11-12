@@ -121,7 +121,6 @@ bool sum::algebraic_self_eval() {
 	for (decltype(auto) rule : eval_algebraic_rules) {
 		const auto lhs_rule_index = std::ranges::find(eval_ok, rule.first.first) - eval_ok.begin();
 		const auto rhs_rule_index = std::ranges::find(eval_ok, rule.first.second) - eval_ok.begin();
-		INFORM((std::to_string(lhs_rule_index) + "; " + std::to_string(rhs_rule_index)).c_str());
 		auto lhs_args = interpreted.find(lhs_rule_index);
 		if (interpreted.end() == lhs_args) {
 			decltype(interpreted.begin()->second) staging;

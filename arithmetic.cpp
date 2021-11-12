@@ -8,6 +8,7 @@
 #include "product.hpp"
 #include "sum.hpp"
 #include "complex.hpp"
+#include <typeinfo>
 
 namespace zaimoni {
 namespace math {
@@ -655,6 +656,11 @@ exact_product:
 		};
 	}
 
+	struct type_to_str {
+		template<class T>
+		std::string operator()(const T&) { return typeid(T).name(); };
+	};
+
 	namespace unhandled {
 		std::optional<std::variant<const var_fp<intmax_t>*,
 			const var_fp<uintmax_t>*,
@@ -680,7 +686,10 @@ exact_product:
 
 	// no-op implementation to enable building
 	int rearrange_product(COW<fp_API>& lhs, COW<fp_API>& rhs) {
-		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) throw new std::logic_error("need to build out zaimoni::math::rearrange_product");
+		if (unhandled::rearrange_product(lhs) && unhandled::rearrange_product(rhs)) {
+			auto err = std::string("need to build out zaimoni::math::rearrange_product: ") + std::visit(type_to_str(), *unhandled::rearrange_product(lhs)) + ", " + std::visit(type_to_str(), *unhandled::rearrange_product(rhs));
+			throw new std::logic_error(err);
+		}
 		return 0;
 	}
 
@@ -1398,7 +1407,14 @@ eval_to_ptr<fp_API>::eval_type& operator*=(eval_to_ptr<fp_API>::eval_type& lhs, 
 
 eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
-	return eval_to_ptr<fp_API>::eval_type(new quotient(lhs, rhs));
+#if 0
+	if (lhs->is_one()) {
+		auto stage = std::unique_ptr<symbolic_fp>(new symbolic_fp(rhs));
+		stage->self_multinv();
+		return stage.release();
+	}
+#endif
+	return new quotient(lhs, rhs);
 }
 
 void negate_in_place(eval_to_ptr<fp_API>::eval_type& lhs)

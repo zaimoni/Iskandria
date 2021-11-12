@@ -24,11 +24,11 @@ namespace zaimoni {
 			inverse_mult,
 		};
 
-		explicit symbolic_fp(const decltype(dest)& src) noexcept : dest(src), scale_by(0), bitmap(0) { assert(src); }
-		symbolic_fp(decltype(dest)&& src) noexcept : dest(std::move(src)), scale_by(0), bitmap(0) { assert(src); }
+		explicit symbolic_fp(const decltype(dest)& src) noexcept;
+		symbolic_fp(decltype(dest) && src) noexcept;
 		// this doesn't trigger self-evaluation, unlike the scal_bn call
-		symbolic_fp(const decltype(dest)& src, intmax_t scale_by) noexcept : dest(src), scale_by(scale_by), bitmap(0) { assert(src); }
-		symbolic_fp(decltype(dest)&& src, intmax_t scale_by) noexcept : dest(std::move(src)), scale_by(scale_by), bitmap(0) { assert(src); }
+		symbolic_fp(const decltype(dest)& src, intmax_t scale_by) noexcept;
+		symbolic_fp(decltype(dest) && src, intmax_t scale_by) noexcept;
 
 		symbolic_fp(const symbolic_fp& src) = default;
 		symbolic_fp(symbolic_fp&& src) = default;
@@ -39,6 +39,7 @@ namespace zaimoni {
 		bool add_inverted() const { return bitmap & (1ULL << (int)op::inverse_add); }
 		bool mult_inverted() const { return bitmap & (1ULL << (int)op::inverse_mult); }
 
+		void self_multinv();
 		bool self_square();
 
 		// eval_to_ptr<fp_API>
@@ -80,6 +81,7 @@ namespace zaimoni {
 		static std::any multinv_sum_ok(const typename eval_to_ptr<fp_API>::eval_type& x);
 		static bool would_eval_multinv_sum(const std::any& lhs, const std::any& rhs);
 		static fp_API* eval_multinv_sum(const typename eval_to_ptr<fp_API>::eval_type& lhs, const typename eval_to_ptr<fp_API>::eval_type& rhs);
+		static void global_init();
 
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override { return nullptr; }

@@ -192,20 +192,20 @@ int main(int argc, char* argv[])
 	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_u(new zaimoni::var_fp<uintmax_t>(1));
 
 	// inline prototype of reduced mass calculation as follows:
-	auto inv_reduced_mass = new zaimoni::sum();
-	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var_fp<mass::interval>(sun.GM())));
-	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var_fp<mass::interval>(jupiter.GM())));
-	inv_reduced_mass->append_term(new zaimoni::quotient(one, new zaimoni::var_fp<mass::interval>(saturn.GM())));
+	auto inv_reduced_mass = std::unique_ptr<zaimoni::sum>(new zaimoni::sum());
+	inv_reduced_mass->append_term(one / new zaimoni::var_fp<mass::interval>(sun.GM()));
+	inv_reduced_mass->append_term(one / new zaimoni::var_fp<mass::interval>(jupiter.GM()));
+	inv_reduced_mass->append_term(one / new zaimoni::var_fp<mass::interval>(saturn.GM()));
 	STRING_LITERAL_TO_STDOUT("example inverse reduced mass (GM)\n");
 	INFORM(inv_reduced_mass->to_s().c_str());
 
 	zaimoni::product code_coverage;
-	zaimoni::quotient reduced_mass(one, inv_reduced_mass);
+	auto reduced_mass = one/inv_reduced_mass.release();
 
 	// reduced mass of n bodies is the harmonic mean of their masses, divided by n .. i.e. the n multipler on top is dropped
 	STRING_LITERAL_TO_STDOUT("example reduced mass (GM)\n");
-	INFORM(reduced_mass.to_s().c_str());
-	while(reduced_mass.self_eval()) INFORM(reduced_mass.to_s().c_str());
+	INFORM(reduced_mass->to_s().c_str());
+	while(zaimoni::fp_API::eval(reduced_mass)) INFORM(reduced_mass->to_s().c_str());
 
 	// geometrized Lorentz metric demo
 	zaimoni::eval_to_ptr<zaimoni::fp_API>::eval_type one_half(new zaimoni::var_fp<double>(0.5));

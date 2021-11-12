@@ -1,6 +1,7 @@
 #include "symbolic_fp.hpp"
 #include "Zaimoni.STL/numeric_error.hpp"
 #include "arithmetic.hpp"
+#include "sum.hpp"
 
 namespace zaimoni {
 
@@ -49,6 +50,36 @@ fp_API* symbolic_fp::eval_multinv_sum(const typename eval_to_ptr<fp_API>::eval_t
 
 	return nullptr;
 }
+
+void symbolic_fp::global_init()
+{
+	static bool have_not_run = true;
+	if (have_not_run) {
+		sum::eval_algebraic_rule(std::pair(std::pair(multinv_sum_ok, multinv_sum_ok), std::pair(would_eval_multinv_sum, eval_multinv_sum)));
+		have_not_run = true;
+	}
+}
+
+symbolic_fp::symbolic_fp(const decltype(dest)& src) noexcept : dest(src), scale_by(0), bitmap(0) {
+	assert(src);
+	global_init();
+}
+
+symbolic_fp::symbolic_fp(decltype(dest) && src) noexcept : dest(std::move(src)), scale_by(0), bitmap(0) {
+	assert(src);
+	global_init();
+}
+
+symbolic_fp::symbolic_fp(const decltype(dest)& src, intmax_t scale_by) noexcept : dest(src), scale_by(scale_by), bitmap(0) {
+	assert(src);
+	global_init();
+}
+
+symbolic_fp::symbolic_fp(decltype(dest) && src, intmax_t scale_by) noexcept : dest(std::move(src)), scale_by(scale_by), bitmap(0) {
+	assert(src);
+	global_init();
+}
+
 
 fp_API* symbolic_fp::scale_factor() const
 {
@@ -108,6 +139,11 @@ int symbolic_fp::score_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) c
 void symbolic_fp::self_negate() {
 	if (add_inverted()) bitmap &= ~(1ULL << (int)op::inverse_add);
 	else bitmap |= 1ULL << (int)op::inverse_add;
+}
+
+void symbolic_fp::self_multinv() {
+	if (mult_inverted()) bitmap &= ~(1ULL << (int)op::inverse_mult);
+	else bitmap |= 1ULL << (int)op::inverse_mult;
 }
 
 bool symbolic_fp::self_square() {
@@ -213,7 +249,7 @@ std::string symbolic_fp::to_s() const {
 	decltype(auto) ret(dest->to_s());
 	if (!scale_by && !bitmap) return ret;
 	if (scale_by || bitmap) {
-		ret = "(" + ret + ")";
+		ret = std::string("(") + ret + ")";
 		if (mult_inverted()) ret += "<sup>-1</sup>";
 		if (add_inverted()) ret = "-" + ret;
 		if (scale_by) ret += "*2<sup>" + std::to_string(scale_by) + "</sup>";
