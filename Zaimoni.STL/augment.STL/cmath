@@ -294,7 +294,7 @@ public:
 	bool is_scal_bn_identity() const { return std::numeric_limits<T>::max_exponent < _exponent; }	// 0, infinity, or NaN
 
 	// precondition: valid
-	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
 };
 
 
@@ -335,7 +335,7 @@ public:
 	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
 
 	// precondition: valid
-	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
 
 private:
 	void _find_exponent() const {
@@ -397,7 +397,7 @@ public:
 	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
 
 	// precondition: valid
-	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : _exponent - 1; }
+	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
 
 private:
 	void _find_exponent() const {
