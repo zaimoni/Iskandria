@@ -11,6 +11,12 @@
 #include <typeinfo>
 
 namespace zaimoni {
+
+struct type_to_str {
+	template<class T>
+	std::string operator()(const T&) { return typeid(T).name(); };
+};
+
 namespace math {
 
 	template<class T>
@@ -655,11 +661,6 @@ exact_product:
 			}
 		};
 	}
-
-	struct type_to_str {
-		template<class T>
-		std::string operator()(const T&) { return typeid(T).name(); };
-	};
 
 	namespace parse_for {
 		std::optional<std::variant<const var_fp<float>*,

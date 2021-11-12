@@ -2,6 +2,7 @@
 #include "Zaimoni.STL/numeric_error.hpp"
 #include "arithmetic.hpp"
 #include "sum.hpp"
+#include "quotient.hpp"
 
 namespace zaimoni {
 
@@ -321,6 +322,16 @@ bool symbolic_fp::self_eval() {
 	if (inexact_self_eval()) return true;
 	return false;
 }
+
+fp_API* symbolic_fp::_eval() const {
+	if (0 == scale_by && mult_inverted()) {
+		COW<fp_API> test = new quotient(mult_identity(math::get<_type<_type_spec::_O_SHARP_>>()), dest);
+		if (fp_API::eval(test)) return test.release();
+	}
+
+	return nullptr;
+}
+
 
 void symbolic_fp::_scal_bn(intmax_t scale)
 {

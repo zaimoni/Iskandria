@@ -84,7 +84,7 @@ namespace zaimoni {
 		static void global_init();
 
 		void _scal_bn(intmax_t scale) override;
-		fp_API* _eval() const override { return nullptr; }
+		fp_API* _eval() const override;
 		std::optional<bool> _is_finite() const override;
 	};
 
