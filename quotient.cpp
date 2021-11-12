@@ -13,19 +13,19 @@ enum {
 	strict_max_heuristic
 };
 
-quotient::quotient(const decltype(_numerator)& numerator, const decltype(_denominator)& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
+quotient::quotient(const decltype(_numerator)& numerator, const decltype(_denominator)& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(componentwise_algebraic_evaluation, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
-quotient::quotient(const decltype(_numerator)& numerator, decltype(_denominator)&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+quotient::quotient(const decltype(_numerator)& numerator, decltype(_denominator)&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic(componentwise_algebraic_evaluation, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
-quotient::quotient(decltype(_numerator)&& numerator, const decltype(_denominator)& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
+quotient::quotient(decltype(_numerator)&& numerator, const decltype(_denominator)& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(componentwise_algebraic_evaluation, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
-quotient::quotient(decltype(_numerator)&& numerator, decltype(_denominator)&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
+quotient::quotient(decltype(_numerator)&& numerator, decltype(_denominator)&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic(componentwise_algebraic_evaluation, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
@@ -82,6 +82,35 @@ restart:
 	}
 	case rearrange:
 	{
+		auto n_scale = _numerator->ideal_scal_bn();
+		auto d_scale = _denominator->ideal_scal_bn();
+		if (0 < n_scale && 0 < d_scale) {
+			if (n_scale != d_scale) {
+				do {
+					if (n_scale < d_scale) d_scale = _denominator->scal_bn_is_safe(n_scale);
+					else d_scale = _numerator->scal_bn_is_safe(d_scale);
+				} while (0 > n_scale && 0 > d_scale && n_scale != d_scale);
+			}
+			if (0 < n_scale && 0 < d_scale) {
+				_numerator = scalBn(_numerator, n_scale);
+				_denominator = scalBn(_denominator, d_scale);
+				return true;
+			}
+		}
+		if (0 > n_scale && 0 > d_scale) {
+			if (n_scale != d_scale) {
+				do {
+					if (n_scale > d_scale) d_scale = _denominator->scal_bn_is_safe(n_scale);
+					else d_scale = _numerator->scal_bn_is_safe(d_scale);
+				} while (0 > n_scale && 0 > d_scale && n_scale != d_scale);
+			}
+			if (0 > n_scale && 0 > d_scale) {
+				_numerator = scalBn(_numerator, n_scale);
+				_denominator = scalBn(_denominator, d_scale);
+				return true;
+			}
+		}
+
 		if (auto d = _denominator.get_rw<API_productinv<fp_API>>()) {
 			if (!d->first) {
 				_denominator = std::unique_ptr<fp_API>(_denominator->clone());
@@ -142,6 +171,7 @@ bool quotient::inexact_self_eval() {
 		};
 		if (3 > (_heuristic.second = n_state + 2 * d_state)) {
 			if (auto msg = _transform_fatal(_numerator, _denominator)) throw zaimoni::math::numeric_error(msg);
+			_heuristic = std::pair(componentwise_algebraic_evaluation, 0);
 			would_destructive_eval();
 			return true;
 		}
