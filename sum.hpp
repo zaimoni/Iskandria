@@ -3,22 +3,35 @@
 
 #include "n_ary.hpp"
 #include "arithmetic.hpp"
+#include <any>
 
 namespace zaimoni {
 
 class sum final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<fp_API>
 {
-	enum { strict_max_heuristic = _n_ary_op::strict_max_core_heuristic };
 public:
-	using smart_ptr = n_ary_op<fp_API>::smart_ptr;
-	using eval_spec = n_ary_op<fp_API>::eval_spec;
+	using rule_guard = std::any (*)(const smart_ptr&);
+	using would_eval = bool (*)(const std::any&, const std::any&);
+	using rule_eval = fp_API* (*)(const smart_ptr&, const smart_ptr&);
+	using eval_rule_spec = std::pair<std::pair<rule_guard, rule_guard>, std::pair<would_eval, rule_eval> >;
 
+private:
+	enum { strict_max_heuristic = _n_ary_op::strict_max_core_heuristic };
+
+	static std::vector<rule_guard> eval_ok;
+	static std::vector<eval_rule_spec> eval_algebraic_rules;
+	static std::vector<eval_rule_spec> eval_inexact_rules;
+
+public:
 	sum() = default;
 	sum(const sum& src) = default;
 	sum(sum&& src) = default;
 	~sum() = default;
 	sum& operator=(const sum& src) = default;
 	sum& operator=(sum&& src) = default;
+
+	static void eval_algebraic_rule(const eval_rule_spec& src);
+	static void eval_inexact_rule(const eval_rule_spec& src);
 
 private:
 	bool _append_infinity(const smart_ptr& src);
@@ -34,8 +47,8 @@ private:
 
 public:
 	// eval_to_ptr<fp_API>
-	eval_type destructive_eval() override; // eval_to_ptr
-	bool algebraic_self_eval() override { return false; } // stub
+	eval_type destructive_eval() override;
+	bool algebraic_self_eval() override;
 	bool inexact_self_eval() override { return self_eval(); } // stub
 
 	// fp_API
