@@ -21,31 +21,11 @@ quotient::quotient(const decltype(_numerator)& numerator, decltype(_denominator)
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
-quotient::quotient(const decltype(_numerator)& numerator, fp_API* denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
-	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
-}
-
 quotient::quotient(decltype(_numerator)&& numerator, const decltype(_denominator)& denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
 quotient::quotient(decltype(_numerator)&& numerator, decltype(_denominator)&& denominator) : _numerator(std::move(numerator)), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
-	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
-}
-
-quotient::quotient(decltype(_numerator)&& numerator, fp_API* denominator) : _numerator(std::move(numerator)), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
-	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
-}
-
-quotient::quotient(fp_API* numerator, const decltype(_denominator)& denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
-	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
-}
-
-quotient::quotient(fp_API* numerator, decltype(_denominator)&& denominator) : _numerator(numerator), _denominator(std::move(denominator)), _heuristic(strict_max_heuristic - 1, 0) {
-	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
-}
-
-quotient::quotient(fp_API* numerator, fp_API* denominator) : _numerator(numerator), _denominator(denominator), _heuristic(strict_max_heuristic - 1, 0) {
 	if (auto err = _constructor_fatal()) throw zaimoni::math::numeric_error(err);
 }
 
