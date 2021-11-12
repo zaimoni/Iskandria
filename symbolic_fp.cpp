@@ -4,6 +4,64 @@
 
 namespace zaimoni {
 
+std::any symbolic_fp::multinv_sum_ok(const typename eval_to_ptr<fp_API>::eval_type& x)
+{
+	if (const auto symbolic = dynamic_cast<const symbolic_fp*>(x.get_c())) {
+		if (symbolic->mult_inverted()) return symbolic;
+	}
+	return std::any();
+}
+
+bool symbolic_fp::would_eval_multinv_sum(const std::any& lhs, const std::any& rhs)
+{
+	if (!std::any_cast<const symbolic_fp*>(&lhs)) return false;  // invariant?
+	if (!std::any_cast<const symbolic_fp*>(&rhs)) return false;  // invariant?
+	// \todo bail if multiplication is non-commutative
+	// \todo bail if multiplication is incompatible
+	// \todo bail if addition is incompatible
+	return true;
+}
+
+fp_API* symbolic_fp::eval_multinv_sum(const typename eval_to_ptr<fp_API>::eval_type& lhs, const typename eval_to_ptr<fp_API>::eval_type& rhs)
+{
+	if (const auto l_symbolic = dynamic_cast<const symbolic_fp*>(lhs.get_c())) {
+		if (const auto r_symbolic = dynamic_cast<const symbolic_fp*>(rhs.get_c())) {
+			// basic form: c/a + d/b = (bc+ad)/(ab)
+			// where c, b are (possibly negated) powers of 2
+			typename eval_to_ptr<fp_API>::eval_type stage;
+			auto l_numerator = std::unique_ptr<fp_API>(l_symbolic->scale_factor());
+			if (auto r_numerator = std::unique_ptr<fp_API>(r_symbolic->scale_factor())) {
+				if (l_numerator) {
+					stage = (r_numerator.release() * l_symbolic->dest + l_numerator.release() * r_symbolic->dest) / (l_symbolic->dest * r_symbolic->dest);
+				} else {
+					stage = (r_numerator.release() * l_symbolic->dest + r_symbolic->dest) / (l_symbolic->dest * r_symbolic->dest);
+				}
+			} else {
+				if (l_numerator) {
+					stage = (l_symbolic->dest + l_numerator.release() * r_symbolic->dest) / (l_symbolic->dest * r_symbolic->dest);
+				} else {
+					stage = (l_symbolic->dest + r_symbolic->dest) / (l_symbolic->dest * r_symbolic->dest);
+				}
+			}
+			return stage.release();
+		}
+	}
+
+	return nullptr;
+}
+
+fp_API* symbolic_fp::scale_factor() const
+{
+	if (0 == scale_by && !add_inverted()) return nullptr;	// 1 in _Z_
+
+	auto stage = std::unique_ptr<symbolic_fp>(new symbolic_fp(zaimoni::math::mult_identity(math::get<_type<_type_spec::_Z_>>()), scale_by));
+	if (add_inverted()) stage->self_negate();
+	auto stage2 = COW<fp_API>(stage.release());
+	while (fp_API::algebraic_reduce(stage2));
+	return stage2.release();
+}
+
+
 int symbolic_fp::would_rearrange_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const
 {
 	const auto r_symbolic = dynamic_cast<const symbolic_fp*>(rhs.get_c());
@@ -14,6 +72,7 @@ int symbolic_fp::would_rearrange_sum(const typename eval_to_ptr<fp_API>::eval_ty
 		if (l_mult_inverted && r_mult_inverted) return -1;	// harmonic mean
 	}
 	if (add_inverted() != add_inverted()) return 0;
+	if (scale_by != r_symbolic->scale_by) return 0;
 	return 1; // ok to rearrange-sum
 }
 

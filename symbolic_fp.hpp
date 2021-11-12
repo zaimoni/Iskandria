@@ -4,6 +4,7 @@
 #include "Zaimoni.STL/eval.hpp"
 #include "Zaimoni.STL/Logging.h"
 #include <optional>
+#include <any>
 
 namespace zaimoni {
 
@@ -75,6 +76,10 @@ namespace zaimoni {
 
 	private:
 		int would_rearrange_sum(const typename eval_to_ptr<fp_API>::eval_type& rhs) const;
+		fp_API* scale_factor() const;
+		static std::any multinv_sum_ok(const typename eval_to_ptr<fp_API>::eval_type& x);
+		static bool would_eval_multinv_sum(const std::any& lhs, const std::any& rhs);
+		static fp_API* eval_multinv_sum(const typename eval_to_ptr<fp_API>::eval_type& lhs, const typename eval_to_ptr<fp_API>::eval_type& rhs);
 
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override { return nullptr; }

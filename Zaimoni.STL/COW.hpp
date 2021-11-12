@@ -87,6 +87,12 @@ public:
 	const T* operator->() const { return get_c(); }
 	T* operator->() { return get(); }
 
+	T* release() {
+		if (_read) _rw_clone();
+		if (_write) return _write.release();
+		return nullptr;
+	}
+
 	/// <returns>std::nullopt, or .second is non-null and .first is non-null if non-const operations are not logic errors</returns>
 	template<class U> std::optional<std::pair<U*, const U*> > get_rw() {
 		if (auto r = _get_rw<U>()) {
