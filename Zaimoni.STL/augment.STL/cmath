@@ -206,7 +206,7 @@ template<std::floating_point F> uintmax_t _mantissa_as_int(F mantissa)
 template<std::unsigned_integral U> uintmax_t _mantissa_as_int(U mantissa)
 {
 	uintmax_t ret = mantissa;
-	if (0 == ret) return;
+	if (0 == ret) return 0;
 	while (0 == (ret & 1)) ret >>= 1;
 	return ret;
 }
@@ -219,15 +219,15 @@ template<std::signed_integral I> uintmax_t _mantissa_as_int(I mantissa)
 	return ret;
 }
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, std::pair<int, uintmax_t>>::type mantissa_bits(T mantissa)	// cmath target
+template<std::floating_point F>
+std::pair<int, uintmax_t> mantissa_bits(F mantissa)
 {
 	std::pair<int, uintmax_t> ret(0, 1);
 
 	while (0.0 < mantissa) {
 		ret.first++;
 		ret.second <<= 1;
-		const bool have_bit = (T(0.5) <= mantissa);
+		const bool have_bit = (F(0.5) <= mantissa);
 		if (have_bit) ret.second += 1;
 		mantissa = scalbn(mantissa, 1);
 		mantissa -= have_bit;
@@ -235,22 +235,20 @@ typename std::enable_if<std::is_floating_point<T>::value, std::pair<int, uintmax
 	return ret;
 }
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, int>::type mantissa_bitcount(T mantissa)	// cmath target
+template<std::floating_point F> int mantissa_bitcount(F mantissa)
 {
 	int ret = 0;
 
 	while (0.0 < mantissa) {
 		ret++;
-		const bool have_bit = (T(0.5) <= mantissa);
+		const bool have_bit = (F(0.5) <= mantissa);
 		mantissa = scalbn(mantissa, 1);
 		mantissa -= have_bit;
 	}
 	return ret;
 }
 
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_cancel(T& lhs, T& rhs, T delta)
+template<std::floating_point F> bool delta_cancel(F& lhs, F& rhs, F delta)
 {
 	lhs += delta;
 	rhs -= delta;
@@ -260,7 +258,7 @@ typename std::enable_if<std::is_floating_point<T>::value, bool>::type delta_canc
 template<class T>
 class _fp_stats	// odd name avoids conflicting with an earlier prototype, below.  Optimized for Zaimoni.STL/var.hpp
 {
-	static_assert(std::is_floating_point<T>::value, "need floating point numeral type");
+	static_assert(std::is_floating_point_v<T>);
 protected:
 	mutable T _mantissa;
 	mutable int _exponent;
