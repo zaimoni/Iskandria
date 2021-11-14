@@ -14,7 +14,12 @@ namespace zaimoni {
 
 struct type_to_str {
 	template<class T>
-	std::string operator()(const T&) { return typeid(T).name(); };
+	std::string operator()(const T&) { return typeid(T).name(); }
+};
+
+struct to_INFORM {
+	template<class T> void operator()(const T& src) { INFORM(src); }
+	template<class T> void operator()(const var_fp<T>*& src) { INFORM(src->_x); }
 };
 
 class fp_interchange
@@ -25,21 +30,21 @@ class fp_interchange
 	bool negative;
 
 public:
-	explicit fp_interchange(const float& src)
+	explicit fp_interchange(const float& src) : negative(signbit(src))
 	{
 		frexp(src, &fp_exp);
 		mantissa_as_int = _mantissa_as_int(src);
 		mantissa_bits = mantissa_bitcount(src);
 	}
 
-	explicit fp_interchange(const double& src)
+	explicit fp_interchange(const double& src) : negative(signbit(src))
 	{
 		frexp(src, &fp_exp);
 		mantissa_as_int = _mantissa_as_int(src);
 		mantissa_bits = mantissa_bitcount(src);
 	}
 
-	explicit fp_interchange(const long double& src)
+	explicit fp_interchange(const long double& src) : negative(signbit(src))
 	{
 		frexp(src, &fp_exp);
 		mantissa_as_int = _mantissa_as_int(src);
@@ -51,7 +56,7 @@ public:
 		if (0 == src) canonical_zero();
 		else {
 			mantissa_as_int = _mantissa_as_int(src);
-			mantissa_bits = INT_LOG2(mantissa_as_int);
+			mantissa_bits = INT_LOG2(mantissa_as_int) + 1;
 			fp_exp = mantissa_bits + INT_LOG2(src / mantissa_as_int);
 		}
 	}
@@ -61,7 +66,7 @@ public:
 		if (0 == src) canonical_zero();
 		else {
 			mantissa_as_int = _mantissa_as_int(src);
-			mantissa_bits = INT_LOG2(mantissa_as_int);
+			mantissa_bits = INT_LOG2(mantissa_as_int) + 1;
 			fp_exp = mantissa_bits + INT_LOG2(src / mantissa_as_int);
 		}
 	}
@@ -82,7 +87,7 @@ public:
 		return std::nullopt;
 	}
 
-	std::optional<std::variant<float, ISK_INTERVAL<float>,
+	std::optional<std::variant<float,
 		double, ISK_INTERVAL<double>,
 		long double, ISK_INTERVAL<long double> > > to_float() {
 		if (0 == mantissa_as_int) return 0.0f;
@@ -140,6 +145,27 @@ private:
 		}
 		if (negative) return ISK_INTERVAL(_as_fp<F>(ub, bits), _as_fp<F>(lb, bits));
 		return ISK_INTERVAL(_as_fp<F>(lb, bits), _as_fp<F>(ub, bits));
+	}
+};
+
+struct to_varfp
+{
+	template<class T> fp_API* operator()(const T& src) requires requires() { new var_fp(src); }
+	{
+		return new var_fp(src);
+	}
+};
+
+struct to_float
+{
+	auto operator()(const var_fp<intmax_t>* src) {
+		fp_interchange relay(src->_x);
+		return relay.to_float();
+	}
+
+	auto operator()(const var_fp<uintmax_t>* src) {
+		fp_interchange relay(src->_x);
+		return relay.to_float();
 	}
 };
 
@@ -1023,7 +1049,14 @@ exact_product:
 
 	// eval_quotient support
 	namespace _eval {
-		struct quotient {
+		class quotient {
+		private:
+			template<std::floating_point F> ISK_INTERVAL<F> to_interval(const ISK_INTERVAL<F>& x) { return x; }
+			template<std::floating_point F> ISK_INTERVAL<F> to_interval(const F& x) { return ISK_INTERVAL<F>(x); }
+			template<std::floating_point F> ISK_INTERVAL<F> to_interval(const var_fp <ISK_INTERVAL<F> >* x) { return x->_x; }
+			template<std::floating_point F> ISK_INTERVAL<F> to_interval(const var_fp<F>* x) { return ISK_INTERVAL<F>(x->_x); }
+
+		public:
 			template<std::floating_point F> fp_API* operator()(const ISK_INTERVAL<F>& n, const ISK_INTERVAL<F>& d) {
 				try {
 					auto ret = n / d;
@@ -1058,28 +1091,8 @@ exact_product:
 				return operator()(n, reinterpret_cast<const ISK_INTERVAL<F>&>(d));
 			}
 
-			template<std::floating_point F, std::floating_point F2>
-				fp_API* operator()(const var_fp<ISK_INTERVAL<F> >* n, const var_fp<ISK_INTERVAL<F2> >* d)
-			{
-				return operator()(n->_x, d->_x);
-			}
-
-			template<std::floating_point F, std::floating_point F2>
-				fp_API* operator()(const var_fp<ISK_INTERVAL<F> >* n, const var_fp<F2 >* d)
-			{
-				return operator()(n->_x, ISK_INTERVAL<F2>(d->_x));
-			}
-
-			template<std::floating_point F, std::floating_point F2>
-				fp_API* operator()(const var_fp<F>* n, const var_fp<ISK_INTERVAL<F2> >* d)
-			{
-				return operator()(ISK_INTERVAL<F>(n->_x), d->_x);
-			}
-
-			template<std::floating_point F, std::floating_point F2>
-				fp_API* operator()(const var_fp<F>* n, const var_fp<F2 >* d)
-			{
-				return operator()(ISK_INTERVAL<F>(n->_x), ISK_INTERVAL<F2>(d->_x));
+			template<class T, class T2> fp_API* operator()(T n, T2 d) {
+				return operator()(to_interval(n), to_interval(d));
 			}
 		};
 	} // namespace _eval
@@ -1133,16 +1146,22 @@ exact_product:
 
 	fp_API* eval_quotient(const COW<fp_API>& n, const COW<fp_API>& d)
 	{	// we currently honor floating point types.  Integral types would also make sense here, mostly
+		static const std::string err_prefix("need to build out zaimoni::math::eval_quotient: ");
+
 		if (auto d2 = parse_for::eval_quotient(d)) {
 			std::visit(reject::divsion_by_zero(), *d2);
 			if (auto n2 = parse_for::eval_quotient(n)) return std::visit(_eval::quotient(), *n2, *d2);
-			if (unhandled::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
+			if (auto nfail = unhandled::eval_quotient(n)) {
+				auto n3 = std::visit(to_float(), *nfail).value();
+				return std::visit(_eval::quotient(), n3, *d2);
+			}
 		}
-		if (unhandled::eval_quotient(n)) {
-			if (unhandled::eval_quotient(d)) throw std::logic_error("need to build out zaimoni::math::eval_quotient");
-			if (parse_for::eval_quotient(d)) {
-				auto err = std::string("need to build out zaimoni::math::eval_quotient: ") + std::visit(type_to_str(), *unhandled::eval_quotient(n)) + ", " + std::visit(type_to_str(), *parse_for::eval_quotient(d));
-				throw new std::logic_error(err);
+		if (auto dfail = unhandled::eval_quotient(d)) {
+			auto d3 = std::visit(to_float(), *dfail).value();
+			if (auto n2 = parse_for::eval_quotient(n)) return std::visit(_eval::quotient(), *n2, d3);
+			if (auto nfail = unhandled::eval_quotient(n)) {
+				auto n3 = std::visit(to_float(), *nfail).value();
+				return std::visit(_eval::quotient(), n3, d3);
 			}
 		}
 		return nullptr;
@@ -1556,13 +1575,11 @@ eval_to_ptr<fp_API>::eval_type& operator*=(eval_to_ptr<fp_API>::eval_type& lhs, 
 
 eval_to_ptr<fp_API>::eval_type operator/(const eval_to_ptr<fp_API>::eval_type& lhs, const eval_to_ptr<fp_API>::eval_type& rhs)
 {
-#if 0
 	if (lhs->is_one()) {
 		auto stage = std::unique_ptr<symbolic_fp>(new symbolic_fp(rhs));
 		stage->self_multinv();
 		return stage.release();
 	}
-#endif
 	return new quotient(lhs, rhs);
 }
 
