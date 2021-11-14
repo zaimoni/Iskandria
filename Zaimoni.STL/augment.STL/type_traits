@@ -91,22 +91,12 @@ template<class T> struct op_works
 // work around issues in type_traits
 template<class T> struct types
 {
-	typedef typename std::make_unsigned<T>::type norm;
+	using norm = std::make_unsigned_t<T>;
 };
 
-template<> struct types<long double>
+template<std::floating_point F> struct types<F>
 {
-	typedef long double norm;
-};
-
-template<> struct types<double>
-{
-	typedef double norm;
-};
-
-template<> struct types<float>
-{
-	typedef float norm;
+	using norm = F;
 };
 
 // abs is taken by the standard library.
@@ -138,7 +128,36 @@ auto pos_diff(const T& upper, const T& lower) -> typename types<T>::norm
 	}
 }
 
+// constexpr Greatest Common Factor
+template<class U> requires(std::is_same_v<U, uintmax_t>)
+constexpr uintmax_t gcf(U lhs, U rhs)
+{
+	if (1 == lhs) return 1;
+	if (1 == rhs) return 1;
+	if (lhs == rhs) return lhs;
+	if (0 == rhs) return lhs;
+	if (0 == lhs) return rhs;
+	if (lhs < rhs) return gcf(rhs % lhs, lhs);
+	return gcf(lhs % rhs, rhs);
+}
+
+template<std::unsigned_integral U> requires(!std::is_same_v<U, uintmax_t>)
+constexpr auto gcf(U lhs, U rhs) { return gcf((uintmax_t)lhs, (uintmax_t)rhs); }
+
+template<std::unsigned_integral U, std::unsigned_integral U2>
+constexpr auto gcf(U lhs, U2 rhs) { return gcf((uintmax_t)lhs, (uintmax_t)rhs); }
+
+template<std::signed_integral I>
+constexpr auto gcf(I lhs, I rhs) { return gcf(norm(lhs), norm(rhs)); }
+
+template<std::signed_integral I, std::unsigned_integral U>
+constexpr auto gcf(I lhs, U rhs) { return gcf(norm(lhs), (uintmax_t)rhs); }
+
+template<std::signed_integral I, std::unsigned_integral U>
+constexpr auto gcf(U lhs, I rhs) { return gcf((uintmax_t)lhs, norm(rhs)); }
+
 // interval arithmetic doesn't play nice with operator== (it is definitely possible for neither == and != to be positively true)
+// XXX following is almost certainly obsolete -- should be using a 3-valued logic explicitly
 template<class T>
 struct definitely
 {
