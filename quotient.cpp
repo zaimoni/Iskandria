@@ -82,6 +82,7 @@ restart:
 	}
 	case rearrange:
 	{
+		// scalBn of denominator towards 1 (arguably normal-form)
 		auto n_scale = _numerator->ideal_scal_bn();
 		auto d_scale = _denominator->ideal_scal_bn();
 		if (0 < n_scale && 0 < d_scale) {
@@ -111,6 +112,8 @@ restart:
 			}
 		}
 
+		// \todo: greatest common integer factor exceeds one
+		// \todo: mutual cancellation of negative signs
 		if (auto d = _denominator.get_rw<API_productinv<fp_API>>()) {
 			if (!d->first) {
 				_denominator = std::unique_ptr<fp_API>(_denominator->clone());
@@ -188,9 +191,6 @@ bool quotient::self_eval() {
 	if (0 >= _heuristic.first) return false;
 	if (algebraic_self_eval()) return true;
 	if (inexact_self_eval()) return true;
-	// \todo: greatest common integer factor exceeds one
-	// \todo: mutual cancellation of negative signs
-	// \todo: scalBn of denominator towards 1 (arguably normal-form)
 	return false;
 }
 

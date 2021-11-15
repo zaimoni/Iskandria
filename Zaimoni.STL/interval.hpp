@@ -121,7 +121,7 @@ class trivial
 public:
 	// 0: no action
 	// -1: keep LHS; 1: keep RHS
-	static int sum_c(typename const_param<T>::type lhs, typename const_param<T>::type rhs)
+	static int sum_c(const_param_t<T> lhs, const_param_t<T> rhs)
 	{
 		if (isINF(lhs)) {
 			if (isINF(rhs) && signBit(lhs) != signBit(rhs)) throw numeric_error("+: NaN");
@@ -151,7 +151,7 @@ public:
 	// 0: no action
 	// -1: keep LHS; 1: keep RHS
 	// -2: keep LHS,negated; 2: keep RHS, negated
-	static int product_c(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
+	static int product_c(const_param_t<T> lhs, const_param_t<T> rhs) {
 		const bool is_negative = (signBit(lhs) != signBit(rhs));
 		if (isINF(lhs)) {
 			if (contains_zero(rhs)) throw numeric_error("*: NaN");
@@ -171,12 +171,6 @@ public:
 		return 0;
 	}
 };
-
-template<class T>
-typename std::enable_if<op_works<T>::negate,bool>::type
-trivial_diff(typename const_param<T>::type lhs, typename const_param<T>::type rhs) {
-	return trivial<T>::sum(lhs, -rhs);
-}
 
 // no effort is made by this class to conserve rounding mode.
 template<class T>
@@ -219,7 +213,7 @@ public:
 	constexpr interval operator-() const { return interval(-_ub,-_lb);  };
 
 	// operator==(interval,interval) doesn't work as expected
-	constexpr bool contains(const T& s) const { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
+	constexpr bool contains(const_param_t<T> s) const { return _lb <= s && s <= _ub; }	// acts like R# rather than R in that infinity gets counted as contained
 	constexpr bool contains(const interval& s) const { return _lb <= s._lb && s._ub <= _ub; }
 
 	// users that want to be denormalized (lowerbound > upper bound legal), such as a true angle class, should compensate appropriately before using operators * or / and restore their normal form after.
@@ -236,12 +230,8 @@ public:
 		if (_lb > x._lb) _lb = x._lb;
 		if (_ub < x._ub) _ub = x._ub;
 	}
-	void self_union_lower(typename const_param<T>::type x) {
-		if (_lb > x) _lb = x;
-	}
-	void self_union_upper(typename const_param<T>::type x) {
-		if (_ub < x) _ub = x;
-	}
+	void self_union_lower(const_param_t<T> x) { if (_lb > x) _lb = x; }
+	void self_union_upper(const_param_t<T> x) { if (_ub < x) _ub = x; }
 
 //	catch these once the interval forms are stable
 //	interval& operator+= (T const &r);
@@ -251,24 +241,24 @@ public:
 };
 
 template<class T> interval<T> operator+(interval<T> lhs, const interval<T>& rhs) { return lhs += rhs; }
-template<class T> interval<T> operator+(interval<T> lhs, typename const_param<T>::type rhs) { return lhs += rhs; }
-template<class T> interval<T> operator+(typename const_param<T>::type lhs, interval<T> rhs) { return rhs += lhs; }
+template<class T> interval<T> operator+(interval<T> lhs, const_param_t<T> rhs) { return lhs += rhs; }
+template<class T> interval<T> operator+(const_param_t<T> lhs, interval<T> rhs) { return rhs += lhs; }
 
 template<class T> interval<T> operator-(interval<T> lhs, const interval<T>& rhs) { return lhs -= rhs; }
-template<class T> interval<T> operator-(interval<T> lhs, typename const_param<T>::type rhs) { return lhs -= rhs; }
-template<class T> interval<T> operator-(typename const_param<T>::type lhs, interval<T> rhs) { rhs.self_negate();  return rhs += lhs; }
+template<class T> interval<T> operator-(interval<T> lhs, const_param_t<T> rhs) { return lhs -= rhs; }
+template<class T> interval<T> operator-(const_param_t<T> lhs, interval<T> rhs) { rhs.self_negate();  return rhs += lhs; }
 
 template<class T> interval<T> operator*(interval<T> lhs, const interval<T>& rhs) { return lhs *= rhs; }
-template<class T> interval<T> operator*(interval<T> lhs, typename const_param<T>::type rhs) { return lhs *= rhs; }
-template<class T> interval<T> operator*(typename const_param<T>::type lhs, interval<T> rhs) { return rhs *= lhs; }	// assumes commutative multiplication (true for R)
+template<class T> interval<T> operator*(interval<T> lhs, const_param_t<T> rhs) { return lhs *= rhs; }
+template<class T> interval<T> operator*(const_param_t<T> lhs, interval<T> rhs) { return rhs *= lhs; }	// assumes commutative multiplication (true for R)
 
 template<class T> interval<T> operator/(interval<T> lhs, const interval<T>& rhs) { return lhs /= rhs; }
-template<class T> interval<T> operator/(interval<T> lhs, typename const_param<T>::type rhs) { return lhs /= rhs; }
-template<class T> interval<T> operator/(typename const_param<T>::type lhs, const interval<T>& rhs) { return interval<T>(lhs) /= rhs; }
+template<class T> interval<T> operator/(interval<T> lhs, const_param_t<T> rhs) { return lhs /= rhs; }
+template<class T> interval<T> operator/(const_param_t<T> lhs, const interval<T>& rhs) { return interval<T>(lhs) /= rhs; }
 
 // we don't want to mess with operator== for intervals because it's counterintuitive
 template<class T>
-constexpr bool operator==(const interval<T>& i, typename const_param<T>::type s)
+constexpr bool operator==(const interval<T>& i, const_param_t<T> s)
 {
 	return i.lower() == s && i.upper() == s;
 }
@@ -281,7 +271,7 @@ static_assert(2.0 != interval(1.0));
 // Boost library assumes policy involved for scalar inequality with respect to intervals.  It's easier here to just go with "false is maybe" 
 // and reserve any sophisticated logic for another function set
 template<class T>
-constexpr std::partial_ordering operator<=>(const interval<T>& i, typename const_param<T>::type s)
+constexpr std::partial_ordering operator<=>(const interval<T>& i, const_param_t<T> s)
 {
 	if (s < i.lower()) return std::partial_ordering::greater;
 	if (i.upper() < s) return std::partial_ordering::less;

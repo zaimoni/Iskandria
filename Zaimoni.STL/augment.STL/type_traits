@@ -17,6 +17,9 @@ template<class T> struct const_param
 	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , const T , typename std::add_lvalue_reference<const T>::type >::type type;
 };
 
+template<class T>
+using const_param_t = std::conditional_t<sizeof(unsigned long long) >= sizeof(T), const T, typename std::add_lvalue_reference<const T>::type >;
+
 template<class T> struct return_copy
 {
 	typedef typename std::conditional<sizeof(unsigned long long)>=sizeof(T) , T , 
