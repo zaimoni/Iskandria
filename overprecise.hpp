@@ -354,13 +354,13 @@ struct is_series_product
 template<class T,class U>
 struct power_term : public std::pair<T,U>
 {
-	ZAIMONI_STATIC_ASSERT((std::is_same<U,intmax_t>::value) || (std::is_same<U,uintmax_t>::value));
-	typedef std::pair<T,U> super;
-	typedef power_term<typename interval_type<T>::type,uintmax_t> canonical_type;
+	static_assert(std::is_same_v<U, intmax_t> || std::is_same_v<U, uintmax_t>);
+	using super = std::pair<T, U>;
+	using canonical_type = power_term<typename interval_type<T>::type, uintmax_t>;
 
 	power_term() = default;
 	// note that using std::conditional to try to optimize alignment of the type, is very contorted for this constructor
-	power_term(typename const_param<T>::type x, U n) : super(x,n) { _standard_form();};
+	power_term(const_param_t<T> x, U n) : super(x,n) { _standard_form();};
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(power_term);
 
 	T& base() {return this->first;};
