@@ -58,7 +58,7 @@ public:
 	angle operator-=(const angle& src);
 
 	angle& operator*=(const interval& rhs);
-	angle& operator*=(typename const_param<interval::base_type>::type rhs);
+	angle& operator*=(const_param_t<interval::base_type> rhs);
 	void self_scalBn(int scale);	// works on "primary" value; true division would give a range out
 
 	std::vector<angle> contains_ref_angles() const;
@@ -80,16 +80,16 @@ private:
 	static void _apply_x_reflect(interval x, interval& _sin, interval& _cos);
 	static void _sincos(interval x, interval& _sin, interval& _cos);
 	static void _radian_sincos(interval radians, interval& _sin, interval& _cos);
-	static void _internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos);
+	static void _internal_sincos(const_param_t<interval::base_type> x, interval& _sin, interval& _cos);
 };
 
 inline angle operator+(const angle& lhs, const angle& rhs) { return angle(lhs) += rhs; }
 inline angle operator-(const angle& lhs, const angle& rhs) { return angle(lhs) -= rhs; }
 
 inline angle operator*(const angle& lhs, const angle::interval& rhs) { return angle(lhs) *= rhs; }
-inline angle operator*(const angle& lhs, typename const_param<angle::interval::base_type>::type rhs) { return angle(lhs) *= rhs; }
+inline angle operator*(const angle& lhs, const_param_t<angle::interval::base_type> rhs) { return angle(lhs) *= rhs; }
 inline angle operator*(const angle::interval& lhs, const angle& rhs) { return angle(rhs) *= lhs; }	// assumes commutative multiplication (true when base type is in real numbers R)
-inline angle operator*(typename const_param<angle::interval::base_type>::type lhs, const angle& rhs) { return angle(rhs) *= lhs; }
+inline angle operator*(const_param_t<angle::interval::base_type> lhs, const angle& rhs) { return angle(rhs) *= lhs; }
 
 struct ref_angle {
 	inline static const angle zero = angle(angle::degree(0));
@@ -118,7 +118,7 @@ public:
 	friend Angle operator-(const Angle& x) { return Angle(-static_cast<angle>(x)); }
 
 	Angle& operator*=(const interval& rhs) { static_cast<angle>(*this) *= rhs; return *this; };
-	Angle& operator*=(typename const_param<interval::base_type>::type rhs) { static_cast<angle>(*this) *= rhs; return *this; };
+	Angle& operator*=(const_param_t<interval::base_type> rhs) { static_cast<angle>(*this) *= rhs; return *this; };
 };
 
 }	// namespace circle

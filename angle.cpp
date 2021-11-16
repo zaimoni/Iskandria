@@ -165,7 +165,7 @@ zaimoni::circle::angle& zaimoni::circle::angle::operator*=(const interval& rhs)
 	return *this;
 }
 
-zaimoni::circle::angle& zaimoni::circle::angle::operator*=(typename const_param<interval::base_type>::type rhs)
+zaimoni::circle::angle& zaimoni::circle::angle::operator*=(const_param_t<interval::base_type> rhs)
 {
 	interval lb(_theta.lower());
 	interval ub(_theta.upper());
@@ -365,7 +365,7 @@ static const auto ref_angles = zaimoni::math::reflect_about_front(
 	zaimoni::math::reflect_about_back(
 	zaimoni::math::restrict_to_axis<STATIC_SIZE(ref_trig), 0>(ref_trig))));
 
-void zaimoni::circle::angle::_internal_sincos(typename const_param<interval::base_type>::type x, interval& _sin, interval& _cos)
+void zaimoni::circle::angle::_internal_sincos(const_param_t<interval::base_type> x, interval& _sin, interval& _cos)
 {
 	assert(0 <= x && _whole_circle / 8 >= x);
 	auto i = STATIC_SIZE(ref_trig);
