@@ -171,6 +171,49 @@ struct to_float
 
 namespace math {
 
+	namespace parse_for {
+		// typed_clone destinations must be tested after anything that could clone to them
+		std::optional<std::variant<var_fp<float>*,
+			var_fp<ISK_INTERVAL<float> >*,
+			var_fp<double>*,
+			var_fp<ISK_INTERVAL<double> >*,
+			var_fp<long double>*,
+			var_fp<ISK_INTERVAL<long double> >*,
+			var_fp<intmax_t>*,
+			var_fp<uintmax_t>*
+		> > primitive(eval_to_ptr<fp_API>::eval_type& src) {
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<float> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<float> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<double> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<ISK_INTERVAL<long double> > >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<long double> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<intmax_t> >(src)) return x;
+			if (auto x = ptr::writeable<var_fp<uintmax_t> >(src)) return x;
+			return std::nullopt;
+		}
+
+		std::optional<std::variant<const var_fp<float>*,
+			const var_fp<ISK_INTERVAL<float> >*,
+			const var_fp<double>*,
+			const var_fp<ISK_INTERVAL<double> >*,
+			const var_fp<long double>*,
+			const var_fp<ISK_INTERVAL<long double> >*,
+			const var_fp<intmax_t>*,
+			const var_fp<uintmax_t>*
+		> > const_primitive(const eval_to_ptr<fp_API>::eval_type& src) {
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<float> >*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<float>*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<double> >*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<double>*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<ISK_INTERVAL<long double> >*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<long double>*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<intmax_t>*>(src.get_c())) return x;
+			if (auto x = dynamic_cast<const var_fp<uintmax_t>* >(src.get_c())) return x;
+			return std::nullopt;
+		}
+	}
+
 	template<class T>
 	void self_intersect(std::pair<T, T>& lhs, const std::pair<T, T>& rhs)	// prototype
 	{
