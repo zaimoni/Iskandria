@@ -388,7 +388,7 @@ std::vector<zaimoni::circle::angle> zaimoni::circle::angle::contains_ref_angles(
 {
 	std::vector<angle> ret;
 	for (const auto& x : ref_angles) if (_theta.contains(x)) ret.push_back(angle(x));
-	return std::move(ret);
+	return ret;
 }
 
 size_t zaimoni::circle::angle::contains_ref_angles(angle* dest) const
