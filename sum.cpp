@@ -85,7 +85,7 @@ static void apply_eval(std::vector<eval_to_ptr<fp_API>::eval_type>& dest, std::u
 {
 	if (lhs > rhs) swap(lhs, rhs);
 	dest.erase(dest.begin() + rhs);
-	if (_n_ary_op::is_additive_identity(src.get())) {
+	if (sum::is_identity(src.get())) {
 		dest.erase(dest.begin() + lhs);
 	} else {
 		dest[lhs] = std::move(src);
@@ -191,7 +191,7 @@ bool sum::algebraic_self_eval() {
 
 bool sum::self_eval() {
 	if (!this->_pre_self_eval()) return false;
-	if (this->_self_eval(_n_ary_op::is_additive_identity, zaimoni::math::rearrange_sum, zaimoni::math::sum_score, zaimoni::math::sum_score, zaimoni::math::eval_sum)) return true;
+	if (this->_self_eval(zaimoni::math::rearrange_sum, zaimoni::math::sum_score, zaimoni::math::sum_score, zaimoni::math::eval_sum)) return true;
 	//	auto& checking = this->_heuristic.back();
 	// \todo process our specific rules
 	this->_heuristic.clear();

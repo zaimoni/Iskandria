@@ -38,6 +38,8 @@ public:
 	eval_type destructive_eval() override; // eval_to_ptr
 	bool algebraic_self_eval() override { return false; } // stub
 	bool inexact_self_eval() override { return self_eval(); } // stub
+	static bool is_identity(const fp_API* x) { return x->is_one(); }
+	static bool is_identity(const smart_ptr& x) { return x->is_one(); }
 
 	// fp_API
 	bool self_eval() override;

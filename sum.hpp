@@ -32,6 +32,8 @@ public:
 
 	static void eval_algebraic_rule(const eval_rule_spec& src);
 	static void eval_inexact_rule(const eval_rule_spec& src);
+	static bool is_identity(const fp_API* x) { return x->is_zero(); }
+	static bool is_identity(const smart_ptr& x) { return x->is_zero(); }
 
 private:
 	bool _append_infinity(const smart_ptr& src);

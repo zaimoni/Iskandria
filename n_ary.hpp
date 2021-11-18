@@ -16,8 +16,6 @@ namespace zaimoni {
 			strict_max_core_heuristic
 		};
 
-		static bool is_additive_identity(const fp_API* x) { return x->is_zero(); }
-		static bool is_multiplicative_identity(const fp_API* x) { return x->is_one(); }
 		// bridge support
 		template<class T> static int null_rearrange(T& lhs, T& rhs) { return 0; }
 		template<class T> static int null_fold_ok(const T&) { return std::numeric_limits<int>::min(); }
@@ -90,7 +88,7 @@ namespace zaimoni {
 			return true;
 		}
 
-		bool _self_eval(bool (*is_identity)(const fp_API*), int (*rearrange)(smart_ptr&, smart_ptr&), int (*fold_ok)(const smart_ptr&), int (*fold_score)(const smart_ptr&, const smart_ptr&), smart_ptr(*fold)(const smart_ptr&, const smart_ptr&))
+		bool _self_eval(int (*rearrange)(smart_ptr&, smart_ptr&), int (*fold_ok)(const smart_ptr&), int (*fold_score)(const smart_ptr&, const smart_ptr&), smart_ptr(*fold)(const smart_ptr&, const smart_ptr&))
 		{
 		restart:
 			auto& checking = this->_heuristic.back();
@@ -187,7 +185,7 @@ namespace zaimoni {
 						case 1:		// rhs annihilated (commutative operation may have swapped to ensure this).  Mutual kill should be very rare
 						{
 							if (1 < checking.second) checking.second--;
-							if (is_identity(target.get())) _heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
+							if (Derived::is_identity(target)) _heuristic.push_back(eval_spec(_n_ary_op::remove_identity, i));
 							else if (i + 1 < anchor) swap(target, _x[anchor - 1]);
 							_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, anchor));
 							return true;
@@ -222,7 +220,7 @@ namespace zaimoni {
 				while (strict_ub > checking.second) {
 					auto& viewpoint = _x[checking.second];
 					if (viewpoint->self_eval()) {
-						if (is_identity(viewpoint.get())) {
+						if (Derived::is_identity(viewpoint)) {
 							_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
 							return true;
 						}
@@ -231,7 +229,7 @@ namespace zaimoni {
 						return true;
 					}
 					if (fp_API::eval(viewpoint)) {
-						if (is_identity(viewpoint.get())) {
+						if (Derived::is_identity(viewpoint)) {
 							_heuristic.push_back(eval_spec(_n_ary_op::remove_identity, checking.second));
 							return true;
 						}
