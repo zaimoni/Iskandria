@@ -6,7 +6,7 @@
 
 namespace zaimoni {
 
-class product final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<fp_API>
+class product final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<product>
 {
 	enum { strict_max_heuristic = _n_ary_op::strict_max_core_heuristic };
 

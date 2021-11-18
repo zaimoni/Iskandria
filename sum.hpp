@@ -7,7 +7,7 @@
 
 namespace zaimoni {
 
-class sum final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<fp_API>
+class sum final : public fp_API, public eval_to_ptr<fp_API>, protected n_ary_op<sum>
 {
 public:
 	using rule_guard = std::any (*)(const smart_ptr&);

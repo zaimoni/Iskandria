@@ -26,7 +26,7 @@ namespace zaimoni {
 	};
 
 	// associative operations naturally are n-ary
-	template<class T>
+	template<class Derived>
 	class n_ary_op
 	{
 	public:
