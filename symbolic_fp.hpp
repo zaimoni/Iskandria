@@ -86,6 +86,7 @@ namespace zaimoni {
 		void _scal_bn(intmax_t scale) override;
 		fp_API* _eval() const override;
 		std::optional<bool> _is_finite() const override;
+		std::partial_ordering _value_compare(const fp_API* rhs) const override;
 	};
 
 }	// namespace zaimoni

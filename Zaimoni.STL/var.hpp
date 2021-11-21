@@ -267,6 +267,15 @@ namespace zaimoni {
 	private:
 		void _scal_bn(intmax_t scale) override { return detail::var_fp_impl<T>::_scal_bn(_x, scale); }	// power-of-two
 		fp_API* _eval() const override { return detail::var_fp_impl<T>::_eval(_x); }	// memory-allocating evaluation
+#if PROTOTYPE
+		std::partial_ordering _value_compare(const fp_API* rhs) const override {
+			if (const auto mine = dynamic_cast<decltype(this)>(rhs)) {
+				// \todo: use requires clauses to control code paths
+				if (_x == mine->_x) return std::partial_ordering::equivalent; // errors on interval arithmetic, legitimately
+			}
+			return std::partial_ordering::unordered;
+		}
+#endif
 	};
 
 }

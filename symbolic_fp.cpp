@@ -351,4 +351,12 @@ std::optional<bool> symbolic_fp::_is_finite() const {
 	return dest->is_finite_kripke();
 }
 
+std::partial_ordering symbolic_fp::_value_compare(const fp_API* rhs) const
+{
+	if (const auto mine = dynamic_cast<const symbolic_fp*>(rhs)) {
+		if (bitmap == mine->bitmap && scale_by == mine->scale_by) return dest->value_compare(mine->dest.get());
+	}
+	return std::partial_ordering::unordered; // the other case we can handle, is about to self-destructively evaluate anyway
+}
+
 }
