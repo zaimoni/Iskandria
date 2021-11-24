@@ -429,6 +429,14 @@ private:
 	}
 };
 
+template<class T>
+auto scal_bn_safe_range(const T& x) requires requires(std::pair<intmax_t, intmax_t> ret) { _fp_stats<T>(x).scal_bn_safe_range(ret.first, ret.second); }
+{
+	std::pair<intmax_t, intmax_t> ret(std::numeric_limits<intmax_t>::min(), std::numeric_limits<intmax_t>::max());
+	_fp_stats<T>(x).scal_bn_safe_range(ret.first, ret.second);
+	return ret;
+}
+
 namespace math {
 
 // alternate approach

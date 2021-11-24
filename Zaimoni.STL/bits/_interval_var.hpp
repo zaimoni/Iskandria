@@ -31,8 +31,7 @@ namespace detail {
 			     && _fp_stats<coord_type>(x.upper()).is_scal_bn_identity();
 		}
 		static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-			std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-			_fp_stats<coord_type>(x.lower()).scal_bn_safe_range(ret.first, ret.second);
+			auto ret(zaimoni::scal_bn_safe_range(x.lower()));
 			_fp_stats<coord_type>(x.upper()).scal_bn_safe_range(ret.first, ret.second);
 			return ret;
 		}

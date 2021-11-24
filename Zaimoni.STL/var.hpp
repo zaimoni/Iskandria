@@ -34,11 +34,6 @@ namespace zaimoni {
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
 			}
-			static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
-				return ret;
-			}
 			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
 				const auto span(scal_bn_safe_range(x));
 				if (0 < scale) {
@@ -75,11 +70,6 @@ namespace zaimoni {
 			}
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
-				return ret;
 			}
 			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
 				const auto span(scal_bn_safe_range(x));
@@ -118,11 +108,6 @@ namespace zaimoni {
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
 			}
-			static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
-				return ret;
-			}
 			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
 				const auto span(scal_bn_safe_range(x));
 				if (0 < scale) {
@@ -153,11 +138,6 @@ namespace zaimoni {
 			static std::string to_s(const param_type& x) { return std::to_string(x); }
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
-				return ret;
 			}
 			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
 				const auto span(scal_bn_safe_range(x));
@@ -194,11 +174,6 @@ namespace zaimoni {
 			static std::string to_s(const param_type& x) { return std::to_string(x); }
 			static bool is_scal_bn_identity(const param_type& x) {
 				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static std::pair<intmax_t, intmax_t> scal_bn_safe_range(const param_type& x) {
-				std::pair<intmax_t, intmax_t> ret(fp_API::max_scal_bn_safe_range());
-				_fp_stats<param_type>(x).scal_bn_safe_range(ret.first, ret.second);
-				return ret;
 			}
 			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
 				const auto span(scal_bn_safe_range(x));
