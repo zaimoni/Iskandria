@@ -45,7 +45,6 @@ namespace zaimoni {
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
-			static fp_API* clone(const param_type& x) { return nullptr; }
 			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
 			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
@@ -82,7 +81,6 @@ namespace zaimoni {
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
-			static fp_API* clone(const param_type& x) { return nullptr; }
 			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
 			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
@@ -150,7 +148,6 @@ namespace zaimoni {
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
-			static fp_API* clone(const param_type& x) { return nullptr; }
 			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) {
 				if (0 > scale) {
@@ -186,7 +183,6 @@ namespace zaimoni {
 			static intmax_t ideal_scal_bn(const param_type& x) {
 				return _fp_stats<param_type>(x).ideal_scal_bn();
 			}
-			static fp_API* clone(const param_type& x) { return nullptr; }
 			static constexpr fp_API* clone() { return nullptr; }
 			static void _scal_bn(param_type& x, intmax_t scale) {
 				if (0 > scale) {
@@ -200,8 +196,9 @@ namespace zaimoni {
 	}
 
 	template<class T>
-	class var_fp final : public fp_API // "variable, floating-point"
+	class var_fp final : public fp_API // "variable, floating-point" (actually value as we aren't tracking display name)
 	{
+		static_assert(!std::is_base_of_v<fp_API, T>);
 	public:
 		T _x;	// we would provide full accessors anyway so may as well be public
 
@@ -231,7 +228,9 @@ namespace zaimoni {
 
 		// technical infrastructure
 		fp_API* clone() const override {
-			if (fp_API* test = detail::var_fp_impl<T>::clone(_x)) return test;
+			if constexpr (requires { detail::var_fp_impl<T>::clone(_x); }) {
+				if (fp_API* test = detail::var_fp_impl<T>::clone(_x)) return test;
+			}
 			return new var_fp(_x);
 		}
 		auto typed_clone() const requires requires() { detail::var_fp_impl<T>::clone(); } { return new var_fp(_x); }
