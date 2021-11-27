@@ -23,7 +23,6 @@ namespace detail {
 			if (isINF(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
 			return &zaimoni::math::get<_type<_type_spec::_R_>>();
 		}
-		static constexpr bool self_eval(const param_type& x) { return false; }
 		static constexpr int sgn(const param_type& x) { return zaimoni::sgn(x); }
 		static std::string to_s(const param_type& x) { return to_string(x); }
 		static bool is_scal_bn_identity(const param_type& x) {

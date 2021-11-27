@@ -23,7 +23,6 @@ namespace zaimoni {
 				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
 				return &zaimoni::math::get<_type<_type_spec::_R_>>();
 			}
-			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
 			static std::string to_s(const param_type& x) {
 				char buffer[30];
@@ -59,7 +58,6 @@ namespace zaimoni {
 				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
 				return &zaimoni::math::get<_type<_type_spec::_R_>>();
 			}
-			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
 			static std::string to_s(const param_type& x) {
 				char buffer[30];
@@ -95,7 +93,6 @@ namespace zaimoni {
 				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
 				return &zaimoni::math::get<_type<_type_spec::_R_>>();
 			}
-			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
 			static std::string to_s(const param_type& x) {
 				char buffer[30];
@@ -131,7 +128,6 @@ namespace zaimoni {
 			static const math::type* domain(const param_type& x) {
 				return &zaimoni::math::get<_type<_type_spec::_Z_>>();
 			}
-			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
 			static std::string to_s(const param_type& x) { return std::to_string(x); }
 			static bool is_scal_bn_identity(const param_type& x) {
@@ -166,7 +162,6 @@ namespace zaimoni {
 			static const math::type* domain(const param_type& x) {
 				return &zaimoni::math::get<_type<_type_spec::_Z_>>();
 			}
-			static constexpr bool self_eval(const param_type& x) { return false; }
 			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : 0; }
 			static std::string to_s(const param_type& x) { return std::to_string(x); }
 			static bool is_scal_bn_identity(const param_type& x) {
@@ -214,10 +209,8 @@ namespace zaimoni {
 			return *this;
 		};
 
-		// placeholders
 		const math::type* domain() const override { return detail::var_fp_impl<T>::domain(_x); }
-		// implemented
-		bool self_eval() override { return detail::var_fp_impl<T>::self_eval(_x); }
+		constexpr bool self_eval() override { return false; }
 		bool is_zero() const override { return zaimoni::is_zero(_x); }
 		bool is_one() const override { return zaimoni::is_one(_x); }
 		int sgn() const override { return detail::var_fp_impl<T>::sgn(_x); }
