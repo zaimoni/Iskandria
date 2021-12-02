@@ -41,22 +41,6 @@ namespace zaimoni {
 		typedef ISK_INTERVAL<typename types<T>::norm> norm;
 	};
 
-	template<>
-	struct definitely<ISK_INTERVAL<double> >
-	{
-		typedef ISK_INTERVAL<double> interval;
-		static bool equal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return rhs.upper() == rhs.lower() && lhs == rhs.upper(); }
-		static bool unequal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return lhs.upper() < rhs.lower() || rhs.upper() < lhs.lower(); }
-	};
-
-	template<>
-	struct definitely<ISK_INTERVAL<long double> >
-	{
-		typedef ISK_INTERVAL<long double> interval;
-		static bool equal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return rhs.upper() == rhs.lower() && lhs == rhs.upper(); }
-		static bool unequal(typename const_param<interval>::type lhs, typename const_param<interval>::type rhs) { return lhs.upper() < rhs.lower() || rhs.upper() < lhs.lower(); }
-	};
-
 	template<class T>
 	struct type_traits_arithmetic_aux<ISK_INTERVAL<T> > {
 		static constexpr bool is_zero(typename const_param<ISK_INTERVAL<T> >::type x) { return x == T(0); }	// could use kronecker delta for this

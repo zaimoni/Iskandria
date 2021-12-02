@@ -58,7 +58,7 @@ public:
 	orbit& operator=(const orbit& src) = default;
 
 	friend bool operator==(const orbit& lhs, const orbit& rhs) {
-		return lhs._m == rhs._m && lhs._orbit == rhs._orbit && zaimoni::definitely<typename std::remove_cv<decltype(lhs._pericenter)>::type>::equal(lhs._pericenter,rhs._pericenter) && zaimoni::definitely<typename std::remove_cv<decltype(lhs._apocenter)>::type>::equal(lhs._apocenter,rhs._apocenter);
+		return lhs._m == rhs._m && lhs._orbit == rhs._orbit && 0 == (lhs._pericenter <=> rhs._pericenter) && 0 == (lhs._apocenter <=> rhs._apocenter);
 	}
 	friend bool operator!=(const orbit& lhs, const orbit& rhs) { return !(lhs == rhs); }
 

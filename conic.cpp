@@ -32,8 +32,8 @@ conic::conic(conic_tags::hyperbola_t, const interval& src, const interval& src2)
 
 bool operator==(const conic& lhs, const conic& rhs)
 {
-	return definitely_equal(lhs._a, rhs._a) && definitely_equal(lhs._b, rhs._b) && definitely_equal(lhs._c, rhs._c) &&
-	       definitely_equal(lhs._e, rhs._e) && definitely_equal(lhs._l, rhs._l) && definitely_equal(lhs._p, rhs._p);
+	return 0 == (lhs._a <=> rhs._a) && 0 == (lhs._b <=> rhs._b) && 0 == (lhs._c <=> rhs._c) &&
+		   0 == (lhs._e <=> rhs._e) && 0 == (lhs._l <=> rhs._l) && 0 == (lhs._p <=> rhs._p);
 }
 
 void conic::init_ellipse(const interval& major, const interval& minor)

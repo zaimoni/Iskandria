@@ -159,33 +159,6 @@ constexpr auto gcf(I lhs, U rhs) { return gcf(norm(lhs), (uintmax_t)rhs); }
 template<std::signed_integral I, std::unsigned_integral U>
 constexpr auto gcf(U lhs, I rhs) { return gcf((uintmax_t)lhs, norm(rhs)); }
 
-// interval arithmetic doesn't play nice with operator== (it is definitely possible for neither == and != to be positively true)
-// XXX following is almost certainly obsolete -- should be using a 3-valued logic explicitly
-template<class T>
-struct definitely
-{
-	static bool equal(typename const_param<T>::type lhs, typename const_param<T>::type rhs) { return lhs == rhs; }
-	static bool unequal(typename const_param<T>::type lhs, typename const_param<T>::type rhs) { return lhs != rhs; }
-};
-
-template<class T>
-bool definitely_equal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs,rhs); }
-
-template<class T>
-bool definitely_equal(const T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs, rhs); }
-
-template<class T>
-bool definitely_equal(T& lhs, const T& rhs) { return definitely<typename std::remove_cv<T>::type>::equal(lhs, rhs); }
-
-template<class T>
-bool definitely_unequal(T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
-
-template<class T>
-bool definitely_unequal(const T& lhs, T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
-
-template<class T>
-bool definitely_unequal(T& lhs, const T& rhs) { return definitely<typename std::remove_cv<T>::type>::unequal(lhs, rhs); }
-
 // correct-size type estimation
 template<uintmax_t n>
 struct min_unsigned

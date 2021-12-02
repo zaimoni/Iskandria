@@ -67,7 +67,7 @@ public:
 	{
 		assert(isFinite(x));
 		COEFF a_n = term_numerator(0);
-		if (definitely_equal(int_as<0,DomainRange>(),x)) return DomainRange(a_n);
+		if (0 == (int_as<0, DomainRange>() <=> x)) return DomainRange(a_n);
 
 		uintmax_t n = 0;
 		if (int_as<0,COEFF>()==a_n && !next_nonzero_term(n,a_n)) return int_as<0,DomainRange>();	// give up if all visible terms non-zero

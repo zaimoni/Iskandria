@@ -288,21 +288,18 @@ static_assert(1.0 <= interval(1.0));
 static_assert(interval(1.0) >= 1.0);
 static_assert(1.0 >= interval(1.0));
 
-/*
-// do not worry about singletons here -- those will eventually be caught above
 template<class T>
 constexpr std::partial_ordering operator<=>(const interval<T>& lhs, const interval<T>& rhs)
 {
-	switch (lhs <=> rhs.upper()) {
-	case std::partial_ordering::less: break;
-	case std::partial_ordering::greater: return std::partial_ordering::greater;
-	case std::partial_ordering::unordered: return std::partial_ordering::unordered;
-	case std::partial_ordering::equivalent: return std::partial_ordering::unordered;
-	}
+	const auto r_upper_test = lhs <=> rhs.upper();	// switch statement hard-errors
+	if (std::partial_ordering::greater == r_upper_test) return std::partial_ordering::greater;
+	if (std::partial_ordering::unordered == r_upper_test) return std::partial_ordering::unordered;
+	if (std::partial_ordering::equivalent == r_upper_test)
+		return rhs.upper()==rhs.lower() ? std::partial_ordering::equivalent : std::partial_ordering::unordered;
+
 	if (lhs.upper() < rhs) return std::partial_ordering::less;
 	return std::partial_ordering::unordered;
 }
-*/
 
 template<class T> interval<T>  const interval<T>::_empty(std::numeric_limits<T>::has_quiet_NaN ? -std::numeric_limits<T>::quiet_NaN() : T(1), std::numeric_limits<T>::has_quiet_NaN ? std::numeric_limits<T>::quiet_NaN() : T(0));
 template<class T> interval<T>  const interval<T>::_whole(std::numeric_limits<T>::has_infinity ? -std::numeric_limits<T>::infinity() : std::numeric_limits<T>::min(), std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max());

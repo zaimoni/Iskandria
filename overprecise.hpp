@@ -412,24 +412,24 @@ private:
 	void _standard_form() {
 		if (0 == this->second) {
 			// interval could use "contains" here, but we have decent limit behavior with integer exponents
-			if (definitely_equal(int_as<0,T>(),this->first)) return;	// 0^0 is degenerate ... interpretation depends on context
+			if (0 == (int_as<0,T>() <=> this->first)) return;	// 0^0 is degenerate ... interpretation depends on context
 			// n^0 is a zero-ary product: 1.
 			this->first = int_as<1,T>();
 			this->second = 1;
 			return;
 		}
 		if (1 == this->second) return;	// normal-form
-		if (definitely_equal(int_as<0,T>(),this->first)) {
+		if (0 == (int_as<0,T>() <=> this->first)) {
 			// 0^n is 0.
 			this->second = 1;
 			return;
 		}
-		if (definitely_equal(int_as<1,T>(),this->first)) {
+		if (0 == (int_as<1,T>() <=> this->first)) {
 			// 1^n is 1.
 			this->second = 1;
 			return;
 		}
-		if (definitely_equal(int_as<-1,T>(),this->first)) {
+		if (0==(int_as<-1,T>() <=> this->first)) {
 			// XXX \todo any element that is period 2 would work here.  Issue is a problem with matrices.
 			if (0 == this->second%2) this->first = int_as<1,T>();
 			this->second = 1;
