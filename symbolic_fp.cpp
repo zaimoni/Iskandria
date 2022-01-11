@@ -57,7 +57,7 @@ void symbolic_fp::global_init()
 	static bool have_not_run = true;
 	if (have_not_run) {
 		sum::eval_algebraic_rule(std::pair(std::pair(multinv_sum_ok, multinv_sum_ok), std::pair(would_eval_multinv_sum, eval_multinv_sum)));
-		have_not_run = true;
+		have_not_run = false;
 	}
 }
 
