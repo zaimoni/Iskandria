@@ -89,7 +89,7 @@ restart:
 			if (n_scale != d_scale) {
 				do {
 					if (n_scale < d_scale) d_scale = _denominator->scal_bn_is_safe(n_scale);
-					else d_scale = _numerator->scal_bn_is_safe(d_scale);
+					else n_scale = _numerator->scal_bn_is_safe(d_scale);
 				} while (0 > n_scale && 0 > d_scale && n_scale != d_scale);
 			}
 			if (0 < n_scale && 0 < d_scale) {
@@ -102,7 +102,7 @@ restart:
 			if (n_scale != d_scale) {
 				do {
 					if (n_scale > d_scale) d_scale = _denominator->scal_bn_is_safe(n_scale);
-					else d_scale = _numerator->scal_bn_is_safe(d_scale);
+					else n_scale = _numerator->scal_bn_is_safe(d_scale);
 				} while (0 > n_scale && 0 > d_scale && n_scale != d_scale);
 			}
 			if (0 > n_scale && 0 > d_scale) {
