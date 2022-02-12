@@ -3,6 +3,9 @@
 #include "sprite.hpp"
 #include "css_SFML.hpp"
 #include "voxelspace.hpp"
+#include <map>
+
+// #define TELEPHOTO_GRID_DRAW_TRACE 1
 
 namespace isk {
 
@@ -90,6 +93,10 @@ static std::vector<iskandria::grid::cartesian<3>::coord_type> NW_row(const int l
 
 // returns true if and only if "modal" i.e. should not draw anything earlier in the stack
 bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> >& view_logical) {
+#if	TELEPHOTO_GRID_DRAW_TRACE
+	static bool have_drawn = false;
+#endif
+
 	// incoming dimensions are logical-screen dimensions
 	// our origin will be "near the center of the screen"
 	static constexpr const zaimoni::math::vector<int, 2> origin_offset = { DisplayManager::ISOMETRIC_TRIANGLE_WIDTH, DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT };
@@ -102,6 +109,7 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 	const std::vector<pos> _canonical_next_row(NW_row((origin_mid[0] - view_logical.tl_c()[0]) / tile_span[0], (view_logical.br_c()[0] - origin_mid[0]) / tile_span[0], 1));
 	auto y_abs_min = (origin_mid[1] - view_logical.tl_c()[1]) / tile_span[1];
 	auto y_max = (view_logical.br_c()[1] - origin_tl[1]) / tile_span[1];
+
 	std::vector<pos> _canonical_coordinates;
 	{	// \todo? function target
 	auto i = y_abs_min - 1;
@@ -156,12 +164,18 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 	static const std::string CSS_tag("telephoto_grid");	// should only be one of us (unlike some other imaginable camera types)
 	auto prior_DOM = DisplayManager::get().remove_by_CSS_class(CSS_tag);
 
-	for (decltype(auto) x : image_keys) {
+	// count down to get drawing order (roughly)
+	ptrdiff_t ub = image_keys.size();
+	while (0 <= --ub) {
+		decltype(auto) x = image_keys[ub];
 		auto raw_img = DisplayManager::get().getTexture(x.second);
 		css::wrap<isk::Sprite> staging(new isk::Sprite(raw_img));
+		staging.CSS_class(CSS_tag);
 		// ....
 	}
-
+#if TELEPHOTO_GRID_DRAW_TRACE
+	have_drawn = true;
+#endif
 	return false;
 }
 
