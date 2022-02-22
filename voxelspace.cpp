@@ -4,7 +4,7 @@
 
 namespace isk {
 
-std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaimoni::math::vector<int, 3> x0, zaimoni::math::vector<int, 3> x1)
+std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaimoni::math::vector<ptrdiff_t, 3> x0, zaimoni::math::vector<ptrdiff_t, 3> x1)
 {
 	std::pair<zaimoni::math::vector<int, 2>, int> working(zaimoni::math::vector<int, 2>(), 0);
 	auto x_delta = x0[0] < x1[0] ? std::pair(true, zaimoni::pos_diff(x1[0], x0[0])) : std::pair(false, zaimoni::pos_diff(x0[0], x1[0]));
@@ -13,7 +13,7 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 	while (x_delta.second || y_delta.second || z_delta.second) {
 		if (z_delta.second) {
 			if (z_delta.first) {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
 					zaimoni::pos_diff(working.first[1], std::numeric_limits<int>::min()) / (DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1),
 					z_delta.second);
 				if (0 < delta) {
@@ -23,7 +23,7 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 					continue;
 				}
 			} else {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
 					zaimoni::pos_diff(std::numeric_limits<int>::max(), working.first[1]) / (DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1),
 					z_delta.second);
 				if (0 < delta) {
@@ -36,7 +36,7 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 		}
 		if (x_delta.second) {
 			if (x_delta.first) {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
 					zaimoni::pos_diff(std::numeric_limits<int>::max(), working.first[0]) / DisplayManager::ISOMETRIC_TRIANGLE_WIDTH,
 					zaimoni::pos_diff(std::numeric_limits<int>::max(), working.first[1]) / ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2),
 					x_delta.second);
@@ -48,7 +48,7 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 					continue;
 				}
 			} else {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
 					zaimoni::pos_diff(working.first[0], std::numeric_limits<int>::min()) / DisplayManager::ISOMETRIC_TRIANGLE_WIDTH,
 					zaimoni::pos_diff(working.first[1], std::numeric_limits<int>::min()) / ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2),
 					x_delta.second);
@@ -63,10 +63,10 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 		}
 		if (y_delta.second) {
 			if (y_delta.first) {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(working.second, std::numeric_limits<int>::min()),
 					zaimoni::pos_diff(std::numeric_limits<int>::max(), working.first[0]) / DisplayManager::ISOMETRIC_TRIANGLE_WIDTH,
 					zaimoni::pos_diff(working.first[1], std::numeric_limits<int>::min()) / ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2),
-					x_delta.second);
+					y_delta.second);
 				if (0 < delta) {
 					working.first[0] += DisplayManager::ISOMETRIC_TRIANGLE_WIDTH * delta;
 					working.first[1] -= ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2) * delta;
@@ -75,10 +75,10 @@ std::optional<std::pair<zaimoni::math::vector<int, 2>, int> >  screen_delta(zaim
 					continue;
 				}
 			} else {
-				const auto delta = zaimoni::max(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
+				const auto delta = zaimoni::min(zaimoni::pos_diff(std::numeric_limits<int>::max(), working.second),
 					zaimoni::pos_diff(working.first[0], std::numeric_limits<int>::min()) / DisplayManager::ISOMETRIC_TRIANGLE_WIDTH,
 					zaimoni::pos_diff(std::numeric_limits<int>::max(), working.first[1]) / ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2),
-					x_delta.second);
+					y_delta.second);
 				if (0 < delta) {
 					working.first[0] -= DisplayManager::ISOMETRIC_TRIANGLE_WIDTH * delta;
 					working.first[1] += ((DisplayManager::ISOMETRIC_TRIANGLE_HEIGHT + 1) / 2) * delta;

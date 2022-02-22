@@ -9,7 +9,7 @@ namespace isk {
 
 	// canonical camera view: positive x down-right, positive y up-right, positive z up
 	// dest format: pixel offset, z-index offset
-	std::optional<std::pair<zaimoni::math::vector<int, 2>, int> > screen_delta(zaimoni::math::vector<int, 3> x0, zaimoni::math::vector<int, 3> x1);
+	std::optional<std::pair<zaimoni::math::vector<int, 2>, int> > screen_delta(zaimoni::math::vector<ptrdiff_t, 3> x0, zaimoni::math::vector<ptrdiff_t, 3> x1);
 
 }
 
