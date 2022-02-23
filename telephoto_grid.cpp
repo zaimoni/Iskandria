@@ -3,7 +3,6 @@
 #include "sprite.hpp"
 #include "css_SFML.hpp"
 #include "voxelspace.hpp"
-#include <map>
 
 // #define TELEPHOTO_GRID_DRAW_TRACE 1
 
@@ -135,6 +134,12 @@ bool telephoto_grid::draw(const zaimoni::gdi::box<zaimoni::math::vector<int, 2> 
 		}
 	}
 	}	// end function target
+	// would like an associative container for this, but std::map and std::unordered_map are questionable
+	constexpr const auto zero = pos{ 0, 0, 0 };
+	std::vector<std::pair<pos, std::pair<zaimoni::math::vector<int, 2>, int> > > _canonical_to_screen;
+	for (decltype(auto) x : _canonical_coordinates) {
+		if (const auto test = screen_delta(zero, x)) _canonical_to_screen.push_back(std::pair(x, *test));
+	}
 
 	// \todo get tile data for rotated coordinates, in render order...we draw bottom-to-top but fetch top-to-bottom
 	std::vector<std::pair<pos, std::string> > image_keys;
