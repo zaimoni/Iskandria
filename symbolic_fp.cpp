@@ -303,7 +303,7 @@ bool symbolic_fp::algebraic_self_eval()
 
 bool symbolic_fp::inexact_self_eval()
 {
-	if (fp_API::eval(dest)) return true;
+	if (fp_API::inexact_reduce(dest)) return true;
 	return false;
 }
 
