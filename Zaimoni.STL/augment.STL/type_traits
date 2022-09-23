@@ -208,23 +208,10 @@ constexpr int sgn(const T& x)
 template<class T>
 constexpr bool is_one(const T& x) { return type_traits_arithmetic_aux<typename std::remove_cv<T>::type>::is_one(x); }
 
-template<class T>
-constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type is_negative_one(T x)	// could use kronecker delta for this, *except* that would fail for unsigned integers
-{
-	return -1 == x;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type is_negative_one(T x)
-{
-	return -1 == x;
-}
-
-template<class T>
-constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_signed<T>::value, bool>::type is_negative_one(T x)
-{
-	return false;
-}
+// could use kronecker delta for these, *except* that would fail for unsigned integers
+template<std::floating_point F> constexpr bool is_negative_one(F x) { return -1 == x; }
+template<std::signed_integral I> constexpr bool is_negative_one(I x) { return -1 == x; }
+template<std::unsigned_integral U> constexpr bool is_negative_one(U x) { return false; }
 
 // clamped signed arithmetic
 template<std::signed_integral I>
@@ -253,11 +240,11 @@ struct clamped_signed
 	}
 };
 
-template<class T>
-typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value, void>::type clamped_sum_assign(typename std::remove_cv<T>::type& dest, T delta) { clamped_signed<typename std::remove_cv<T>::type>::sum_assign(dest, delta); }
+template<std::signed_integral I>
+void clamped_sum_assign(std::remove_cv_t<I>& dest, I delta) { clamped_signed<std::remove_cv_t<I> >::sum_assign(dest, delta); }
 
-template<class T>
-typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value, void>::type clamped_diff_assign(typename std::remove_cv<T>::type& dest, T delta) { clamped_signed<typename std::remove_cv<T>::type>::diff_assign(dest,delta); }
+template<std::signed_integral I>
+void clamped_diff_assign(std::remove_cv_t<I>& dest, I delta) { clamped_signed<std::remove_cv_t<I> >::diff_assign(dest,delta); }
 
 // XXX extending cmath functions to integers with templates does not work (templates are lower priority than functions
 // when resolving overloads)
