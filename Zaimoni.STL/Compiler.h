@@ -165,16 +165,25 @@
 #undef ALL_PTR_NONNULL
 #undef PTR_NONNULL
 #undef PTR_RESTRICT
-#define NO_RETURN __attribute__ ((noreturn))
 #define CONST_C_FUNC __attribute__ ((const))
 #define PURE_C_FUNC __attribute__ ((pure))
 #define ALL_PTR_NONNULL __attribute__ ((nonnull))
 #define PTR_NONNULL(A) __attribute__ ((nonnull A))
 #define PTR_RESTRICT __restrict__
 #endif
+
+#ifdef __cpp_attributes
+#undef MS_NO_RETURN
+#define MS_NO_RETURN [[noreturn]]
+#else
+#ifdef __GNUC__
+#undef NO_RETURN
+#define NO_RETURN __attribute__ ((noreturn))
+#endif
 #ifdef _MSC_VER
 #undef MS_NO_RETURN
 #define MS_NO_RETURN __declspec(noreturn)
+#endif
 #endif
 
 /* other compiler blocks */
