@@ -80,12 +80,12 @@ static std::vector<iskandria::grid::cartesian<3>::coord_type> NW_row(const int l
 	assert(0 <= r_span);
 	std::vector<iskandria::grid::cartesian<3>::coord_type> ret;
 
-	auto i = l_span - 1;
+	auto i = l_span;
 	do {
 		ret.push_back({ -i+ x_delta, i, 0 });
 	} while (0 <= --i);
 	i = 0;
-	while (++i <= r_span) ret.push_back({ i+ x_delta, -i, 0 });
+	while (++i < r_span) ret.push_back({ i+ x_delta, -i, 0 });
 
 	return ret;
 }
