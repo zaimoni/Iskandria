@@ -44,7 +44,7 @@ namespace zaimoni {
 
 		// eval_to_ptr<fp_API>
 		eval_type destructive_eval() override;
-		bool algebraic_self_eval();
+		bool algebraic_self_eval() override;
 		bool inexact_self_eval() override;
 
 		// API_sum<fp_API>
