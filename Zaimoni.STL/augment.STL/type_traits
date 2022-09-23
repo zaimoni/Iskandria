@@ -227,28 +227,27 @@ constexpr typename std::enable_if<std::is_integral<T>::value && !std::is_signed<
 }
 
 // clamped signed arithmetic
-template<class T>
+template<std::signed_integral I>
 struct clamped_signed
 {
-	static_assert(std::is_integral<T>::value&& std::is_signed<T>::value, "signed integers only");
-	static void sum_assign(T& dest, T delta) {
+	static void sum_assign(I& dest, I delta) {
 		if (0 < delta) {
-			if (std::numeric_limits<intmax_t>::max()-delta <= dest) dest = std::numeric_limits<intmax_t>::max();
+			if (std::numeric_limits<I>::max()-delta <= dest) dest = std::numeric_limits<I>::max();
 			else dest += delta;
 		}
 		else if (0 > delta) {
-			if (std::numeric_limits<intmax_t>::min()-delta >= dest) dest = std::numeric_limits<intmax_t>::min();
+			if (std::numeric_limits<I>::min()-delta >= dest) dest = std::numeric_limits<I>::min();
 			else dest += delta;
 		}
 	}
 
-	static void diff_assign(T& dest, T delta) {
+	static void diff_assign(I& dest, I delta) {
 		if (0 < delta) {
-			if (0 > dest && std::numeric_limits<intmax_t>::min() + delta >= dest) dest = std::numeric_limits<intmax_t>::min();
+			if (0 > dest && std::numeric_limits<I>::min() + delta >= dest) dest = std::numeric_limits<I>::min();
 			else dest -= delta;
 		}
 		else if (0 > delta) {
-			if (0 < dest && std::numeric_limits<intmax_t>::max() + delta <= dest) dest = std::numeric_limits<intmax_t>::max();
+			if (0 < dest && std::numeric_limits<I>::max() + delta <= dest) dest = std::numeric_limits<I>::max();
 			else dest -= delta;
 		}
 	}
