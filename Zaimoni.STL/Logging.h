@@ -56,6 +56,8 @@ EXTERN_C void _log(const char* const B, size_t len);		/* Windows GUI crippled (a
 #define LOG_STRING_LITERAL(B) _log(B,sizeof(B)-1)
 
 #ifdef __cplusplus
+#include <concepts>
+
 /* overloadable adapters for C++ and debug-mode code */
 /* all-uppercased because we may use macro wrappers on these */
 MS_NO_RETURN void FATAL(const char* const B) NO_RETURN;
@@ -80,64 +82,46 @@ inline void INC_INFORM(char B) {_inc_inform(&B,1);}
 inline void LOG(char B) {_log(&B,1);}
 
 /* signed integer shorthands */
-void INFORM(intmax_t B);
-void LOG(intmax_t B);
-void INC_INFORM(intmax_t B);
+extern void _INFORM(intmax_t B);
+extern void _LOG(intmax_t B);
+extern void _INC_INFORM(intmax_t B);
+
+template<std::signed_integral T>
+void INFORM(T val) { _INFORM(static_cast<intmax_t>(val)); }
+
+template<std::signed_integral T>
+void LOG(T val) { _INFORM(static_cast<intmax_t>(val)); }
+
+template<std::signed_integral T>
+void INC_INFORM(T val) { _INC_INFORM(static_cast<intmax_t>(val)); }
 
 /* unsigned integer shorthands */
-void INFORM(uintmax_t B);
-void LOG(uintmax_t B);
-void INC_INFORM(uintmax_t B);
+extern void _INFORM(uintmax_t B);
+extern void _LOG(uintmax_t B);
+extern void _INC_INFORM(uintmax_t B);
+
+template<std::unsigned_integral T>
+void INFORM(T val) { _INFORM(static_cast<uintmax_t>(val)); }
+
+template<std::unsigned_integral T>
+void LOG(T val) { _INFORM(static_cast<uintmax_t>(val)); }
+
+template<std::unsigned_integral T>
+void INC_INFORM(T val) { _INC_INFORM(static_cast<uintmax_t>(val)); }
 
 /* long double shorthands */
-void INFORM(long double B);
-void LOG(long double B);
-void INC_INFORM(long double B);
+extern void _INFORM(long double B);
+extern void _LOG(long double B);
+extern void _INC_INFORM(long double B);
 
-#pragma start_copy signed_inform
-inline void INFORM(signed long B) { return INFORM((intmax_t)(B)); }
-inline void LOG(signed long B) { return LOG((intmax_t)(B)); }
-inline void INC_INFORM(signed long B) { return INC_INFORM((intmax_t)(B)); }
-#pragma end_copy
-#pragma for F in int,short,signed char
-#pragma substitute $F for signed long in signed_inform
-inline void INFORM(int B) { return INFORM((intmax_t)(B)); }
-inline void LOG(int B) { return LOG((intmax_t)(B)); }
-inline void INC_INFORM(int B) { return INC_INFORM((intmax_t)(B)); }
-inline void INFORM(short B) { return INFORM((intmax_t)(B)); }
-inline void LOG(short B) { return LOG((intmax_t)(B)); }
-inline void INC_INFORM(short B) { return INC_INFORM((intmax_t)(B)); }
-inline void INFORM(signed char B) { return INFORM((intmax_t)(B)); }
-inline void LOG(signed char B) { return LOG((intmax_t)(B)); }
-inline void INC_INFORM(signed char B) { return INC_INFORM((intmax_t)(B)); }
-#pragma end_substitute
-#pragma done
+template<std::floating_point T>
+void INFORM(T val) { _INFORM(static_cast<long double>(val)); }
 
-#pragma start_copy unsigned_inform
-inline void INFORM(unsigned long B) {return INFORM((uintmax_t)(B));}
-inline void LOG(unsigned long B) {return LOG((uintmax_t)(B));}
-inline void INC_INFORM(unsigned long B) {return INC_INFORM((uintmax_t)(B));}
-#pragma end_copy
-#pragma for F in unsigned int,unsigned short,unsigned char
-#pragma substitute $F for unsigned long in unsigned_inform
-inline void INFORM(unsigned int B) {return INFORM((uintmax_t)(B));}
-inline void LOG(unsigned int B) {return LOG((uintmax_t)(B));}
-inline void INC_INFORM(unsigned int B) {return INC_INFORM((uintmax_t)(B));}
-inline void INFORM(unsigned short B) {return INFORM((uintmax_t)(B));}
-inline void LOG(unsigned short B) {return LOG((uintmax_t)(B));}
-inline void INC_INFORM(unsigned short B) {return INC_INFORM((uintmax_t)(B));}
-inline void INFORM(unsigned char B) {return INFORM((uintmax_t)(B));}
-inline void LOG(unsigned char B) {return LOG((uintmax_t)(B));}
-inline void INC_INFORM(unsigned char B) {return INC_INFORM((uintmax_t)(B));}
-#pragma end_substitute
-#pragma done
+template<std::floating_point T>
+void LOG(T val) { _INFORM(static_cast<long double>(val)); }
 
-inline void INFORM(double B) { return INFORM((long double)(B)); }
-inline void LOG(double B) { return LOG((long double)(B)); }
-inline void INC_INFORM(double B) { return INC_INFORM((long double)(B)); }
-inline void INFORM(float B) { return INFORM((long double)(B)); }
-inline void LOG(float B) { return LOG((long double)(B)); }
-inline void INC_INFORM(float B) { return INC_INFORM((long double)(B)); }
+template<std::floating_point T>
+void INC_INFORM(T val) { _INC_INFORM(static_cast<long double>(val)); }
 
 #else	/* !defined(__cplusplus) */
 #ifdef NDEBUG
