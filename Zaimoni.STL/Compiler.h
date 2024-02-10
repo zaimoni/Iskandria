@@ -149,44 +149,35 @@
    PURE_C_FUNC: no effects except return value, return value depends only on parameters and global variables
    PTR_RESTRICT: C99 restrict semantics (pointer may be assumed not to be aliased) */
 #define NO_RETURN
-#define MS_NO_RETURN
 #define CONST_C_FUNC
 #define PURE_C_FUNC
 #define ALL_PTR_NONNULL
 #define PTR_NONNULL(A)
 #define PTR_RESTRICT
 
-/* GCC */
 #ifdef __GNUC__
-#define THROW_COMPETENT 1
-#undef NO_RETURN
-#undef CONST_C_FUNC
-#undef PURE_C_FUNC
-#undef ALL_PTR_NONNULL
-#undef PTR_NONNULL
-#undef PTR_RESTRICT
-#define CONST_C_FUNC __attribute__ ((const))
-#define PURE_C_FUNC __attribute__ ((pure))
-#define ALL_PTR_NONNULL __attribute__ ((nonnull))
-#define PTR_NONNULL(A) __attribute__ ((nonnull A))
-#define PTR_RESTRICT __restrict__
+#	define THROW_COMPETENT 1
+#	undef NO_RETURN
+#	define NO_RETURN __attribute__((noreturn))
+#	undef CONST_C_FUNC
+#	define CONST_C_FUNC __attribute__((const))
+#	undef PURE_C_FUNC
+#	define PURE_C_FUNC __attribute__((pure))
+#	undef ALL_PTR_NONNULL
+#	define ALL_PTR_NONNULL __attribute__((nonnull))
+#	undef PTR_NONNULL
+#	define PTR_NONNULL(A) __attribute__((nonnull A))
+#	undef PTR_RESTRICT
+#	define PTR_RESTRICT __restrict__
+#elif defined(_MSC_VER)
+#	undef NO_RETURN
+#	define NO_RETURN __declspec(noreturn)
 #endif
 
-#ifdef __cpp_attributes
-#undef MS_NO_RETURN
-#define MS_NO_RETURN [[noreturn]]
-#else
-#ifdef __GNUC__
-#undef NO_RETURN
-#define NO_RETURN __attribute__ ((noreturn))
+#ifdef __cplusplus
+#	undef NO_RETURN
+#	define NO_RETURN [[noreturn]]
 #endif
-#ifdef _MSC_VER
-#undef MS_NO_RETURN
-#define MS_NO_RETURN __declspec(noreturn)
-#endif
-#endif
-
-/* other compiler blocks */
 
 #if 0
 /* #ifdef __cplusplus */
