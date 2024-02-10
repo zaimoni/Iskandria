@@ -174,6 +174,10 @@
 #	define NO_RETURN __declspec(noreturn)
 #endif
 
+/*
+* C++20 onwards feature-test macros like __cpp_attributes have coverage gaps
+* if the feature itself is C++17 or earlier.  This attribute was introduced in C++11.
+*/
 #ifdef __cplusplus
 #	undef NO_RETURN
 #	define NO_RETURN [[noreturn]]
