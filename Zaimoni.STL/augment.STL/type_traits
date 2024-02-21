@@ -1,13 +1,14 @@
-// Zaimoni.STL/augment.STL/typetraits
+// Zaimoni.STL/augment.STL/type_traits
 
 #ifndef ZAIMONI_AUGMENT_STL_TYPE_TRAITS
 #define ZAIMONI_AUGMENT_STL_TYPE_TRAITS 1
 
+#include "Zaimoni.STL/zero.hpp"
 #include <inttypes.h>
 #include <limits>
 #include <type_traits>
 #include <concepts>
-#include "../zero.hpp"
+#include <cstddef>
 
 namespace zaimoni {
 

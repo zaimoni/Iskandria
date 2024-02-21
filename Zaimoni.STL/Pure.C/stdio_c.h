@@ -39,77 +39,52 @@ template<class T> void zaimoni::write(T src, FILE* dest)
 etc.
 */
 #ifdef __cplusplus
-#include <limits.h>
+#include "Zaimoni.STL/rw.hpp"
 #include <type_traits>
-#include "../rw.hpp"
+#include <concepts>
+#include <limits>
 
 namespace zaimoni {
 
-#define ZAIMONI_RW(A,B)	\
-template<class T>	\
-std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, std::remove_reference_t<T> > read(FILE* src)	\
-{	\
-	return (std::remove_reference_t<T>)read_uintmax(B, src);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, std::remove_reference_t<T> > read(FILE* src, uintmax_t ub)	\
-{	\
-	return (std::remove_reference_t<T>)read_uintmax(ub, src);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, void> write(const T& src, FILE* dest)	\
-{	\
-	return write_uintmax(B, src, dest);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same<A, std::remove_reference_t<T> >::value, void> write(const T& src, FILE* dest, uintmax_t ub)	\
-{	\
-	return write_uintmax(ub, src, dest);	\
+template<std::unsigned_integral T>
+T read(FILE* src, uintmax_t ub = std::numeric_limits<T>::max())
+{
+	return static_cast<T>(read_uintmax(ub, src));
 }
 
-ZAIMONI_RW(unsigned char, UCHAR_MAX)
-ZAIMONI_RW(unsigned short, USHRT_MAX)
-ZAIMONI_RW(unsigned int, UINT_MAX)
-ZAIMONI_RW(unsigned long, ULONG_MAX)
-ZAIMONI_RW(uintmax_t, UINTMAX_MAX)
-
-#undef ZAIMONI_RW
-
-#define ZAIMONI_RW(A,B)	\
-template<class T>	\
-std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, std::remove_reference_t<T> > read(FILE* src)	\
-{	\
-	return (std::remove_reference_t<T>)read_intmax(B, src);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, std::remove_reference_t<T> > read(FILE* src, intmax_t ub)	\
-{	\
-	return (std::remove_reference_t<T>)read_intmax(ub, src);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, void> write(const T& src, FILE* dest)	\
-{	\
-	return write_intmax(B, src, dest);	\
-}	\
-	\
-template<class T>	\
-std::enable_if_t<std::is_same_v<A, std::remove_reference_t<T> >, void> write(const T& src, FILE* dest, intmax_t ub)	\
-{	\
-	return write_intmax(ub, src, dest);	\
+template<std::signed_integral T>
+T read(FILE* src, uintmax_t ub = std::numeric_limits<T>::max())
+{
+	return static_cast<T>(read_intmax(ub, src));
 }
 
-ZAIMONI_RW(signed char, SCHAR_MAX)
-ZAIMONI_RW(signed short, SHRT_MAX)
-ZAIMONI_RW(signed int, INT_MAX)
-ZAIMONI_RW(signed long, LONG_MAX)
-ZAIMONI_RW(intmax_t, INTMAX_MAX)
+template<class T>
+std::enable_if_t<std::is_reference_v<T>, std::remove_reference_t<T>>
+read(FILE* src, uintmax_t ub = std::numeric_limits<std::remove_reference_t<T>>::max())
+{
+	return read<std::remove_reference_t<T>>(src, ub);
+}
 
-#undef ZAIMONI_RW
+
+template<std::unsigned_integral T>
+void write(const T& src, FILE* dest, uintmax_t ub = std::numeric_limits<T>::max())
+{
+	write_uintmax(ub, src, dest);
+}
+
+template<std::signed_integral T>
+void write(const T& src, FILE* dest, uintmax_t ub = std::numeric_limits<T>::max())
+{
+	write_intmax(ub, src, dest);
+}
+
+template<class T>
+std::enable_if_t<std::is_reference_v<T>, void>
+write(const T& src, FILE* dest, uintmax_t ub = std::numeric_limits<std::remove_reference_t<T>>::max())
+{
+	write<std::remove_reference_t<T>>(src, dest);
+}
+
 
 template<class T>
 void read_iterator_count(T iter, size_t i, FILE* src)
@@ -122,7 +97,7 @@ void read_iterator_count(T iter, size_t i, FILE* src)
 }
 
 template<class T>
-typename std::enable_if<1==zaimoni::rw_mode<T>::group_read , T>::type read(FILE* src)
+typename std::enable_if<1==zaimoni::rw_mode<T>::group_read, T>::type read(FILE* src)
 {
 	T dest;
 	read_iterator_count(dest.begin(),dest.size(), src);
@@ -130,13 +105,13 @@ typename std::enable_if<1==zaimoni::rw_mode<T>::group_read , T>::type read(FILE*
 }
 
 template<class T>
-typename std::enable_if<1==zaimoni::rw_mode<T>::group_read , void>::type read(T& dest, FILE* src)
+typename std::enable_if<1==zaimoni::rw_mode<T>::group_read, void>::type read(T& dest, FILE* src)
 {
 	read_iterator_count(dest.begin(),dest.size(), src);
 }
 
 template<class T>
-typename std::enable_if<2==zaimoni::rw_mode<T>::group_read , void>::type read(T& dest, FILE* src)
+typename std::enable_if<2==zaimoni::rw_mode<T>::group_read, void>::type read(T& dest, FILE* src)
 {
 	const size_t ub = dest.size();
 	size_t i = 0;
@@ -160,13 +135,13 @@ void write_iterator_count(T iter, size_t i, FILE* dest)
 }
 
 template<class T>
-typename std::enable_if<1==zaimoni::rw_mode<T>::group_write , void>::type write(const T& src, FILE* dest)
+typename std::enable_if<1==zaimoni::rw_mode<T>::group_write, void>::type write(const T& src, FILE* dest)
 {
 	write_iterator_count(src.begin(),src.size(),dest);
 }
 
 template<class T>
-typename std::enable_if<2==zaimoni::rw_mode<T>::group_write , void>::type write(const T& src, FILE* dest)
+typename std::enable_if<2==zaimoni::rw_mode<T>::group_write, void>::type write(const T& src, FILE* dest)
 {
 	const size_t ub = src.size();
 	size_t i = 0;
