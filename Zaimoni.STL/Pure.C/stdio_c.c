@@ -5,7 +5,7 @@
 #include "../Logging.h"
 
 #if defined(ZAIMONI_PLATFORM_WIN32) && __has_include(<io.h>)
-#define ZAIMONI_HAVE_MICROSOFT_IO_H 1
+#define ZAIMONI_HAVE_MICROSOFT_IO_H
 #endif
 
 #ifdef ZAIMONI_HAVE_MICROSOFT_IO_H
@@ -14,7 +14,7 @@
 
 long get_filelength(FILE* src)
 {
-#if ZAIMONI_HAVE_MICROSOFT_IO_H
+#ifdef ZAIMONI_HAVE_MICROSOFT_IO_H
 	return _filelength(_fileno(src));
 #else
 	// Failing over to implementation-defined extension of ISO C.
