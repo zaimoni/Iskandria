@@ -8,6 +8,7 @@
 #include "Euclidean.hpp"
 #include "Zaimoni.STL/augment.STL/array"
 #include <algorithm>
+#include <memory>
 
 namespace zaimoni {
 
@@ -37,7 +38,7 @@ auto linear_encode(const T* lb, const T* ub, T* src, size_t n) -> unconditional_
 }
 
 template<class T>
-auto linear_decode(const T* lb, const T* ub, size_t code, T* dest, size_t n) -> unconditional_t<void, typename types<T>::norm>
+auto linear_decode(const T* lb, const T* ub, size_t code, T* dest, size_t n) -> unconditional_t<size_t, typename types<T>::norm>
 {
 	size_t ret = 0;
 	size_t i = n;
@@ -725,9 +726,9 @@ private:
 			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) return INT_MIN;
 			const size_t norm_options = c_norms.size();
 			if (1 == norm_options) {
-				if (   !elementary_force_zero(src, dest, c_norms.front().second, c_resolve)
-					|| !elementary_force_one(src, dest, c_norms.front().second, c_resolve)) return -1;
-				if (c_norms.front().second != c_resolve) elementary_transpose(src, dest, c_norms.front().second, c_resolve);
+				if (   !elementary_force_zero(src, dest, c_norms.front(), c_resolve)
+					|| !elementary_force_one(src, dest, c_norms.front(), c_resolve)) return -1;
+				if (c_norms.front() != c_resolve) elementary_transpose(src, dest, c_norms.front(), c_resolve);
 			} else {
 				std::stable_sort(resolve_cols.begin(), resolve_cols.end(), sort_norms);
 				std::unique_ptr<matrix_square<T, N> > working_src(new matrix_square<T, N>(src));
@@ -735,7 +736,7 @@ private:
 
 				// iterate over options, use first one that works
 				for (const auto& x : resolve_cols) {
-					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x.second, c_resolve);
+					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x, c_resolve);
 					if (0 <= C_err_code) {
 						dest = std::move(*working_dest);
 						return 0;
@@ -765,9 +766,9 @@ public:
 			if (!col_norms(src, resolve_cols, c_resolve, c_norms)) throw numeric_error("matrix inversion failed: lousy condition number?");
 			const size_t norm_options = c_norms.size();
 			if (1 == norm_options) {
-				if (   !elementary_force_zero(src, dest, c_norms.front().second, c_resolve)
-				    || !elementary_force_one(src, dest, c_norms.front().second, c_resolve)) throw numeric_error("matrix inversion failed");
-				if (c_norms.front().second != c_resolve) elementary_transpose(src, dest, c_norms.front().second, c_resolve);
+				if (   !elementary_force_zero(src, dest, c_norms.front(), c_resolve)
+				    || !elementary_force_one(src, dest, c_norms.front(), c_resolve)) throw numeric_error("matrix inversion failed");
+				if (c_norms.front() != c_resolve) elementary_transpose(src, dest, c_norms.front(), c_resolve);
 			} else {
 				std::stable_sort(resolve_cols.begin(), resolve_cols.end(), sort_norms);
 				{	// scoping brace
@@ -776,7 +777,7 @@ public:
 
 				// iterate over options, use first one that works
 				for (const auto& x : resolve_cols) {
-					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x.second, c_resolve);
+					int C_err_code = complete_inversion(*working_src, *working_dest, resolve_cols, x, c_resolve);
 					if (0 <= C_err_code) {
 						dest = std::move(*working_dest);
 						goto done;

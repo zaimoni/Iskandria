@@ -1,13 +1,16 @@
 /* stdio_c.c */
 
 #include "stdio_c.h"
+#include "Zaimoni.STL/Compiler.h"
+#include "Zaimoni.STL/Logging.h"
 
-#include "Zaimoni.STL/Pure.C/comptest.h"
-#if ZAIMONI_HAVE_MICROSOFT_IO_H
-#include <io.h>
+#if defined(ZAIMONI_PLATFORM_WIN32) && __has_include(<io.h>)
+#define ZAIMONI_HAVE_MICROSOFT_IO_H
 #endif
 
-#include "../Logging.h"
+#ifdef ZAIMONI_HAVE_MICROSOFT_IO_H
+#include <io.h>
+#endif
 
 long get_filelength(FILE* src)
 {
@@ -117,4 +120,3 @@ void write_intmax(intmax_t ub,intmax_t src,FILE* dest)
 }
 
 #undef CONDITIONAL_WRITE
-
