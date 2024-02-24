@@ -1,11 +1,11 @@
 /* stdio_c.c */
 
 #include "stdio_c.h"
-#include "Zaimoni.STL/Compiler.h"
-#include "Zaimoni.STL/Logging.h"
+#include "../Compiler.h"
+#include "../Logging.h"
 
 #if defined(ZAIMONI_PLATFORM_WIN32) && __has_include(<io.h>)
-#define ZAIMONI_HAVE_MICROSOFT_IO_H
+#define ZAIMONI_HAVE_MICROSOFT_IO_H 1
 #endif
 
 #ifdef ZAIMONI_HAVE_MICROSOFT_IO_H
