@@ -8,7 +8,7 @@
 
 namespace isk {
 
-static std::optional<std::partial_ordering> _guard_render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)
+static constexpr std::optional<std::partial_ordering> _guard_render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)
 {
 	if (lhs == rhs) return std::partial_ordering::equivalent;
 	//	auto abs_delta = zaimoni::pos_diff(lhs, rhs); // don't have this built out
@@ -28,6 +28,10 @@ static std::optional<std::partial_ordering> _guard_render_before(const telephoto
 	return std::nullopt;
 }
 
+static_assert(telephoto_grid::coord_type({0, 0, 0}) == telephoto_grid::coord_type({ 0, 0, 0 }));
+static_assert(telephoto_grid::coord_type({ 0, 0, 0 }) != telephoto_grid::coord_type({ 0, 0, 1 }));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(std::partial_ordering::equivalent == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
 
 static std::partial_ordering _render_before(telephoto_grid::coord_type lhs, telephoto_grid::coord_type rhs)
 {
