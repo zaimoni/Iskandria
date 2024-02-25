@@ -449,7 +449,7 @@ template<class T,class U>
 constexpr bool isNaN(const power_term<T,U>& x)
 {
 	return isNaN(x.base())
-        || (0==x.power() && definitely_equal(int_as<0,T>(),x.base()));
+        || (0==x.power() && 0 == (int_as<0,T>() <=> x.base()));
 }
 
 template<class T>

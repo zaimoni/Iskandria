@@ -42,6 +42,7 @@ namespace zaimoni {
 	// e.g., consider a 2-dimensional vector space of operations on the surface of a 3-dimesnional sphere
 	namespace math {
 		struct type {
+			virtual ~type() = default;
 			virtual int allow_infinity() const = 0;	// 0: no; -1: signed; 1 unsigned
 			virtual bool is_totally_ordered() const = 0;
 			std::partial_ordering subclass(const type& rhs) const { return rhs._superclass(this); }
@@ -104,6 +105,7 @@ namespace zaimoni {
 	{
 		using eval_type = COW<T>;
 
+		virtual ~eval_to_ptr() = default;
 		virtual eval_type destructive_eval() = 0; // exact
 		virtual bool algebraic_self_eval() = 0; // also exact
 		virtual bool inexact_self_eval() = 0;
@@ -112,6 +114,7 @@ namespace zaimoni {
 	template<class T>
 	struct API_sum
 	{
+		virtual ~API_sum() = default;
 		virtual int rearrange_sum(eval_to_ptr<T>::eval_type& rhs) = 0;
 		virtual T* eval_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 		virtual int score_sum(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
@@ -119,12 +122,14 @@ namespace zaimoni {
 
 	struct API_addinv
 	{
+		virtual ~API_addinv() = default;
 		virtual void self_negate() = 0;
 	};
 
 	template<class T>
 	struct API_product
 	{
+		virtual ~API_product() = default;
 		virtual int rearrange_product(eval_to_ptr<T>::eval_type& rhs) = 0;
 		virtual T* eval_product(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
 		virtual std::optional<std::pair<int, int> > product_op_count(const typename eval_to_ptr<T>::eval_type& rhs) const = 0;
@@ -134,6 +139,7 @@ namespace zaimoni {
 	template<class T>
 	struct API_productinv
 	{
+		virtual ~API_productinv() = default;
 		virtual int rearrange_divides(eval_to_ptr<T>::eval_type& lhs) = 0;
 		virtual int rearrange_dividedby(eval_to_ptr<T>::eval_type& rhs) = 0;
 		virtual T* eval_divides(const typename eval_to_ptr<T>::eval_type& lhs) const = 0;
