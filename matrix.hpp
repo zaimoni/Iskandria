@@ -198,11 +198,11 @@ public:
 	}
 
 	// array deference
-	T operator[](size_t n) const {
+	constexpr T operator[](size_t n) const {
 		assert(N>n);
 		return _x.data()[n];
 	};
-	T& operator[](size_t n) {
+	constexpr T& operator[](size_t n) {
 		assert(N>n);
 		return _x.data()[n];
 	};
@@ -236,7 +236,7 @@ public:
 };
 
 template<class T, class U, size_t N>
-bool operator==(const vector<T, N>& lhs, const vector<U, N>& rhs)
+constexpr bool operator==(const vector<T, N>& lhs, const vector<U, N>& rhs)
 {
 	size_t ub = N;
 	do {
@@ -244,12 +244,6 @@ bool operator==(const vector<T, N>& lhs, const vector<U, N>& rhs)
 		if (lhs[ub] != rhs[ub]) return false;
 	} while(0 < ub);
 	return true;
-}
-
-template<class T, class U, size_t N>
-bool operator!=(const vector<T, N>& lhs, const vector<U, N>& rhs)
-{
-	return !(lhs == rhs);
 }
 
 template<class T,size_t N>

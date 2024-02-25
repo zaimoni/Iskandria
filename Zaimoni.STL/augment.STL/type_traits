@@ -119,7 +119,7 @@ constexpr typename types<I>::norm norm(I x) {
 
 // for when we want operator- to be non-negative
 template<class T>
-auto pos_diff(const T& upper, const T& lower) -> typename types<T>::norm
+constexpr auto pos_diff(const T& upper, const T& lower) -> typename types<T>::norm
 {
 	assert(lower <= upper);
 	if constexpr (0 <= std::numeric_limits<T>::min()) return upper - lower;
