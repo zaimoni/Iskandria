@@ -55,7 +55,7 @@ public:
 	JSON() : _mode(none), _scalar(0) {}
 	JSON(mode src) : _mode(src), _scalar(0) {}
 	JSON(const JSON& src);
-	JSON(JSON&& src);
+	JSON(JSON&& src) noexcept;
 	JSON(std::istream& src);
 	JSON(const std::string& src) : _mode(literal), _scalar(new std::string(src)) {}
 	JSON(std::string&& src) : _mode(literal), _scalar(new std::string(src)) {}
@@ -65,7 +65,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const JSON& src);
 
 	JSON& operator=(const JSON& src);
-	JSON& operator=(JSON&& src);
+	JSON& operator=(JSON&& src) noexcept;
 
 	unsigned char mode() const { return _mode; };
 	void reset();

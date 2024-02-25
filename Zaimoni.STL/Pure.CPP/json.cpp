@@ -403,7 +403,7 @@ JSON::JSON(std::istream& src)
 		return;
 	default:
 		if (!src.eof() || !strchr(" \r\n\t\v\f", last_read)) {
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_read_failed << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -433,7 +433,7 @@ JSON::JSON(std::istream& src, unsigned long& line, char& last_read, bool must_be
 		return;
 	default:
 		if (!src.eof() || !strchr(" \r\n\t\v\f", last_read)) {
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_read_failed << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -442,10 +442,10 @@ JSON::JSON(std::istream& src, unsigned long& line, char& last_read, bool must_be
 }
 
 
-JSON::JSON(JSON&& src)
+JSON::JSON(JSON&& src) noexcept
 {
 	static_assert(std::is_standard_layout<JSON>::value, "JSON move constructor is invalid");
-	memmove(this, &src, sizeof(JSON));
+	memcpy(this, &src, sizeof(JSON));
 	memset(&src, 0, sizeof(JSON));
 }
 
@@ -455,12 +455,14 @@ JSON& JSON::operator=(const JSON& src)
 	return *this = std::move(tmp);
 }
 
-JSON& JSON::operator=(JSON&& src)
+JSON& JSON::operator=(JSON&& src) noexcept
 {
 	static_assert(std::is_standard_layout<JSON>::value, "JSON move assignment is invalid");
-	reset();
-	memmove(this, &src, sizeof(JSON));
-	memset(&src, 0, sizeof(JSON));
+	if (this != &src) {
+		reset();
+		memcpy(this, &src, sizeof(JSON));
+		memset(&src, 0, sizeof(JSON));
+        }
 	return *this;
 }
 
@@ -481,7 +483,7 @@ void JSON::finish_reading_object(std::istream& src, unsigned long& line)
 {
 	if (!consume_whitespace(src, line))
 		{
-		std::stringstream msg;
+		std::ostringstream msg;
 		msg << JSON_object_read_failed << line << '\n';
 		throw std::runtime_error(msg.str());
 		}
@@ -496,28 +498,28 @@ void JSON::finish_reading_object(std::istream& src, unsigned long& line)
 	do {
 		JSON _key(src, line, _last, true);
 		if (none == _key.mode()) {	// no valid data
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_object_read_failed << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
 		if (!consume_whitespace(src, line)) {	// oops, at end prematurely
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_object_read_truncated << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
 		if (!next_is(src, ':')) {
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << "JSON read of object failed, expected : got '" << (char)src.peek() << "' code point " << src.peek() << ", line: " << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
 		if (!consume_whitespace(src, line)) {	// oops, at end prematurely
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_object_read_truncated << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
 		JSON _value(src, line, _last);
 		if (none == _value.mode()) {	// no valid data
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_object_read_failed << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -533,7 +535,7 @@ void JSON::finish_reading_object(std::istream& src, unsigned long& line)
 			return;
 		}
 		if (!next_is(src, ',')) {
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << "JSON read of object failed, expected , or }, line: " << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -546,7 +548,7 @@ void JSON::finish_reading_array(std::istream& src, unsigned long& line)
 {
 	if (!consume_whitespace(src, line))
 	{
-		std::stringstream msg;
+		std::ostringstream msg;
 		msg << JSON_array_read_failed << line << '\n';
 		throw std::runtime_error(msg.str());
 	}
@@ -562,7 +564,7 @@ void JSON::finish_reading_array(std::istream& src, unsigned long& line)
 		{
 		JSON _next(src, line, _last);
 		if (none == _next.mode()) {	// no valid data
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << JSON_array_read_failed << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -579,7 +581,7 @@ void JSON::finish_reading_array(std::istream& src, unsigned long& line)
 			return;
 		}
 		if (!next_is(src, ',')) {
-			std::stringstream msg;
+			std::ostringstream msg;
 			msg << "JSON read of array failed, expected , or ], line: " << line << '\n';
 			throw std::runtime_error(msg.str());
 		}
@@ -646,7 +648,7 @@ void JSON::finish_reading_string(std::istream& src, unsigned long& line, char& f
 	_scalar = new std::string(std::move(dest));
 }
 
-static const char* reject_for_JSON_literal(char c)
+static const char* reject_for_JSON_literal(int c)
 {
 	return strchr(" \r\n\t\v\f{}[],:\"", c);
 }
@@ -668,7 +670,7 @@ void JSON::finish_reading_literal(std::istream& src, unsigned long& line, char& 
 	_scalar = new std::string(std::move(dest));
 }
 
-static const char* escape_for_JSON_string(char c)
+static const char* escape_for_JSON_string(int c)
 {
 	return strchr("\r\n\t\v\f\"\\", c);
 }
@@ -751,7 +753,7 @@ std::ostream& JSON::write_object(std::ostream& os, const _object_JSON& src, int 
 	os.put('{');
 	const auto ub = src.size();
 	auto i = 0;
-	for (const auto x : src) {
+	for (const auto& x : src) {
 		write_literal(os, x.first);
 		os.put(':');
 		x.second.write(os, indent + 1);
