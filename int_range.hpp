@@ -144,7 +144,6 @@ public:
 		if (rhs.empty()) return false;
 		return *static_cast<const super*>(this)==rhs;	// use base definition if no unusual circumstances
 	}
-	bool operator!=(const int_range& rhs) const { return !(*this==rhs); }
 
 	iterator begin() { return iterator(this,this->lower()); };
 	iterator end() { return iterator(this,this->upper()+1); }

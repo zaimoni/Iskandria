@@ -81,7 +81,6 @@ public:
 		}
 		return true;
 	}
-	bool operator!=(const slice_array& rhs) const { return !(*this==rhs); }
 
 	iterator begin() { return iterator(this); };
 	iterator end() { return iterator(this,_filter.size()); }

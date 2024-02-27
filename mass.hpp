@@ -46,6 +46,4 @@ public:
 	friend bool operator==(const mass& lhs, const mass& rhs);
 };
 
-inline bool operator!=(const mass& lhs, const mass& rhs) { return !(lhs == rhs); }
-
 #endif

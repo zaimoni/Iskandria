@@ -111,8 +111,6 @@ private:
 	void init_hyperbola(const interval& major, const interval& minor);
 };
 
-inline bool operator!=(const conic& lhs, const conic& rhs) { return !(lhs == rhs); }
-
 }	// namespace math
 }	// namespace zaimoni
 

@@ -15,8 +15,6 @@ inline bool operator==(const sf::Event::KeyEvent& lhs, const sf::Event::KeyEvent
 		&& lhs.system == rhs.system;
 }
 
-inline bool operator!=(const sf::Event::KeyEvent& lhs, const sf::Event::KeyEvent& rhs) { return !(lhs == rhs); }
-
 namespace isk {
 
 class textmenu {

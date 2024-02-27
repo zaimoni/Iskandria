@@ -60,7 +60,6 @@ public:
 	friend bool operator==(const orbit& lhs, const orbit& rhs) {
 		return lhs._m == rhs._m && lhs._orbit == rhs._orbit && 0 == (lhs._pericenter <=> rhs._pericenter) && 0 == (lhs._apocenter <=> rhs._apocenter);
 	}
-	friend bool operator!=(const orbit& lhs, const orbit& rhs) { return !(lhs == rhs); }
 
 	// accessors
 	const mass& m() const { return _m; }
