@@ -11,20 +11,25 @@ namespace isk {
 static constexpr std::optional<std::partial_ordering> _guard_render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)
 {
 	if (lhs == rhs) return std::partial_ordering::equivalent;
+#if PROTOTYPE
 	//	auto abs_delta = zaimoni::pos_diff(lhs, rhs); // don't have this built out
 	zaimoni::math::vector<size_t, 3> abs_delta;
 	abs_delta[0] = zaimoni::pos_diff(lhs[0], rhs[0]);
 	abs_delta[1] = zaimoni::pos_diff(lhs[1], rhs[1]);
 	abs_delta[2] = zaimoni::pos_diff(lhs[2], rhs[2]);
-	if (abs_delta[0] > abs_delta[2] && 2 <= abs_delta[0] - abs_delta[2]) return std::partial_ordering::unordered;
-	if (abs_delta[1] > abs_delta[2] && 2 <= abs_delta[1] - abs_delta[2]) return std::partial_ordering::unordered;
-	if (0 == abs_delta[2]) {
+#endif
+	if (lhs[2] == rhs[2]) {
 		// same z-coordinate
-		auto delta = lhs - rhs;
-		if (0 <= delta[0] && 0 <= delta[1]) return std::partial_ordering::greater;
-		if (0 >= delta[0] && 0 >= delta[1]) return std::partial_ordering::less;
+		auto delta = lhs - rhs; // won't fit on screen *long* before this overflows
+		if (0 <= delta[0] && 0 <= delta[1]) return std::partial_ordering::greater; // southeast quadrant
+		if (0 >= delta[0] && 0 >= delta[1]) return std::partial_ordering::less;	   // northwest quadrant
 		return std::partial_ordering::unordered;
 	}
+#if PROTOTYPE
+	// need to verify these before actually using
+	if (abs_delta[0] > abs_delta[2] && 2 <= abs_delta[0] - abs_delta[2]) return std::partial_ordering::unordered;
+	if (abs_delta[1] > abs_delta[2] && 2 <= abs_delta[1] - abs_delta[2]) return std::partial_ordering::unordered;
+#endif
 	return std::nullopt;
 }
 
@@ -32,6 +37,23 @@ static_assert(telephoto_grid::coord_type({0, 0, 0}) == telephoto_grid::coord_typ
 static_assert(telephoto_grid::coord_type({ 0, 0, 0 }) != telephoto_grid::coord_type({ 0, 0, 1 }));
 static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
 static_assert(std::partial_ordering::equivalent == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 1, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(std::partial_ordering::greater == *_guard_render_before(telephoto_grid::coord_type({ 0, 1, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 1, 0 })));
+static_assert(std::partial_ordering::less == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, 1, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 1, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(std::partial_ordering::greater == *_guard_render_before(telephoto_grid::coord_type({ 1, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 1, 0, 0 })));
+static_assert(std::partial_ordering::less == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 1, 0, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, -1, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(std::partial_ordering::less == *_guard_render_before(telephoto_grid::coord_type({ 0, -1, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, -1, 0 })));
+static_assert(std::partial_ordering::greater == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ 0, -1, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ -1, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(std::partial_ordering::less == *_guard_render_before(telephoto_grid::coord_type({ -1, 0, 0 }), telephoto_grid::coord_type({ 0, 0, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ -1, 0, 0 })));
+static_assert(std::partial_ordering::greater == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ -1, 0, 0 })));
 
 static std::partial_ordering _render_before(telephoto_grid::coord_type lhs, telephoto_grid::coord_type rhs)
 {

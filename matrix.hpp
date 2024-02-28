@@ -101,7 +101,7 @@ void in_place_sum(IO_Iter dest, I_Iter src, size_t n)
 }
 
 template<class IO_Iter,class I_Iter>
-void in_place_difference(IO_Iter dest, I_Iter src, size_t n)
+constexpr void in_place_difference(IO_Iter dest, I_Iter src, size_t n)
 {
 	assert(0<n);
 	assert(dest);
@@ -189,7 +189,12 @@ public:
 	constexpr vector(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
 	constexpr explicit vector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
 	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
-	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(vector);
+
+	constexpr vector(const vector& src) = default;
+	constexpr vector(vector&& src) = default;
+	constexpr ~vector() = default;
+	constexpr vector& operator=(const vector& src) = default;
+	constexpr vector& operator=(vector&& src) = default;
 
 	vector operator=(const T* src) {
 		assert(src);
@@ -221,7 +226,7 @@ public:
 		zaimoni::math::pointwise::in_place_sum(_x.data(), src.data(), N);
 		return *this;
 	}
-	vector& operator-=(const vector& src) {
+	constexpr vector& operator-=(const vector& src) {
 		zaimoni::math::pointwise::in_place_difference(_x.data(),src._x.data(),N);
 		return *this;
 	}
@@ -261,7 +266,7 @@ vector<T, N> operator+(vector<T, N> lhs, const vector<U, N>& rhs)
 }
 
 template<class T,size_t N>
-vector<T,N> operator-(vector<T,N> lhs, const vector<T,N>& rhs)
+constexpr vector<T,N> operator-(vector<T,N> lhs, const vector<T,N>& rhs)
 {
 	lhs -= rhs;
 	return lhs;
