@@ -55,31 +55,38 @@ static_assert(std::partial_ordering::less == *_guard_render_before(telephoto_gri
 static_assert(_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ -1, 0, 0 })));
 static_assert(std::partial_ordering::greater == *_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ -1, 0, 0 })));
 
+static_assert(_guard_render_before(telephoto_grid::coord_type({ 1, 0, 0 }), telephoto_grid::coord_type({ 0, 1, 0 })));
+static_assert(std::partial_ordering::unordered == *_guard_render_before(telephoto_grid::coord_type({ 1, 0, 0 }), telephoto_grid::coord_type({ 0, 1, 0 })));
+static_assert(_guard_render_before(telephoto_grid::coord_type({ -1, 0, 0 }), telephoto_grid::coord_type({ 0, -1, 0 })));
+static_assert(std::partial_ordering::unordered == *_guard_render_before(telephoto_grid::coord_type({ -1, 0, 0 }), telephoto_grid::coord_type({ 0, -1, 0 })));
+
+static_assert(!_guard_render_before(telephoto_grid::coord_type({ 0, 0, 0 }), telephoto_grid::coord_type({ -1, -1, 1 })));
+
 static std::partial_ordering _render_before(telephoto_grid::coord_type lhs, telephoto_grid::coord_type rhs)
 {
-	static const constexpr telephoto_grid::coord_type z_adjust({ -1, -1, 1 });
+//	static const constexpr telephoto_grid::coord_type z_adjust({ -1, -1, 1 });
 
 	assert(lhs[2] < rhs[2]);
 //	zaimoni::math::rearrange_diff(lhs, rhs); // not built out
-restart:
-	zaimoni::math::rearrange_diff(lhs[0], rhs[0]);
-	zaimoni::math::rearrange_diff(lhs[1], rhs[1]);
-	zaimoni::math::rearrange_diff(lhs[2], rhs[2]);
+	while (true) {
+		zaimoni::math::rearrange_diff(lhs[0], rhs[0]);
+		zaimoni::math::rearrange_diff(lhs[1], rhs[1]);
+		zaimoni::math::rearrange_diff(lhs[2], rhs[2]);
 
-	auto delta_z = zaimoni::pos_diff(lhs[2], rhs[2]);
-	if (std::numeric_limits<ptrdiff_t>::max() < delta_z) delta_z = std::numeric_limits<ptrdiff_t>::max();
-	if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[0]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[0];
-	if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[1]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[1];
-	if (0 == delta_z) return std::partial_ordering::unordered;
-//	rhs -= (ptrdiff_t)delta_z * z_adjust; // not built out
-	rhs[0] += delta_z;
-	rhs[1] += delta_z;
-	rhs[2] -= delta_z;
-	if (const auto test = _guard_render_before(lhs, rhs)) {
-		if (std::partial_ordering::equivalent == *test) return std::partial_ordering::less;
-		return *test;
-	}
-	goto restart;
+		auto delta_z = zaimoni::pos_diff(lhs[2], rhs[2]);
+		if (std::numeric_limits<ptrdiff_t>::max() < delta_z) delta_z = std::numeric_limits<ptrdiff_t>::max();
+		if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[0]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[0];
+		if (std::numeric_limits<ptrdiff_t>::max() - delta_z < rhs[1]) delta_z = std::numeric_limits<ptrdiff_t>::max() - rhs[1];
+		if (0 == delta_z) return std::partial_ordering::unordered;
+	//	rhs -= (ptrdiff_t)delta_z * z_adjust; // not built out
+		rhs[0] += delta_z;
+		rhs[1] += delta_z;
+		rhs[2] -= delta_z;
+		if (const auto test = _guard_render_before(lhs, rhs)) {
+			if (std::partial_ordering::equivalent == *test) return std::partial_ordering::less;
+			return *test;
+		}
+	};
 }
 
 static std::partial_ordering render_before(const telephoto_grid::coord_type& lhs, const telephoto_grid::coord_type& rhs)

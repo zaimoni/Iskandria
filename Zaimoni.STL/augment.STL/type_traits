@@ -263,7 +263,7 @@ template<std::integral I> constexpr I scalBn(I x, int scale)
 
 namespace math {
 
-template<std::signed_integral T> int rearrange_diff(T& lhs, T& rhs)
+template<std::signed_integral T> constexpr int rearrange_diff(T& lhs, T& rhs)
 {
 	if (0 == lhs) return 0;
 
