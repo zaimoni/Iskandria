@@ -83,7 +83,7 @@ bool all(I_Iter lhs, I_Iter rhs, size_t n, OP rel)
 	while (0 < n) {
 		if (!rel(*(lhs++), *(rhs++))) return false;
 		--n;
-	};
+	}
 	return true;
 }
 
@@ -97,20 +97,22 @@ void in_place_sum(IO_Iter dest, I_Iter src, size_t n)
 		{
 		*(dest++) += *(src++);
 		--n;
-		};
+		}
 }
 
 template<class IO_Iter,class I_Iter>
 constexpr void in_place_difference(IO_Iter dest, I_Iter src, size_t n)
 {
-	assert(0<n);
-	assert(dest);
-	assert(src);
+	if (!std::is_constant_evaluated()) {
+		assert(0<n);
+		assert(dest);
+		assert(src);
+	}
 	while(0<n)
 		{
 		*(dest++) -= *(src++);
 		--n;
-		};
+		}
 }
 
 template<class IO_Iter,class T>
@@ -122,7 +124,7 @@ void in_place_scalar_product(IO_Iter dest, const T src, size_t n)
 		{
 		*(dest++) *= src;
 		--n;
-		};
+		}
 }
 
 template<class IO_Iter,class T>
@@ -134,7 +136,7 @@ void in_place_scalar_quotient(IO_Iter dest, const T src, size_t n)
 		{
 		*(dest++) /= src;
 		--n;
-		};
+		}
 }
 
 template<class IO_Iter, class I_Iter>
@@ -146,7 +148,7 @@ void clamp_lb(IO_Iter dest, I_Iter src, size_t n)
 	while (0 < n) {
 		zaimoni::math::clamp_lb(*(dest++), *(src++));
 		--n;
-	};
+	}
 }
 
 template<class IO_Iter, class I_Iter>
@@ -158,7 +160,7 @@ void clamp_ub(IO_Iter dest, I_Iter src, size_t n)
 	while (0 < n) {
 		zaimoni::math::clamp_ub(*(dest++), *(src++));
 		--n;
-	};
+	}
 }
 
 
@@ -188,7 +190,7 @@ public:
 	}
 	constexpr vector(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
 	constexpr explicit vector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
-	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
+	vector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); }
 
 	constexpr vector(const vector& src) = default;
 	constexpr vector(vector&& src) = default;
@@ -196,7 +198,7 @@ public:
 	constexpr vector& operator=(const vector& src) = default;
 	constexpr vector& operator=(vector&& src) = default;
 
-	vector operator=(const T* src) {
+	vector& operator=(const T* src) {
 		assert(src);
 		std::copy_n(src,N,_x.data());
 		return *this;
@@ -204,13 +206,13 @@ public:
 
 	// array deference
 	constexpr T operator[](size_t n) const {
-		assert(N>n);
-		return _x.data()[n];
-	};
+		if (!std::is_constant_evaluated()) { assert(N>n); }
+		return _x[n];
+	}
 	constexpr T& operator[](size_t n) {
-		assert(N>n);
-		return _x.data()[n];
-	};
+		if (!std::is_constant_evaluated()) { assert(N>n); }
+		return _x[n];
+	}
 	size_t size() const {return N;}
 	auto data() { return _x.data(); }
 	auto data() const { return _x.data(); }
@@ -322,18 +324,18 @@ public:
 	}
 	constexpr covector(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<N>(src); }
 	constexpr explicit covector(const T& src) : _x({}) { _x = zaimoni::array::fill<N>(src); }
-	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); };
+	covector(const T* src) { assert(src); std::copy_n(src, N, _x.data()); }
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(covector);
 
 	// array deference
 	T operator[](size_t n) const {
 		assert(N>n);
-		return _x.data()[n];
-	};
+		return _x[n];
+	}
 	T& operator[](size_t n) {
 		assert(N>n);
-		return _x.data()[n];
-	};
+		return _x[n];
+	}
 	size_t size() const {return N;}
 
 	// numerically simple operations
@@ -418,23 +420,23 @@ public:
 		size_t i = N;
 		do {
 			--i;
-			_x.data()[i * (cols + 1)] = src;
+			_x[i * (cols + 1)] = src;
 		} while (0 < i);
 	}
-	matrix_square(const T* src) { assert(src); std::copy_n(src,N*N,_x.c_array()); };
+	matrix_square(const T* src) { assert(src); std::copy_n(src,N*N,_x.c_array()); }
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix_square);
 
 	// accessors for matrix elements
 	T operator()(size_t r,size_t c) const {
 		assert(rows>r);
 		assert(cols>c);
-		return _x.data()[r*cols+c];
-	};
+		return _x[r*cols+c];
+	}
 	T& operator()(size_t r,size_t c) {
 		assert(rows>r);
 		assert(cols>c);
-		return _x.data()[r*cols+c];
-	};
+		return _x[r*cols+c];
+	}
 
 	// numerically simple operations
 	matrix_square& operator+=(const matrix_square& src) {
@@ -455,10 +457,10 @@ public:
 	}
 
 	// row/column accessors
-	row_type row(size_t r) {assert(N>r); return zaimoni::slice_array<T>(_x.data()+N*r,zaimoni::slice(0,N,1));};
-	col_type col(size_t c) {assert(N>c); return zaimoni::slice_array<T>(_x.data()+c,zaimoni::slice(0,N,N));};
-	const_row_type row(size_t r) const {assert(N>r); return zaimoni::slice_array<const T>(_x.data()+N*r,zaimoni::slice(0,N,1));};
-	const_col_type col(size_t c) const {assert(N>c); return zaimoni::slice_array<const T>(_x.data()+c,zaimoni::slice(0,N,N));};
+	row_type row(size_t r) {assert(N>r); return zaimoni::slice_array<T>(_x.data()+N*r,zaimoni::slice(0,N,1));}
+	col_type col(size_t c) {assert(N>c); return zaimoni::slice_array<T>(_x.data()+c,zaimoni::slice(0,N,N));}
+	const_row_type row(size_t r) const {assert(N>r); return zaimoni::slice_array<const T>(_x.data()+N*r,zaimoni::slice(0,N,1));}
+	const_col_type col(size_t c) const {assert(N>c); return zaimoni::slice_array<const T>(_x.data()+c,zaimoni::slice(0,N,N));}
 
 /*
 	// square matrix has a determinant; raw # of terms Factorial(n!)
@@ -817,20 +819,20 @@ public:
 		if constexpr (std::is_trivially_constructible_v<T>) _x = zaimoni::array::fill<R*C>(int_as<0, T>());
 	}
 	constexpr matrix(const std::initializer_list<T>& src) : _x({}) { _x = zaimoni::array::copy<R*C>(src); }
-	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); };
+	matrix(const T* src) { assert(src); std::copy_n(src,R*C,_x.data()); }
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix);
 
 	// accessors for matrix elements
 	T operator()(size_t r,size_t c) const {
 		assert(rows>r);
 		assert(cols>c);
-		return _x.data()[r*cols+c];
-	};
+		return _x[r*cols+c];
+	}
 	T& operator()(size_t r,size_t c) {
 		assert(rows>r);
 		assert(cols>c);
-		return _x.data()[r*cols+c];
-	};
+		return _x[r*cols+c];
+	}
 
 	// numerically simple operations
 	matrix& operator+=(const matrix& src) {
@@ -851,10 +853,10 @@ public:
 	}
 
 	// row/column accessors
-	row_type row(size_t r) {assert(R>r); return zaimoni::slice_array<T>(_x.data()+C*r,zaimoni::slice(0,R,1));};
-	col_type col(size_t c) {assert(C>c); return zaimoni::slice_array<T>(_x.data()+c,zaimoni::slice(0,C,R));};
-	const_row_type row(size_t r) const {assert(R>r); return zaimoni::slice_array<const T>(_x.data()+C*r,zaimoni::slice(0,R,1));};
-	const_col_type col(size_t c) const {assert(C>c); return zaimoni::slice_array<const T>(_x.data()+c,zaimoni::slice(0,C,R));};
+	row_type row(size_t r) {assert(R>r); return zaimoni::slice_array<T>(_x.data()+C*r,zaimoni::slice(0,R,1));}
+	col_type col(size_t c) {assert(C>c); return zaimoni::slice_array<T>(_x.data()+c,zaimoni::slice(0,C,R));}
+	const_row_type row(size_t r) const {assert(R>r); return zaimoni::slice_array<const T>(_x.data()+C*r,zaimoni::slice(0,R,1));}
+	const_col_type col(size_t c) const {assert(C>c); return zaimoni::slice_array<const T>(_x.data()+c,zaimoni::slice(0,C,R));}
 };
 
 template<class T, size_t R, size_t C>
@@ -980,7 +982,7 @@ public:
 	constexpr explicit matrix_diagonal(const T& src) : _x({}) {
 		_x = zaimoni::array::fill<N>(src);
 	}
-	matrix_diagonal(const T* src) { assert(src); std::copy_n(src, N, _x.c_array()); };
+	matrix_diagonal(const T* src) { assert(src); std::copy_n(src, N, _x.c_array()); }
 	ZAIMONI_DEFAULT_COPY_DESTROY_ASSIGN(matrix_diagonal);
 
 	// accessors for matrix elements
@@ -988,14 +990,14 @@ public:
 		assert(rows > r);
 		assert(cols > c);
 		if (r != c) return int_as<0, T>();
-		return _x.data()[r];
-	};
+		return _x[r];
+	}
 	T& operator()(size_t r, size_t c) {
 		assert(rows > r);
 		assert(cols > c);
 		assert(r == c);
-		return _x.data()[r];
-	};
+		return _x[r];
+	}
 
 	// numerically simple operations
 	matrix_diagonal& operator+=(const matrix_diagonal& src) {
@@ -1017,10 +1019,10 @@ public:
 
 	// row/column accessors
 /*
-	row_type row(size_t r) { assert(N > r); return zaimoni::slice_array<T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); };
-	col_type col(size_t c) { assert(N > c); return zaimoni::slice_array<T>(_x.data() + c, zaimoni::slice(0, N, N)); };
-	const_row_type row(size_t r) const { assert(N > r); return zaimoni::slice_array<const T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); };
-	const_col_type col(size_t c) const { assert(N > c); return zaimoni::slice_array<const T>(_x.data() + c, zaimoni::slice(0, N, N)); };
+	row_type row(size_t r) { assert(N > r); return zaimoni::slice_array<T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); }
+	col_type col(size_t c) { assert(N > c); return zaimoni::slice_array<T>(_x.data() + c, zaimoni::slice(0, N, N)); }
+	const_row_type row(size_t r) const { assert(N > r); return zaimoni::slice_array<const T>(_x.data() + N * r, zaimoni::slice(0, N, 1)); }
+	const_col_type col(size_t c) const { assert(N > c); return zaimoni::slice_array<const T>(_x.data() + c, zaimoni::slice(0, N, N)); }
 */
 
 	/*
