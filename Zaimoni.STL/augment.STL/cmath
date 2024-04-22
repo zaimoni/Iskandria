@@ -61,7 +61,7 @@ union binary<long double>
 		unsigned long long sign : 1;
 	};
 
-	constexpr binary(long double src) : _x(src) {};
+	constexpr binary(long double src) : _x(src) {}
 private:
 	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
@@ -90,7 +90,7 @@ union binary<long double>
 		typename zaimoni::bitmap<total_bits-CHAR_BIT*sizeof(unsigned long long)>::type sign : 1;
 	};
 
-	constexpr binary(long double src) : _x(src) {};
+	constexpr binary(long double src) : _x(src) {}
 private:
 	constexpr binary(unsigned long long _mant, unsigned long _exp, bool _sign) : mant(_mant), exp(_exp & ((1ULL<<(low_exp+1))-1)), exp_2(_exp >> low_exp), sign(_sign) {}
 public:
@@ -121,7 +121,7 @@ union binary<double>
 		uint64_t sign : 1;
 	};
 
-	constexpr binary(double src) : _x(src) {};
+	constexpr binary(double src) : _x(src) {}
 private:
 	constexpr binary(uint64_t _mant, uint32_t _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
@@ -148,7 +148,7 @@ union binary<float>
 		uint32_t sign : 1;
 	};
 
-	constexpr binary(float src) : _x(src) {};
+	constexpr binary(float src) : _x(src) {}
 private:
 	constexpr binary(uint32_t _mant, uint32_t _exp, bool _sign) : mant(_mant), exp(_exp), sign(_sign) {}
 public:
@@ -246,21 +246,29 @@ template<std::floating_point F> bool delta_cancel(F& lhs, F& rhs, F delta)
 template<class T>
 class _fp_stats	// odd name avoids conflicting with an earlier prototype, below.  Optimized for Zaimoni.STL/var.hpp
 {
-	static_assert(std::is_floating_point_v<T>);
 protected:
 	mutable T _mantissa;
 	mutable int _exponent;
 	mutable bool _valid;
 public:
-	_fp_stats() : _valid(false) {};
-	_fp_stats(typename const_param<T>::type src) : _valid(true) {
-		_mantissa = frexp(src, &_exponent);
-	};
+	_fp_stats() : _valid(false) {}
+	_fp_stats(const T& src) { init_stats(src); }
 
 	void invalidate_stats() { _valid = false; }
 	bool valid() const { return _valid; }
-	void init_stats(typename const_param<T>::type x) const {
-		_mantissa = frexp(x, &_exponent);
+	void init_stats(const T& x) const {
+		if constexpr (std::is_floating_point_v<T>) {
+			_mantissa = frexp(x, &_exponent);
+		} else {
+			_mantissa = x;
+			_exponent = 1;
+			if (0 != _mantissa) {
+				while (0 == _mantissa % 2) {
+					++_exponent;
+					_mantissa /= 2;
+				}
+			}
+		}
 		_valid = true;
 	}
 
@@ -268,12 +276,25 @@ public:
 	// precondition: incoming lb/ub are initialized appropriately
 	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
 		if (0 == _mantissa) return;
-		auto _lb = std::numeric_limits<T>::min_exponent - _exponent;
-		auto _ub = std::numeric_limits<T>::max_exponent - _exponent;
-		if (0 < _lb) _lb = 0;
-		if (0 > _ub) _ub = 0;
-		if (lb < _lb) lb = _lb;
-		if (ub > _ub) ub = _ub;
+                if constexpr (std::is_floating_point_v<T>) {
+			auto _lb = std::numeric_limits<T>::min_exponent - _exponent;
+			auto _ub = std::numeric_limits<T>::max_exponent - _exponent;
+			if (0 < _lb) _lb = 0;
+			if (0 > _ub) _ub = 0;
+			if (lb < _lb) lb = _lb;
+			if (ub > _ub) ub = _ub;
+		} else {
+			static constexpr const auto tripwire = std::numeric_limits<T>::max() / 2;
+			T test = _mantissa;
+			T _lb = _exponent - 1;
+			while (tripwire >= test) {
+				--_lb;
+				test *= 2;
+			}
+			T _ub = _exponent - 1;
+			if (lb < _lb) lb = _lb;
+			if (ub > _ub) ub = _ub;
+		}
 	}
 
 	// precondition: valid
@@ -281,140 +302,6 @@ public:
 
 	// precondition: valid
 	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
-};
-
-
-template<>
-class _fp_stats<uintmax_t>
-{
-protected:
-	mutable uintmax_t _mantissa;
-	mutable int _exponent;
-	mutable bool _valid;
-public:
-	_fp_stats() : _valid(false) {};
-	_fp_stats(uintmax_t src) : _valid(true), _mantissa(src), _exponent(1) {
-		_find_exponent();
-	};
-
-	void invalidate_stats() { _valid = false; }
-	bool valid() const { return _valid; }
-	void init_stats(uintmax_t x) const {
-		_mantissa = x;
-		_exponent = 1;
-		_valid = true;
-		_find_exponent();
-	}
-
-	// precondition: valid
-	// precondition: incoming lb/ub are initialized appropriately
-	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
-		if (0 == _mantissa) return;
-		intmax_t _lb = _find_min_scalbn();
-		intmax_t _ub = _exponent - 1;
-
-		if (lb < _lb) lb = _lb;
-		if (ub > _ub) ub = _ub;
-	}
-
-	// precondition: valid
-	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
-
-	// precondition: valid
-	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
-
-private:
-	void _find_exponent() const {
-		if (0 != _mantissa) {
-			while (0 == _mantissa % 2) {
-				++_exponent;
-				_mantissa /= 2;
-			}
-		}
-	}
-
-	intmax_t _find_min_scalbn() const {
-		static constexpr const auto tripwire = std::numeric_limits<uintmax_t>::max() / 2;
-		auto test = _mantissa;
-		intmax_t ret = 0;
-		while (tripwire >= test) {
-			--ret;
-			test *= 2;
-		}
-		ret += (_exponent - 1);
-		return ret;
-	}
-};
-
-template<>
-class _fp_stats<intmax_t>
-{
-protected:
-	mutable intmax_t _mantissa;
-	mutable int _exponent;
-	mutable bool _valid;
-public:
-	_fp_stats() : _valid(false) {};
-	_fp_stats(intmax_t src) : _valid(true) {
-		_find_exponent();
-	};
-
-	void invalidate_stats() { _valid = false; }
-	bool valid() const { return _valid; }
-	void init_stats(intmax_t x) const {
-		_mantissa = x;
-		_exponent = 1;
-		_valid = true;
-		_find_exponent();
-	}
-
-	// precondition: valid
-	// precondition: incoming lb/ub are initialized appropriately
-	void scal_bn_safe_range(intmax_t& lb, intmax_t& ub) const {
-		if (0 == _mantissa) return;
-		intmax_t _lb = _find_min_scalbn();
-		intmax_t _ub = _exponent - 1;
-
-		if (lb < _lb) lb = _lb;
-		if (ub > _ub) ub = _ub;
-	}
-
-	// precondition: valid
-	bool is_scal_bn_identity() const { return 0 == _mantissa; }	// 0, infinity, or NaN
-
-	// precondition: valid
-	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
-
-private:
-	void _find_exponent() const {
-		if (0 != _mantissa) {
-			while (0 == _mantissa % 2) {
-				++_exponent;
-				_mantissa /= 2;
-			}
-		}
-	}
-
-	intmax_t _find_min_scalbn() const {
-		static constexpr const auto tripwire = std::numeric_limits<intmax_t>::max() / 2;
-		static constexpr const auto tripwire2 = std::numeric_limits<intmax_t>::min() / 2;
-		auto test = _mantissa;
-		intmax_t ret = 0;
-		if (0 < test) {
-			while (tripwire >= test) {
-				--ret;
-				test *= 2;
-			}
-		}
-		else {
-			while (tripwire2 <= test) {
-				--ret;
-				test *= 2;
-			}
-		}
-		ret += (_exponent - 1);
-		return ret;
-	}
 };
 
 template<class T>
@@ -468,7 +355,7 @@ public:
 	}
 
 	// for addition/subtraction
-	F delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); };	// usually prepared for subtractive cancellation
+	F delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); }	// usually prepared for subtractive cancellation
 
 	// these are in terms of absolute value
 	std::pair<int, int> safe_subtract_exponents()
@@ -518,14 +405,14 @@ public:
 	void swap(fp_stats& rhs) { std::swap(_exponent, rhs._exponent); std::swap(_mantissa, rhs._mantissa); }
 
 	// frexp convention: mantissa is [0.5,1.0) and exponent of 1.0 is 1
-	auto exponent() const { return _exponent; };
-	auto mantissa() const { return _mantissa; };
+	auto exponent() const { return _exponent; }
+	auto mantissa() const { return _mantissa; }
 	uintmax_t int_mantissa() const { return _mantissa_as_int(_mantissa); }
 	uintmax_t divisibilty_test() const { return _mantissa_as_int(_mantissa); }
-	int safe_2_n_multiply() const { return std::numeric_limits<T>::max_exponent - _exponent; };
-	int safe_2_n_divide() const { return _exponent - std::numeric_limits<T>::min_exponent; };
+	int safe_2_n_multiply() const { return std::numeric_limits<T>::max_exponent - _exponent; }
+	int safe_2_n_divide() const { return _exponent - std::numeric_limits<T>::min_exponent; }
 
-	T delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); };	// usually prepared for subtractive cancellation
+	T delta(int n) const { return copysign(scalbn(0.5, n), _mantissa); }	// usually prepared for subtractive cancellation
 
 	// these are in terms of absolute value
 	std::pair<int, int> safe_subtract_exponents()

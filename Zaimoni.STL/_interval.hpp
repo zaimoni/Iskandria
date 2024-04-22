@@ -109,11 +109,11 @@ namespace zaimoni {
 		using zaimoni::isNaN;
 		using zaimoni::scalBn;
 
-		template<std::floating_point F>
+		template<class F>
 		struct would_overflow<ISK_INTERVAL<F> >
 		{
 			static bool sum(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs) {
-				return would_overflow<F>::sum(lhs.lower(), rhs.lower()) || would_overflow<F>(lhs.upper(), rhs.upper());
+				return would_overflow<F>::sum(lhs.lower(), rhs.lower()) || would_overflow<F>::sum(lhs.upper(), rhs.upper());
 			}
 //			static int product(const ISK_INTERVAL<F>& lhs, const ISK_INTERVAL<F>& rhs) { ...; }
 			static int square(const ISK_INTERVAL<F>& lhs) {
