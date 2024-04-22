@@ -297,8 +297,15 @@ public:
 		}
 	}
 
+	// return: true if and only if one of 0, infinity, or NaN
 	// precondition: valid
-	bool is_scal_bn_identity() const { return std::numeric_limits<T>::max_exponent < _exponent; }	// 0, infinity, or NaN
+	bool is_scal_bn_identity() const {
+		if constexpr (std::is_floating_point_v<T>) {
+			return std::numeric_limits<T>::max_exponent < _exponent;
+		} else { // default for types that have neither infinity, nor NaN, as an option -- e.g., uintmax_t or intmax_t
+			return 0 == _mantissa;
+		}
+	}
 
 	// precondition: valid
 	intmax_t ideal_scal_bn() const { return is_scal_bn_identity() ? 0 : -(_exponent - 1); }
