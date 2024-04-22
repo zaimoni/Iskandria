@@ -7,188 +7,66 @@
 #include "augment.STL/cmath"
 #include "numeric_error.hpp"
 #include <charconv>
+#include <type_traits>
+
+namespace zaimoni::detail {
+
+	template<class T>
+	struct var_fp_impl
+	{
+		using param_type = T;
+
+		static const math::type* domain(const param_type& x)  {
+			if constexpr (std::is_floating_point_v<T>) {
+				if (std::isnan(x)) return nullptr;
+				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
+				return &zaimoni::math::get<_type<_type_spec::_R_>>();
+			} else {
+				return &zaimoni::math::get<_type<_type_spec::_Z_>>();
+			}
+		}
+		static constexpr int sgn(const param_type& x) {
+			if constexpr (std::is_signed_v<T>) {
+				return 0 < x ? 1 : (0 > x ? -1 : 0);
+			} else {
+				return 0 < x ? 1 : 0;
+			}
+		}
+		static std::string to_s(const param_type& x) {
+			char buffer[30];
+			auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
+			*ret.ptr = 0;
+			return std::string(buffer);
+		}
+		static bool is_scal_bn_identity(const param_type& x) {
+			return _fp_stats<T>(x).is_scal_bn_identity();
+		}
+		static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
+			const auto span(scal_bn_safe_range(x));
+			if (0 < scale) {
+				return span.second < scale ? span.second : scale;
+			} else /* if (0 > scale) */ {
+				return span.first > scale ? span.first : scale;
+			}
+		}
+		static intmax_t ideal_scal_bn(const param_type& x) {
+			return _fp_stats<param_type>(x).ideal_scal_bn();
+		}
+		static constexpr fp_API* clone() { return nullptr; }
+		static void _scal_bn(param_type& x, intmax_t scale) {
+			if constexpr (std::is_floating_point_v<T>) {
+				x = std::scalbn(x, scale);
+			} else if (0 > scale) {
+				x >>= -scale;
+			} else /* if (0 <= scale) */ {
+				x <<= scale;
+			}
+		}
+		static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
+	};
+}
 
 namespace zaimoni {
-
-	namespace detail {
-
-		template<class T> struct var_fp_impl;
-
-		template<>
-		struct var_fp_impl<double> {
-			using param_type = double;
-
-			static const math::type* domain(const param_type& x)  {
-				if (std::isnan(x)) return nullptr;
-				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
-				return &zaimoni::math::get<_type<_type_spec::_R_>>();
-			}
-			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) {
-				char buffer[30];
-				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
-				*ret.ptr = 0;
-				return std::string(buffer);
-			}
-			static bool is_scal_bn_identity(const param_type& x) {
-				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
-				const auto span(scal_bn_safe_range(x));
-				if (0 < scale) {
-					return span.second < scale ? span.second : scale;
-				} else /* if (0 > scale) */ {
-					return span.first > scale ? span.first : scale;
-				}
-			}
-			static intmax_t ideal_scal_bn(const param_type& x) {
-				return _fp_stats<param_type>(x).ideal_scal_bn();
-			}
-			static constexpr fp_API* clone() { return nullptr; }
-			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
-			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
-		};
-
-		template<>
-		struct var_fp_impl<float> {
-			using param_type = float;
-
-			static const math::type* domain(const param_type& x) {
-				if (std::isnan(x)) return nullptr;
-				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
-				return &zaimoni::math::get<_type<_type_spec::_R_>>();
-			}
-			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) {
-				char buffer[30];
-				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
-				*ret.ptr = 0;
-				return std::string(buffer);
-			}
-			static bool is_scal_bn_identity(const param_type& x) {
-				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
-				const auto span(scal_bn_safe_range(x));
-				if (0 < scale) {
-					return span.second < scale ? span.second : scale;
-				} else /* if (0 > scale) */ {
-					return span.first > scale ? span.first : scale;
-				}
-			}
-			static intmax_t ideal_scal_bn(const param_type& x) {
-				return _fp_stats<param_type>(x).ideal_scal_bn();
-			}
-			static constexpr fp_API* clone() { return nullptr; }
-			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
-			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
-		};
-
-		template<>
-		struct var_fp_impl<long double> {
-			using param_type = long double;
-
-			static const math::type* domain(const param_type& x) {
-				if (std::isnan(x)) return nullptr;
-				if (std::isinf(x)) return &zaimoni::math::get<_type<_type_spec::_R_SHARP_>>();
-				return &zaimoni::math::get<_type<_type_spec::_R_>>();
-			}
-			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) {
-				char buffer[30];
-				auto ret = std::to_chars(std::begin(buffer), std::end(buffer), x);
-				*ret.ptr = 0;
-				return std::string(buffer);
-			}
-			static bool is_scal_bn_identity(const param_type& x) {
-				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
-				const auto span(scal_bn_safe_range(x));
-				if (0 < scale) {
-					return span.second < scale ? span.second : scale;
-				} else /* if (0 > scale) */ {
-					return span.first > scale ? span.first : scale;
-				}
-			}
-			static intmax_t ideal_scal_bn(const param_type& x) {
-				return _fp_stats<param_type>(x).ideal_scal_bn();
-			}
-			static fp_API* clone(const param_type& x) { return nullptr; }
-			static constexpr fp_API* clone() { return nullptr; }
-			static void _scal_bn(param_type& x, intmax_t scale) { x = std::scalbn(x, scale); }
-			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
-		};
-
-
-		template<>
-		struct var_fp_impl<signed long long> {
-			using param_type = signed long long;
-
-			static const math::type* domain(const param_type& x) {
-				return &zaimoni::math::get<_type<_type_spec::_Z_>>();
-			}
-			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : (0 > x ? -1 : 0); }
-			static std::string to_s(const param_type& x) { return std::to_string(x); }
-			static bool is_scal_bn_identity(const param_type& x) {
-				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
-				const auto span(scal_bn_safe_range(x));
-				if (0 < scale) {
-					return span.second < scale ? span.second : scale;
-				} else /* if (0 > scale) */ {
-					return span.first > scale ? span.first : scale;
-				}
-			}
-			static intmax_t ideal_scal_bn(const param_type& x) {
-				return _fp_stats<param_type>(x).ideal_scal_bn();
-			}
-			static constexpr fp_API* clone() { return nullptr; }
-			static void _scal_bn(param_type& x, intmax_t scale) {
-				if (0 > scale) {
-					x >>= -scale;
-				} else /* if (0 <= scale) */ {
-					x <<= scale;
-				}
-			}
-			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
-		};
-
-		template<>
-		struct var_fp_impl<unsigned long long> {
-			using param_type = unsigned long long;
-
-			static const math::type* domain(const param_type& x) {
-				return &zaimoni::math::get<_type<_type_spec::_Z_>>();
-			}
-			static constexpr int sgn(const param_type& x) { return 0 < x ? 1 : 0; }
-			static std::string to_s(const param_type& x) { return std::to_string(x); }
-			static bool is_scal_bn_identity(const param_type& x) {
-				return _fp_stats<param_type>(x).is_scal_bn_identity();
-			}
-			static intmax_t scal_bn_is_safe(const param_type& x, intmax_t scale) {
-				const auto span(scal_bn_safe_range(x));
-				if (0 < scale) {
-					return span.second < scale ? span.second : scale;
-				} else /* if (0 > scale) */ {
-					return span.first > scale ? span.first : scale;
-				}
-			}
-			static intmax_t ideal_scal_bn(const param_type& x) {
-				return _fp_stats<param_type>(x).ideal_scal_bn();
-			}
-			static constexpr fp_API* clone() { return nullptr; }
-			static void _scal_bn(param_type& x, intmax_t scale) {
-				if (0 > scale) {
-					x >>= -scale;
-				} else /* if (0 <= scale) */ {
-					x <<= scale;
-				}
-			}
-			static constexpr fp_API* _eval(const param_type& x) { return nullptr; }
-		};
-	}
 
 	template<class T>
 	class var_fp final : public fp_API // "variable, floating-point" (actually value as we aren't tracking display name)
